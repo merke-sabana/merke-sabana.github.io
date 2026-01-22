@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <title>Merke+ de la Sabana</title>
 
   <!-- Google Fonts -->
@@ -25,7 +25,12 @@
   <header>
     <nav>
       <img src="img/logo_completo-sinfondo.png" alt="logo" class="logo">
-      <ul>
+      <button class="menu-toggle" aria-label="Menú">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <ul class="nav-menu">
         <li><a href="#hero">Inicio</a></li>
         <li><a href="#nosotros">Nosotros</a></li>
         <li><a href="#productos">Productos</a></li>
@@ -39,14 +44,19 @@
   <!-- HERO -->
   <section id="hero">
     <div class="container hero-content"> 
-      <div class="hero-text reveal" data-speed="0.2">
+      <div class="hero-text reveal" data-speed="0.1">
         <h1>Tu supermercado de confianza</h1>
         <p>Productos frescos, precios justos y atención cercana para el barrio.</p>
-        <a class="hero-btn" href="#contacto">Contáctanos</a>
+        <div class="hero-buttons">
+          <a class="hero-btn primary" href="#contacto">Contáctanos</a>
+          <a class="hero-btn secondary" href="#productos">Ver Productos</a>
+        </div>
       </div>
-      <div class="hero-img reveal spline-wrapper" data-speed="0.1">
-        <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.36/build/spline-viewer.js"></script>
-        <spline-viewer url="https://prod.spline.design/IsLjBvKzdTOzGYGd/scene.splinecode"></spline-viewer>
+      <div class="hero-img reveal" data-speed="0.05">
+        <div class="spline-container">
+          <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.36/build/spline-viewer.js"></script>
+          <spline-viewer url="https://prod.spline.design/IsLjBvKzdTOzGYGd/scene.splinecode"></spline-viewer>
+        </div>
       </div>
     </div>
   </section>
@@ -54,12 +64,29 @@
   <!-- NOSOTROS -->
   <section id="nosotros">
     <div class="container">
-      <div class="section-title reveal" data-speed="0.3">
+      <div class="section-title reveal">
         <h2>¿Quiénes somos?</h2>
+        <p class="section-subtitle">Conoce nuestra historia y compromiso</p>
       </div>
       <div class="about">
-        <p class="reveal" data-speed="0.2">Merke+ de la Sabana es un supermercado de barrio comprometido con la comunidad, ofreciendo productos de calidad y una experiencia cercana. Llevamos más de 10 años sirviendo a la comunidad de Chía con atención personalizada y precios competitivos.</p>
-        <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092" alt="Nosotros" class="reveal" data-speed="0.1">
+        <div class="about-content reveal" data-speed="0.1">
+          <p>Merke+ de la Sabana es un supermercado de barrio comprometido con la comunidad, ofreciendo productos de calidad y una experiencia cercana. Llevamos más de 10 años sirviendo a la comunidad de Chía con atención personalizada y precios competitivos.</p>
+          <div class="about-features">
+            <div class="feature">
+              <span class="feature-icon">⭐</span>
+              <h4>Calidad Garantizada</h4>
+              <p>Productos frescos y de primera calidad</p>
+            </div>
+            <div class="feature">
+              <span class="feature-icon">🤝</span>
+              <h4>Atención Personal</h4>
+              <p>Servicio cercano y amable</p>
+            </div>
+          </div>
+        </div>
+        <div class="about-image reveal" data-speed="0.05">
+          <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092" alt="Nosotros">
+        </div>
       </div>
     </div>
   </section>
@@ -67,25 +94,34 @@
   <!-- PRODUCTOS -->
   <section id="productos">
     <div class="container">
-      <div class="section-title reveal" data-speed="0.3">
+      <div class="section-title reveal">
         <h2>Nuestros productos</h2>
+        <p class="section-subtitle">Variedad y calidad para todos</p>
       </div>
       <div class="grid">
-        <div class="card reveal" data-speed="0.4">
+        <div class="card reveal">
+          <div class="card-icon">🛒</div>
           <h3>Abarrotes</h3>
-          <p>Todo lo esencial para tu despensa</p>
+          <p>Todo lo esencial para tu despensa diaria</p>
+          <a href="#" class="card-link">Ver productos →</a>
         </div>
-        <div class="card reveal" data-speed="0.4">
+        <div class="card reveal">
+          <div class="card-icon">🍎</div>
           <h3>Frutas y Verduras</h3>
-          <p>Frescas y de temporada</p>
+          <p>Frescas, locales y de temporada</p>
+          <a href="#" class="card-link">Ver productos →</a>
         </div>
-        <div class="card reveal" data-speed="0.4">
+        <div class="card reveal">
+          <div class="card-icon">🥛</div>
           <h3>Lácteos</h3>
           <p>Calidad y frescura garantizada</p>
+          <a href="#" class="card-link">Ver productos →</a>
         </div>
-        <div class="card reveal" data-speed="0.4">
+        <div class="card reveal">
+          <div class="card-icon">🥤</div>
           <h3>Bebidas</h3>
           <p>Variedad para todos los gustos</p>
+          <a href="#" class="card-link">Ver productos →</a>
         </div>
       </div>
     </div>
@@ -94,17 +130,31 @@
   <!-- MARCAS -->
   <section id="marcas">
     <div class="container">
-      <div class="section-title reveal" data-speed="0.3">
+      <div class="section-title reveal">
         <h2>Marcas aliadas</h2>
-        <p>Distribuidores oficiales de las mejores marcas</p>
+        <p class="section-subtitle">Distribuidores oficiales de las mejores marcas</p>
       </div>
-      <div class="brands reveal" data-speed="0.1">
-        <img src="https://dummyimage.com/200x60/fff/0B2C4D&text=Alpina" />
-        <img src="https://dummyimage.com/200x60/fff/E74C3C&text=Colombina" />
-        <img src="https://dummyimage.com/200x60/fff/2ECC71&text=Alquería" />
-        <img src="https://dummyimage.com/200x60/fff/FFD600&text=Nestlé" />
-        <img src="https://dummyimage.com/200x60/fff/fff&text=Postobón" />
-        <img src="https://dummyimage.com/200x60/fff/0B2C4D&text=Ramón+Sala" />
+      <div class="brands-container reveal">
+        <div class="brands-grid">
+          <div class="brand-item">
+            <img src="https://dummyimage.com/200x60/fff/0B2C4D&text=Alpina" alt="Alpina">
+          </div>
+          <div class="brand-item">
+            <img src="https://dummyimage.com/200x60/fff/E74C3C&text=Colombina" alt="Colombina">
+          </div>
+          <div class="brand-item">
+            <img src="https://dummyimage.com/200x60/fff/2ECC71&text=Alquería" alt="Alquería">
+          </div>
+          <div class="brand-item">
+            <img src="https://dummyimage.com/200x60/fff/FFD600&text=Nestlé" alt="Nestlé">
+          </div>
+          <div class="brand-item">
+            <img src="https://dummyimage.com/200x60/fff/fff&text=Postobón" alt="Postobón">
+          </div>
+          <div class="brand-item">
+            <img src="https://dummyimage.com/200x60/fff/0B2C4D&text=Ramón+Sala" alt="Ramón Sala">
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -112,16 +162,35 @@
   <!-- UBICACION -->
   <section id="ubicacion">
     <div class="container">
-      <div class="section-title reveal" data-speed="0.3">
+      <div class="section-title reveal">
         <h2>Encuéntranos</h2>
+        <p class="section-subtitle">Visítanos en nuestra ubicación</p>
       </div>
-      <div class="map-container reveal" data-speed="0.1">
-        <iframe src="https://www.google.com/maps?q=Supermercado+Merke+Mas+De+La+Sabana&output=embed"></iframe>
+      <div class="map-section reveal">
+        <div class="map-wrapper">
+          <iframe 
+            src="https://www.google.com/maps?q=Supermercado+Merke+Mas+De+La+Sabana&output=embed"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
         <div class="location-info">
-          <h3>📍 Nuestra dirección</h3>
-          <p>Carrera 12 #8-45, Chía, Cundinamarca</p>
-          <p>🕒 Horario: Lunes a Sábado 7:00 AM - 9:00 PM</p>
-          <p>Domingos y festivos: 8:00 AM - 8:00 PM</p>
+          <div class="info-card">
+            <div class="info-icon">📍</div>
+            <div>
+              <h3>Nuestra dirección</h3>
+              <p>Carrera 12 #8-45, Chía, Cundinamarca</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-icon">🕒</div>
+            <div>
+              <h3>Horario de atención</h3>
+              <p>Lunes a Sábado: 7:00 AM - 9:00 PM</p>
+              <p>Domingos y festivos: 8:00 AM - 8:00 PM</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -130,23 +199,30 @@
   <!-- CONTACTO -->
   <section id="contacto">
     <div class="container">
-      <div class="section-title reveal" data-speed="0.3">
+      <div class="section-title reveal">
         <h2>Contacto</h2>
       </div>
-      <div class="contact-info reveal" data-speed="0.2">
-        <div class="contact-item">
-          <h3>📍 Chía, Cundinamarca</h3>
-          <p>Estamos en el corazón del barrio La Sabana</p>
-        </div>
-        <div class="contact-item">
-          <h3>📞 Teléfonos</h3>
+      <div class="contact-grid reveal">
+        <div class="contact-card">
+          <div class="contact-icon">📞</div>
+          <h3>Teléfonos</h3>
           <p>Atención al cliente: (601) 987-6543</p>
           <p>WhatsApp: 321-9876543</p>
+          <a href="tel:+6019876543" class="contact-link">Llamar ahora</a>
         </div>
-        <div class="contact-item">
-          <h3>✉️ Email</h3>
+        <div class="contact-card">
+          <div class="contact-icon">✉️</div>
+          <h3>Email</h3>
           <p>ventas@merkepdelasabana.com</p>
           <p>pedidos@merkepdelasabana.com</p>
+          <a href="mailto:ventas@merkepdelasabana.com" class="contact-link">Enviar email</a>
+        </div>
+        <div class="contact-card">
+          <div class="contact-icon">📍</div>
+          <h3>Ubicación</h3>
+          <p>Chía, Cundinamarca</p>
+          <p>Corazón del barrio La Sabana</p>
+          <a href="#ubicacion" class="contact-link">Ver en mapa</a>
         </div>
       </div>
     </div>
@@ -154,15 +230,38 @@
 
   <footer>
     <div class="container">
-      <p>© 2026 Merke+ de la Sabana | El supermercado de confianza del barrio</p>
-      <p class="footer-links">
-        <a href="#hero">Inicio</a> | 
-        <a href="#nosotros">Nosotros</a> | 
-        <a href="#productos">Productos</a> | 
-        <a href="#ubicacion">Ubicación</a>
-      </p>
+      <div class="footer-content">
+        <div class="footer-logo">
+          <img src="img/logo_completo-sinfondo.png" alt="Merke+ de la Sabana" class="footer-logo-img">
+          <p>El supermercado del barrio, ahora digital</p>
+        </div>
+        <div class="footer-links">
+          <h4>Enlaces rápidos</h4>
+          <a href="#hero">Inicio</a>
+          <a href="#nosotros">Nosotros</a>
+          <a href="#productos">Productos</a>
+          <a href="#ubicacion">Ubicación</a>
+        </div>
+        <div class="footer-social">
+          <h4>Síguenos</h4>
+          <div class="social-icons">
+            <a href="#" class="social-icon">📱</a>
+            <a href="#" class="social-icon">📷</a>
+            <a href="#" class="social-icon">💬</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 Merke+ de la Sabana | El supermercado de confianza del barrio</p>
+        <p class="footer-phone">📞 Llámanos: (601) 987-6543</p>
+      </div>
     </div>
   </footer>
+
+  <!-- Botón WhatsApp Flotante -->
+  <a href="https://wa.me/573219876543" class="whatsapp-float" target="_blank" aria-label="Chat en WhatsApp">
+    <span>💬</span>
+  </a>
 
   <script src="js/script.js"></script>
 
