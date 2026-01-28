@@ -1,341 +1,445 @@
-// ===== FUNCIÓN isMobile ÚNICA (ELIMINA LA DUPLICADA) =====
-const isMobileDevice = () => {
-  return window.innerWidth <= 768 || 
-         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-};
-
-// ===== CONFIGURACIÓN ADAPTATIVA (USAR LA FUNCIÓN ÚNICA) =====
+// ===== CONFIGURACIÓN ADAPTATIVA =====
 const config = {
-  // Activar efectos siempre, pero con diferente intensidad
   effects: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   smoothScroll: true,
+  soundEnabled: true,
   
-  // Intensidad basada en dispositivo
-  parallaxIntensity: isMobileDevice() ? 0.15 : 0.3,
-  scrollIntensity: isMobileDevice() ? 0.8 : 1.0,
+  isMobile: () => {
+    return window.innerWidth <= 768 || 
+           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  },
   
-  // Umbrales para móvil (más sensibles)
-  scrollThreshold: isMobileDevice() ? 0.05 : 0.1,
-  scrollMargin: isMobileDevice() ? '100px' : '50px',
-  
-  // Parallax config
-  maxParallax: isMobileDevice() ? 80 : 150,
-  minScrollDelta: 1
+  scrollThreshold: 0.1,
+  scrollMargin: '50px'
 };
 
 // ===== ELEMENTOS =====
-const parallaxElements = document.querySelectorAll('[data-speed]:not([data-disable-parallax="true"])');
 const scrollElements = document.querySelectorAll('[data-scroll-effect]');
-const parallaxLayers = document.querySelectorAll('.parallax-layer');
 const header = document.querySelector('header');
 const menuToggle = document.querySelector('.menu-toggle');
 const navMenu = document.querySelector('.nav-menu');
+const storySteps = document.querySelectorAll('.story-step');
+const storySection = document.getElementById('scroll-story');
+const sections = document.querySelectorAll('section');
 
 // ===== VARIABLES DE ESTADO =====
 let lastScrollY = window.scrollY;
 let ticking = false;
-let currentIsMobile = isMobileDevice(); // Usar variable con nombre diferente
+let currentStoryStep = 0;
+let audioContext = null;
 
-// ===== NUEVAS FUNCIONALIDADES =====
+// ===== NOISE PRO CANVAS =====
+const setupNoisePro = () => {
+  const canvas = document.getElementById('noiseCanvas');
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  let wWidth, wHeight;
+  
+  const resize = () => {
+    wWidth = window.innerWidth;
+    wHeight = window.innerHeight;
+    canvas.width = wWidth;
+    canvas.height = wHeight;
+  };
 
-// Sistema de sonidos (muy sutiles)
-class SoundSystem {
-  constructor() {
-    this.enabled = false;
-    this.audioContext = null;
-    this.init();
-  }
-  
-  init() {
-    // Solo habilitar si el usuario no tiene reduced-motion
-    this.enabled = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    
-    if (this.enabled) {
-      document.body.classList.add('sound-enabled');
-      this.setupAudioContext();
-      this.setupInteractionSounds();
-    }
-  }
-  
-  setupAudioContext() {
-    try {
-      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    } catch (e) {
-      console.log('AudioContext no soportado:', e);
-      this.enabled = false;
-    }
-  }
-  
-  setupInteractionSounds() {
-    // Crear sonidos para diferentes interacciones
-    this.sounds = {
-      click: this.createClickSound(),
-      hover: this.createHoverSound(),
-      success: this.createSuccessSound()
-    };
-  }
-  
-  createClickSound() {
-    if (!this.audioContext) return null;
-    
-    return () => {
-      const oscillator = this.audioContext.createOscillator();
-      const gainNode = this.audioContext.createGain();
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Generador de ruido estético (grano cinematográfico)
+  const noise = () => {
+    const idata = ctx.createImageData(wWidth, wHeight);
+    const buffer32 = new Uint32Array(idata.data.buffer);
+    const len = buffer32.length;
+
+    // Patrón de grano más realista
+    for (let i = 0; i < len; i++) {
+      // Probabilidad de píxel blanco basada en posición para mayor realismo
+      const x = i % wWidth;
+      const y = Math.floor(i / wWidth);
+      const intensity = 0.02 + (Math.sin(x * 0.01) * Math.sin(y * 0.01) * 0.01);
       
-      oscillator.connect(gainNode);
-      gainNode.connect(this.audioContext.destination);
-      
-      oscillator.frequency.value = 800;
-      oscillator.type = 'sine';
-      
-      gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
-      
-      oscillator.start(this.audioContext.currentTime);
-      oscillator.stop(this.audioContext.currentTime + 0.1);
-    };
-  }
-  
-  createHoverSound() {
-    if (!this.audioContext) return null;
-    
-    return () => {
-      const oscillator = this.audioContext.createOscillator();
-      const gainNode = this.audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(this.audioContext.destination);
-      
-      oscillator.frequency.value = 600;
-      oscillator.type = 'sine';
-      
-      gainNode.gain.setValueAtTime(0.05, this.audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.2);
-      
-      oscillator.start(this.audioContext.currentTime);
-      oscillator.stop(this.audioContext.currentTime + 0.2);
-    };
-  }
-  
-  createSuccessSound() {
-    if (!this.audioContext) return null;
-    
-    return () => {
-      const oscillator = this.audioContext.createOscillator();
-      const gainNode = this.audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(this.audioContext.destination);
-      
-      oscillator.frequency.setValueAtTime(523.25, this.audioContext.currentTime); // Do
-      oscillator.frequency.setValueAtTime(659.25, this.audioContext.currentTime + 0.1); // Mi
-      oscillator.frequency.setValueAtTime(783.99, this.audioContext.currentTime + 0.2); // Sol
-      
-      oscillator.type = 'sine';
-      
-      gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
-      
-      oscillator.start(this.audioContext.currentTime);
-      oscillator.stop(this.audioContext.currentTime + 0.3);
-    };
-  }
-  
-  play(soundName) {
-    if (!this.enabled || !this.sounds[soundName]) return;
-    
-    try {
-      // Reanudar AudioContext si está suspendido (requerido por Chrome)
-      if (this.audioContext.state === 'suspended') {
-        this.audioContext.resume();
+      if (Math.random() < intensity) {
+        // Diferentes tonos de gris para más realismo
+        const shade = Math.floor(Math.random() * 100) + 155;
+        buffer32[i] = (255 << 24) | (shade << 16) | (shade << 8) | shade;
+      } else {
+        buffer32[i] = 0xff000000;
       }
-      
-      this.sounds[soundName]();
-    } catch (e) {
-      console.log('Error reproduciendo sonido:', e);
     }
-  }
-}
 
-// Sistema de Scroll Storytelling
-class StoryTellingSystem {
-  constructor() {
-    this.steps = document.querySelectorAll('.story-step');
-    this.storySection = document.getElementById('scroll-story');
-    this.currentStep = 0;
-    this.isActive = false;
-    this.storyPositions = [];
-    this.init();
+    ctx.putImageData(idata, 0, 0);
+    requestAnimationFrame(noise);
+  };
+
+  noise();
+  console.log('🎨 Noise Pro Canvas inicializado');
+};
+
+// ===== TSPARTICLES CONFIGURATION (TU JSON COMPLETO) =====
+const initTsParticles = () => {
+  if (typeof tsParticles === 'undefined') {
+    console.error('tsParticles no cargado');
+    return;
   }
-  
-  init() {
-    if (!this.steps.length) return;
-    
-    this.calculateStoryPositions();
-    this.setupScrollListener();
-  }
-  
-  calculateStoryPositions() {
-    // Calcular posiciones en el scroll para cada paso
-    const sections = document.querySelectorAll('.parallax-section');
-    this.storyPositions = [
-      window.innerHeight * 1.5, // Después del hero
-      window.innerHeight * 3,   // Después de nosotros
-      window.innerHeight * 4.5, // Después de productos
-      window.innerHeight * 6    // Después de ofertas
-    ];
-  }
-  
-  setupScrollListener() {
-    let ticking = false;
-    
-    const updateStory = () => {
-      const scrollY = window.scrollY;
-      const viewportHeight = window.innerHeight;
-      
-      // Mostrar/ocultar sección de storytelling
-      const shouldShow = scrollY > viewportHeight && scrollY < viewportHeight * 7;
-      
-      if (shouldShow !== this.isActive) {
-        this.isActive = shouldShow;
-        this.storySection.style.opacity = shouldShow ? '1' : '0';
-      }
-      
-      if (!this.isActive) return;
-      
-      // Determinar qué paso mostrar
-      let activeStep = 0;
-      
-      for (let i = 0; i < this.storyPositions.length; i++) {
-        if (scrollY > this.storyPositions[i]) {
-          activeStep = i + 1;
+
+  const particlesConfig = {
+    "autoPlay": true,
+    "background": {
+      "color": {
+        "value": "transparent"
+      },
+      "opacity": 0
+    },
+    "backgroundMask": {
+      "composite": "destination-out",
+      "cover": {
+        "opacity": 1,
+        "color": {
+          "value": {
+            "r": 255,
+            "g": 255,
+            "b": 255
+          }
+        }
+      },
+      "enable": true
+    },
+    "clear": true,
+    "fullScreen": {
+      "enable": false,
+      "zIndex": -2
+    },
+    "detectRetina": true,
+    "duration": 0,
+    "fpsLimit": 120,
+    "interactivity": {
+      "detectsOn": "window",
+      "events": {
+        "onClick": {
+          "enable": true,
+          "mode": "push"
+        },
+        "onHover": {
+          "enable": true,
+          "mode": "bubble",
+          "parallax": {
+            "enable": false,
+            "force": 2,
+            "smooth": 10
+          }
+        },
+        "resize": {
+          "delay": 0.5,
+          "enable": true
+        }
+      },
+      "modes": {
+        "bubble": {
+          "distance": 400,
+          "duration": 2,
+          "mix": false,
+          "opacity": 1,
+          "size": 100
+        },
+        "push": {
+          "default": true,
+          "groups": [],
+          "quantity": 4
         }
       }
-      
-      if (activeStep !== this.currentStep) {
-        this.currentStep = activeStep;
-        this.updateSteps();
+    },
+    "particles": {
+      "color": {
+        "value": ["#FFD600", "#2ECC71", "#E74C3C", "#0B2C4D"]
+      },
+      "move": {
+        "angle": {
+          "offset": 0,
+          "value": 90
+        },
+        "enable": true,
+        "speed": 2,
+        "direction": "none",
+        "outModes": {
+          "default": "out"
+        }
+      },
+      "number": {
+        "density": {
+          "enable": true,
+          "width": 1920,
+          "height": 1080
+        },
+        "value": 120 // AUMENTADO para más visibilidad
+      },
+      "opacity": {
+        "value": 0.7,
+        "animation": {
+          "enable": true,
+          "speed": 2,
+          "minimumValue": 0.1,
+          "sync": false
+        }
+      },
+      "size": {
+        "value": {
+          "min": 1,
+          "max": 30
+        },
+        "animation": {
+          "enable": true,
+          "speed": 5
+        }
+      },
+      "shape": {
+        "close": true,
+        "fill": true,
+        "options": {},
+        "type": "circle"
+      },
+      "links": {
+        "blink": false,
+        "color": {
+          "value": "#ffffff"
+        },
+        "consent": false,
+        "distance": 150,
+        "enable": true,
+        "frequency": 1,
+        "opacity": 0.4,
+        "width": 1
       }
-      
-      // Efecto de parallax en los textos
-      const parallaxOffset = scrollY * -0.1;
-      this.storySection.style.transform = `translateY(${parallaxOffset}px)`;
+    },
+    "pauseOnBlur": true,
+    "pauseOnOutsideViewport": true,
+    "responsive": [],
+    "smooth": false,
+    "style": {},
+    "themes": [],
+    "zLayers": 100
+  };
+
+  tsParticles.load("tsparticles", particlesConfig).then(container => {
+    console.log('✨ tsParticles inicializadas con éxito');
+    
+    // Asegurar que las partículas estén siempre visibles
+    container.options.particles.move.enable = true;
+    container.options.particles.number.value = 120;
+    container.refresh();
+  });
+};
+
+// ===== INICIALIZACIÓN DE SONIDO =====
+const initAudio = () => {
+  if (!config.soundEnabled) return;
+  
+  try {
+    const initAudioOnInteraction = () => {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      document.removeEventListener('click', initAudioOnInteraction);
+      document.removeEventListener('touchstart', initAudioOnInteraction);
+      console.log('🔊 AudioContext inicializado');
     };
     
-    window.addEventListener('scroll', () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(() => {
-          updateStory();
-          ticking = false;
-        });
-      }
-    });
+    document.addEventListener('click', initAudioOnInteraction, { once: true });
+    document.addEventListener('touchstart', initAudioOnInteraction, { once: true });
+    
+    console.log('🔊 Sistema de audio listo');
+  } catch (e) {
+    console.log('Audio no soportado:', e);
+    config.soundEnabled = false;
   }
-  
-  updateSteps() {
-    this.steps.forEach((step, index) => {
-      if (index === this.currentStep) {
-        step.classList.add('active');
-        step.classList.remove('inactive');
-      } else if (index < this.currentStep) {
-        step.classList.remove('active');
-        step.classList.add('inactive');
-      } else {
-        step.classList.remove('active', 'inactive');
-        step.style.opacity = '0';
-      }
-    });
-  }
-}
+};
 
-// Sistema de partículas sutiles
-class SubtleParticlesSystem {
-  constructor() {
-    this.container = null;
-    this.particles = [];
-    this.maxParticles = 20;
-    this.init();
-  }
+const createClickSound = () => {
+  if (!audioContext) return;
   
-  init() {
-    // Crear contenedor de partículas
-    this.container = document.createElement('div');
-    this.container.id = 'subtle-particles';
-    document.body.appendChild(this.container);
+  try {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
     
-    // Crear partículas
-    this.createParticles();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
     
-    // Iniciar animación
-    this.animate();
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+  } catch (e) {
+    console.log('Error creando sonido:', e);
   }
+};
+
+const playClickSound = () => {
+  if (!config.soundEnabled || !audioContext || audioContext.state === 'suspended') return;
   
-  createParticles() {
-    for (let i = 0; i < this.maxParticles; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'particle-dot';
-      
-      // Tamaño aleatorio muy pequeño
-      const size = Math.random() * 2 + 1;
-      particle.style.width = `${size}px`;
-      particle.style.height = `${size}px`;
-      
-      // Posición inicial aleatoria
-      particle.style.left = `${Math.random() * 100}%`;
-      particle.style.top = `${Math.random() * 100}%`;
-      
-      // Color aleatorio (muy sutiles)
-      const colors = [
-        'rgba(255, 214, 0, 0.1)',
-        'rgba(46, 204, 113, 0.1)',
-        'rgba(231, 76, 60, 0.1)'
-      ];
-      particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-      
-      // Animación personalizada
-      const duration = Math.random() * 30 + 20;
-      const delay = Math.random() * 5;
-      particle.style.animation = `floatSubtle ${duration}s linear ${delay}s infinite`;
-      
-      this.container.appendChild(particle);
-      this.particles.push({
-        element: particle,
-        speed: Math.random() * 0.5 + 0.5
-      });
+  try {
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
     }
+    createClickSound();
+  } catch (e) {
+    console.log('Error reproduciendo sonido:', e);
   }
-  
-  animate() {
-    // Las partículas ya están animadas con CSS
-    // Este método es para actualizaciones futuras si se necesitan
-  }
-}
+};
 
-// Countdown para ofertas
-class CountdownTimer {
-  constructor() {
-    this.element = document.getElementById('countdown');
-    if (!this.element) return;
+// ===== SCROLL STORYTELLING PRO - SISTEMA AVANZADO =====
+const initScrollStorytellingPro = () => {
+  const storySections = document.querySelectorAll('.story-section');
+  const animatedTexts = document.querySelectorAll('.story-text-animated');
+  const storyWithIcons = document.querySelector('.story-with-icons');
+  const storyIconsGrid = document.querySelector('.story-icons-grid');
+  const iconItems = document.querySelectorAll('.story-icon-item');
+  const scrollHint = document.querySelector('.scroll-hint');
+
+  if (!storySections.length) return;
+
+  // Preparar textos animados
+  animatedTexts.forEach(textElement => {
+    const text = textElement.dataset.text || textElement.textContent;
+    const chars = text.split('');
     
-    this.endTime = new Date();
-    this.endTime.setHours(this.endTime.getHours() + 24); // 24 horas desde ahora
+    // Crear elementos span para cada carácter
+    const charElements = chars.map((char, index) => {
+      const span = document.createElement('span');
+      span.className = char === ' ' ? 'char space' : 'char';
+      span.textContent = char === ' ' ? ' ' : char;
+      span.style.setProperty('--distance', index - (chars.length / 2));
+      span.style.setProperty('--index', index);
+      return span;
+    });
+
+    // Reemplazar contenido
+    textElement.innerHTML = '';
+    charElements.forEach(span => textElement.appendChild(span));
+  });
+
+  // Configurar Intersection Observer para animaciones
+  const observerOptions = {
+    root: null,
+    rootMargin: '-100px 0px -100px 0px',
+    threshold: 0.1
+  };
+
+  const storyObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const section = entry.target;
+      
+      if (entry.isIntersecting) {
+        // Animar caracteres del texto
+        const chars = section.querySelectorAll('.char');
+        chars.forEach((char, index) => {
+          setTimeout(() => {
+            char.style.opacity = '1';
+            char.style.transform = 'translateX(0) rotateX(0)';
+          }, index * 50);
+        });
+
+        // Animar íconos si es la sección 3
+        if (section.id === 'story-section-3') {
+          setTimeout(() => {
+            if (storyWithIcons) {
+              storyWithIcons.classList.add('active');
+            }
+            if (storyIconsGrid) {
+              storyIconsGrid.classList.add('active');
+            }
+            
+            iconItems.forEach((item, index) => {
+              setTimeout(() => {
+                item.classList.add('active');
+              }, index * 100);
+            });
+          }, 500);
+        }
+      } else {
+        // Resetear animaciones al salir
+        const chars = section.querySelectorAll('.char');
+        chars.forEach(char => {
+          char.style.opacity = '0';
+          char.style.transform = 'translateX(calc(var(--distance) * 60px)) rotateX(calc(var(--distance) * 30deg))';
+        });
+
+        // Resetear íconos
+        if (section.id === 'story-section-3') {
+          if (storyWithIcons) storyWithIcons.classList.remove('active');
+          if (storyIconsGrid) storyIconsGrid.classList.remove('active');
+          iconItems.forEach(item => item.classList.remove('active'));
+        }
+      }
+    });
+  }, observerOptions);
+
+  // Observar cada sección
+  storySections.forEach(section => {
+    storyObserver.observe(section);
+  });
+
+  // Controlar visibilidad del hint de scroll
+  const updateScrollHint = () => {
+    if (!scrollHint) return;
     
-    this.init();
+    const scrollY = window.scrollY;
+    const heroHeight = document.getElementById('hero')?.offsetHeight || 0;
+    
+    if (scrollY > heroHeight * 0.7 && scrollY < heroHeight * 3) {
+      scrollHint.style.opacity = '1';
+    } else {
+      scrollHint.style.opacity = '0';
+    }
+  };
+
+  // Actualizar hint en scroll
+  window.addEventListener('scroll', updateScrollHint);
+  updateScrollHint();
+
+  console.log('🎬 Scroll Storytelling Pro inicializado');
+};
+
+// ===== SMOOTH SCROLL CON LENIS (OPCIONAL MEJORA) =====
+const initSmoothScrollPro = () => {
+  // Si prefieres un scroll más suave como en el ejemplo React
+  if (typeof Lenis !== 'undefined' && config.smoothScroll) {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      direction: 'vertical',
+      gestureDirection: 'vertical',
+      smooth: true,
+      smoothTouch: false,
+      touchMultiplier: 2,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+    console.log('🔄 Smooth Scroll Pro (Lenis) inicializado');
   }
+};
+
+// ===== COUNTDOWN TIMER =====
+const initCountdown = () => {
+  const countdownElement = document.getElementById('countdown');
+  if (!countdownElement) return;
   
-  init() {
-    this.update();
-    setInterval(() => this.update(), 1000);
-  }
+  let endTime = new Date();
+  endTime.setHours(endTime.getHours() + 24);
   
-  update() {
+  const updateCountdown = () => {
     const now = new Date();
-    const timeLeft = this.endTime - now;
+    const timeLeft = endTime - now;
     
     if (timeLeft <= 0) {
-      this.element.textContent = '00:00:00';
-      this.onTimerEnd();
+      countdownElement.textContent = '00:00:00';
+      endTime.setHours(endTime.getHours() + 24);
       return;
     }
     
@@ -343,132 +447,66 @@ class CountdownTimer {
     const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
     
-    this.element.textContent = 
+    countdownElement.textContent = 
       `${hours.toString().padStart(2, '0')}:` +
       `${minutes.toString().padStart(2, '0')}:` +
       `${seconds.toString().padStart(2, '0')}`;
     
-    // Efecto visual cuando quedan menos de 10 minutos
     if (timeLeft < 10 * 60 * 1000) {
-      this.element.style.color = 'var(--red)';
-      this.element.style.animation = 'pulseBadge 1s infinite';
+      countdownElement.style.color = 'var(--red)';
+      countdownElement.style.animation = 'pulseBadge 1s infinite';
     }
-  }
-  
-  onTimerEnd() {
-    // Resetear el timer para otro día
-    this.endTime.setHours(this.endTime.getHours() + 24);
-    
-    // Efecto visual
-    this.element.style.color = 'var(--green)';
-    this.element.style.animation = 'none';
-    
-    // Notificar al usuario (sutilmente)
-    setTimeout(() => {
-      this.element.textContent = '¡Renovado!';
-      setTimeout(() => this.update(), 3000);
-    }, 1000);
-  }
-}
-
-// Sistema de vibración para móviles
-class VibrationSystem {
-  constructor() {
-    this.enabled = 'vibrate' in navigator;
-  }
-  
-  vibrate(pattern = 10) {
-    if (!this.enabled) return;
-    
-    try {
-      navigator.vibrate(pattern);
-    } catch (e) {
-      console.log('Vibration no disponible:', e);
-    }
-  }
-  
-  // Vibración para diferentes acciones
-  click() {
-    this.vibrate(10);
-  }
-  
-  success() {
-    this.vibrate([50, 30, 50]);
-  }
-  
-  error() {
-    this.vibrate([100, 50, 100]);
-  }
-}
-
-// ===== INTEGRACIÓN CON TU CÓDIGO EXISTENTE =====
-
-// En tu función init(), agrega esto:
-const initEnhancedFeatures = () => {
-  console.log('🎮 Inicializando características mejoradas...');
-  
-  // Inicializar sistemas
-  const soundSystem = new SoundSystem();
-  const storySystem = new StoryTellingSystem();
-  const particlesSystem = new SubtleParticlesSystem();
-  const countdownTimer = new CountdownTimer();
-  const vibrationSystem = new VibrationSystem();
-  
-  // Configurar micro-interacciones
-  setupMicroInteractions(soundSystem, vibrationSystem);
-  
-  // Guardar referencias para debugging
-  window.enhancedFeatures = {
-    sound: soundSystem,
-    story: storySystem,
-    particles: particlesSystem,
-    timer: countdownTimer,
-    vibration: vibrationSystem
   };
   
-  console.log('✅ Características mejoradas listas');
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+  console.log('⏰ Countdown inicializado');
 };
 
-const setupMicroInteractions = (soundSystem, vibrationSystem) => {
-  // Botones con sonido y vibración
+// ===== MICRO-INTERACCIONES =====
+const initMicroInteractions = () => {
+  // Botones con sonido
   document.querySelectorAll('.hero-btn, .offer-btn, .contact-link, .card-link').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      if (soundSystem.enabled && btn.hasAttribute('data-sound')) {
-        soundSystem.play('click');
-      }
-      
-      if (vibrationSystem.enabled) {
-        vibrationSystem.click();
-      }
+      playClickSound();
       
       // Efecto visual de ripple
       createRippleEffect(e, btn);
       
-      // Efecto de click visual
       btn.classList.add('vibrate');
       setTimeout(() => btn.classList.remove('vibrate'), 300);
     });
-    
-    // Sonido de hover (solo desktop)
-    if (!currentIsMobile) {
-      btn.addEventListener('mouseenter', () => {
-        if (soundSystem.enabled) {
-          soundSystem.play('hover');
-        }
-      });
-    }
   });
   
-  // Efecto de hover en cards
-  document.querySelectorAll('.card, .feature, .contact-card, .offer-card').forEach(card => {
-    card.addEventListener('mouseenter', () => {
-      if (soundSystem.enabled && !currentIsMobile) {
-        soundSystem.play('hover');
-      }
+  // Efecto de hover en cards (solo desktop)
+  if (!config.isMobile()) {
+    document.querySelectorAll('.card, .feature, .contact-card, .offer-card').forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        if (config.soundEnabled && audioContext) {
+          try {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 600;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.03, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+          } catch (e) {}
+        }
+      });
     });
-    
-    // Feedback táctil en móvil
-    if (currentIsMobile) {
+  }
+  
+  // Feedback táctil en móvil
+  if (config.isMobile()) {
+    document.querySelectorAll('.card, .offer-card, .contact-card').forEach(card => {
       card.addEventListener('touchstart', () => {
         card.style.transform = 'scale(0.98)';
       }, { passive: true });
@@ -476,8 +514,8 @@ const setupMicroInteractions = (soundSystem, vibrationSystem) => {
       card.addEventListener('touchend', () => {
         card.style.transform = '';
       }, { passive: true });
-    }
-  });
+    });
+  }
 };
 
 const createRippleEffect = (event, element) => {
@@ -500,78 +538,22 @@ const createRippleEffect = (event, element) => {
   }, 600);
 };
 
-// ===== INICIALIZACIÓN ORIGINAL =====
-const init = () => {
-  console.log('🚀 Iniciando sistema de animaciones...');
-  console.log('📱 Dispositivo:', currentIsMobile ? 'Móvil' : 'Desktop');
-  console.log('⚡ Efectos activados:', config.effects);
-  
-  // Configurar header inicial
-  updateHeader();
-  
-  // Configurar menú móvil
-  initMobileMenu();
-  
-  // Inicializar scroll suave
-  if (config.smoothScroll) initSmoothScroll();
-  
-  // Configurar efectos de scroll
-  initScrollEffects();
-  
-  // Inicializar parallax si no es móvil
-  if (!currentIsMobile && config.effects) {
-    initParallax();
-  }
-  
-  // Configurar scroll handler
-  window.addEventListener('scroll', handleScroll, { passive: true });
-  
-  // Configurar resize handler
-  window.addEventListener('resize', handleResize);
-  
-  // Forzar primera actualización
-  requestAnimationFrame(() => {
-    updateHeader();
-    if (!currentIsMobile) updateParallax();
-  });
-  
-  // Inicializar características mejoradas (NUEVO)
-  setTimeout(() => {
-    initEnhancedFeatures();
-  }, 1000);
-  
-  // Marcar como cargado
-  setTimeout(() => {
-    document.body.classList.add('loaded');
-    console.log('✅ Sistema cargado correctamente');
-  }, 500);
-};
-
-// ===== FUNCIONES ORIGINALES (ACTUALIZADAS) =====
-
+// ===== MENÚ MÓVIL =====
 const initMobileMenu = () => {
-  console.log('🍔 Inicializando menú móvil...');
+  if (!menuToggle || !navMenu) return;
   
-  if (!menuToggle || !navMenu) {
-    console.error('❌ No se encontraron elementos del menú');
-    return;
-  }
-
-  // Mostrar el toggle en móvil
-  if (currentIsMobile) {
+  if (config.isMobile()) {
     menuToggle.style.display = 'flex';
   }
-
+  
   menuToggle.addEventListener('click', (e) => {
     e.stopPropagation();
     const isActive = !navMenu.classList.contains('active');
     
-    // Alternar clases
     navMenu.classList.toggle('active');
     menuToggle.classList.toggle('active');
     menuToggle.setAttribute('aria-expanded', isActive);
     
-    // Bloquear scroll cuando el menú está abierto
     if (isActive) {
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
@@ -579,25 +561,20 @@ const initMobileMenu = () => {
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
     }
-    
-    console.log('🍔 Menú:', isActive ? 'Abierto' : 'Cerrado');
   });
-
-  // Cerrar menú al hacer clic en enlace
+  
   document.querySelectorAll('.nav-menu a').forEach(link => {
     link.addEventListener('click', () => {
       closeMobileMenu();
     });
   });
-
-  // Cerrar menú al hacer clic fuera
+  
   document.addEventListener('click', (e) => {
     if (!navMenu.contains(e.target) && !menuToggle.contains(e.target) && navMenu.classList.contains('active')) {
       closeMobileMenu();
     }
   });
-
-  // Cerrar con Escape
+  
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && navMenu.classList.contains('active')) {
       closeMobileMenu();
@@ -606,6 +583,8 @@ const initMobileMenu = () => {
 };
 
 const closeMobileMenu = () => {
+  if (!navMenu || !menuToggle) return;
+  
   navMenu.classList.remove('active');
   menuToggle.classList.remove('active');
   menuToggle.setAttribute('aria-expanded', 'false');
@@ -613,26 +592,26 @@ const closeMobileMenu = () => {
   document.documentElement.style.overflow = '';
 };
 
+// ===== SCROLL SMOOTH =====
 const initSmoothScroll = () => {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
       const targetId = this.getAttribute('href');
       if (targetId === '#' || !targetId) return;
-
+  
       const target = document.querySelector(targetId);
       if (!target) return;
-
+  
       e.preventDefault();
       
-      // Cerrar menú si está abierto
       if (navMenu && navMenu.classList.contains('active')) {
         closeMobileMenu();
       }
-
+  
       const headerHeight = header ? header.offsetHeight : 0;
       const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
       const offsetPosition = targetPosition - headerHeight - 20;
-
+  
       smoothScrollTo(offsetPosition, 800);
     });
   });
@@ -642,13 +621,12 @@ const smoothScrollTo = (to, duration) => {
   const start = window.pageYOffset;
   const change = to - start;
   let startTime = null;
-
+  
   const animateScroll = (currentTime) => {
     if (!startTime) startTime = currentTime;
     const timeElapsed = currentTime - startTime;
     const progress = Math.min(timeElapsed / duration, 1);
     
-    // Easing function mejorada
     const ease = easeOutCubic(progress);
     
     window.scrollTo(0, start + (change * ease));
@@ -657,7 +635,7 @@ const smoothScrollTo = (to, duration) => {
       requestAnimationFrame(animateScroll);
     }
   };
-
+  
   requestAnimationFrame(animateScroll);
 };
 
@@ -665,25 +643,19 @@ const easeOutCubic = (t) => {
   return 1 - Math.pow(1 - t, 3);
 };
 
+// ===== SCROLL EFFECTS =====
 const initScrollEffects = () => {
-  if (!config.effects || scrollElements.length === 0) {
-    console.log('⚠️ Efectos desactivados o no hay elementos');
-    return;
-  }
-
-  console.log('🎯 Inicializando efectos de scroll para', scrollElements.length, 'elementos');
+  if (!config.effects || scrollElements.length === 0) return;
   
-  // Configurar Intersection Observer con ajustes para móvil
   const observerOptions = {
     root: null,
     rootMargin: config.scrollMargin,
     threshold: buildThresholdList()
   };
-
-  // Crear múltiples thresholds para detección más sensible
+  
   function buildThresholdList() {
     const thresholds = [];
-    const numSteps = currentIsMobile ? 40 : 20; // Más steps en móvil para mayor sensibilidad
+    const numSteps = 20;
     
     for (let i = 0; i <= numSteps; i++) {
       thresholds.push(i / numSteps);
@@ -691,30 +663,18 @@ const initScrollEffects = () => {
     
     return thresholds;
   }
-
+  
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach(entry => {
         const element = entry.target;
-        const isIntersecting = entry.isIntersecting;
-        const intersectionRatio = entry.intersectionRatio;
         
-        // En móvil, usar un threshold más bajo
-        const shouldShow = currentIsMobile 
-          ? intersectionRatio > config.scrollThreshold
-          : isIntersecting;
-        
-        if (shouldShow) {
-          // Aplicar efecto con delay si existe
+        if (entry.isIntersecting) {
           const delay = parseInt(element.getAttribute('data-delay')) || 0;
           
           setTimeout(() => {
             element.classList.add('active');
             
-            // Efecto de profundidad basado en scroll position
-            applyScrollDepth(element, entry);
-            
-            // Manejar stagger effects
             if (element.getAttribute('data-scroll-effect') === 'stagger') {
               element.querySelectorAll('[data-scroll-effect]').forEach((child, index) => {
                 const childDelay = parseInt(child.getAttribute('data-delay')) || (index * 150);
@@ -729,98 +689,16 @@ const initScrollEffects = () => {
     },
     observerOptions
   );
-
-  // Observar todos los elementos con efectos
+  
   scrollElements.forEach(el => {
     observer.observe(el);
   });
-
-  // También observar elementos con data-speed para parallax en móvil
-  if (currentIsMobile && config.effects) {
-    parallaxElements.forEach(el => {
-      observer.observe(el);
-    });
-  }
-};
-
-// Aplicar efecto de profundidad basado en posición de scroll
-const applyScrollDepth = (element, entry) => {
-  if (!element.hasAttribute('data-depth')) return;
-  
-  const depth = parseFloat(element.getAttribute('data-depth')) || 1;
-  const rect = element.getBoundingClientRect();
-  const viewportHeight = window.innerHeight;
-  const elementCenter = rect.top + rect.height / 2;
-  const viewportCenter = viewportHeight / 2;
-  
-  // Calcular distancia del centro
-  const distanceFromCenter = Math.abs(elementCenter - viewportCenter) / viewportCenter;
-  const depthFactor = 1 - Math.min(distanceFromCenter, 1);
-  
-  // Aplicar transformación 3D
-  const translateZ = depthFactor * depth * 20;
-  element.style.transform = `translateY(0) translateZ(${translateZ}px)`;
-  element.style.transition = 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
-};
-
-// ===== PARALLAX SYSTEM (SOLO DESKTOP) =====
-const initParallax = () => {
-  console.log('🌊 Inicializando sistema parallax para desktop');
-  
-  // Iniciar loop de animación
-  requestAnimationFrame(updateParallax);
-};
-
-const updateParallax = () => {
-  if (currentIsMobile || !config.effects || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    return;
-  }
-
-  const scrollY = window.scrollY;
-  const scrollDelta = Math.abs(scrollY - lastScrollY);
-  
-  if (scrollDelta < config.minScrollDelta) {
-    requestAnimationFrame(updateParallax);
-    return;
-  }
-
-  // Capas de fondo
-  parallaxLayers.forEach((layer) => {
-    const depth = parseFloat(layer.getAttribute('data-depth')) || 0.1;
-    const speed = depth * config.parallaxIntensity;
-    const yOffset = scrollY * speed;
-    
-    layer.style.transform = `translate3d(0, ${yOffset}px, 0)`;
-    layer.style.transition = 'transform 0.1s linear';
-  });
-
-  // Elementos individuales
-  parallaxElements.forEach(element => {
-    if (element.closest('[data-disable-parallax="true"]')) return;
-
-    const rect = element.getBoundingClientRect();
-    const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-    
-    if (isVisible) {
-      const speed = parseFloat(element.getAttribute('data-speed')) || 0;
-      const yOffset = -(scrollY * speed * config.parallaxIntensity);
-      
-      // Limitar movimiento
-      if (Math.abs(yOffset) < config.maxParallax) {
-        element.style.transform = `translate3d(0, ${yOffset}px, 0)`;
-        element.style.transition = 'transform 0.1s ease-out';
-      }
-    }
-  });
-
-  lastScrollY = scrollY;
-  requestAnimationFrame(updateParallax);
 };
 
 // ===== HEADER EFFECT =====
 const updateHeader = () => {
   if (!header) return;
-
+  
   const scrollY = window.scrollY;
   
   if (scrollY > 100) {
@@ -834,136 +712,86 @@ const updateHeader = () => {
   }
 };
 
-// ===== SCROLL HANDLER PARA EFECTOS EN MÓVIL =====
+// ===== SCROLL HANDLER =====
 const handleScroll = () => {
   if (!ticking) {
     ticking = true;
     requestAnimationFrame(() => {
       updateHeader();
-      
-      // En móvil, actualizar efectos basados en scroll position
-      if (currentIsMobile && config.effects) {
-        updateMobileScrollEffects();
-      }
-      
       ticking = false;
     });
   }
-};
-
-// Efectos de scroll dinámicos para móvil
-const updateMobileScrollEffects = () => {
-  const scrollY = window.scrollY;
-  const viewportHeight = window.innerHeight;
-  
-  scrollElements.forEach(element => {
-    if (!element.classList.contains('active')) return;
-    
-    const rect = element.getBoundingClientRect();
-    const elementTop = rect.top;
-    const elementHeight = rect.height;
-    const elementCenter = elementTop + elementHeight / 2;
-    
-    // Calcular qué tan centrado está el elemento
-    const distanceFromCenter = Math.abs(viewportHeight / 2 - elementCenter);
-    const visibility = 1 - (distanceFromCenter / (viewportHeight / 2));
-    
-    // Aplicar efectos basados en posición
-    applyScrollEffect(element, visibility);
-  });
-};
-
-const applyScrollEffect = (element, visibility) => {
-  const effectType = element.getAttribute('data-scroll-effect');
-  
-  if (!effectType) return;
-  
-  switch(effectType) {
-    case 'fade-up':
-    case 'slide-up':
-      element.style.opacity = Math.max(0.3, visibility);
-      element.style.transform = `translateY(${(1 - visibility) * 30}px)`;
-      break;
-      
-    case 'scale':
-      const scale = 0.9 + (visibility * 0.1);
-      element.style.transform = `scale(${scale})`;
-      break;
-      
-    case 'pop':
-      const popScale = 0.95 + (visibility * 0.05);
-      element.style.transform = `scale(${popScale})`;
-      break;
-  }
-};
-
-// ===== RESIZE HANDLER =====
-let resizeTimeout;
-const handleResize = () => {
-  clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(() => {
-    const newIsMobile = isMobileDevice();
-    
-    if (newIsMobile !== currentIsMobile) {
-      currentIsMobile = newIsMobile;
-      console.log('📱 Cambio de dispositivo:', currentIsMobile ? 'Móvil' : 'Desktop');
-      
-      // Reiniciar efectos con nueva configuración
-      config.parallaxIntensity = currentIsMobile ? 0.15 : 0.3;
-      config.scrollThreshold = currentIsMobile ? 0.05 : 0.1;
-      
-      // Mostrar/ocultar menú toggle
-      if (menuToggle) {
-        menuToggle.style.display = currentIsMobile ? 'flex' : 'none';
-      }
-      
-      // Resetear transforms
-      parallaxElements.forEach(el => {
-        el.style.transform = '';
-        el.style.transition = '';
-      });
-      
-      parallaxLayers.forEach(layer => {
-        layer.style.transform = '';
-        layer.style.transition = '';
-      });
-    }
-  }, 250);
 };
 
 // ===== WHATSAPP BUTTON =====
 const initWhatsAppButton = () => {
   const whatsappBtn = document.querySelector('.whatsapp-float');
   if (!whatsappBtn) return;
-
-  // Animación de entrada
+  
   setTimeout(() => {
     whatsappBtn.style.opacity = '1';
     whatsappBtn.style.transform = 'translateY(0) scale(1)';
     whatsappBtn.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
   }, 2000);
-
-  // Efecto de pulso (solo si no hay reduced motion)
-  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    let pulseInterval = setInterval(() => {
+  
+  if (config.effects) {
+    setInterval(() => {
       if (!document.hidden) {
         whatsappBtn.classList.toggle('pulse');
       }
     }, 3000);
-    
-    // Limpiar intervalo si se desactivan efectos
-    if (!config.effects) {
-      clearInterval(pulseInterval);
-    }
   }
 };
 
-// ===== EVENT LISTENERS =====
+// ===== INTRO REMOVAL =====
+const initIntro = () => {
+  const intro = document.getElementById('intro');
+  if (!intro) return;
+  
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      intro.style.opacity = '0';
+      setTimeout(() => {
+        intro.style.display = 'none';
+      }, 500);
+    }, 3000);
+  });
+};
+
+// ===== INICIALIZACIÓN PRINCIPAL =====
+const init = () => {
+  console.log('🚀 Iniciando Merke+ de la Sabana...');
+  
+  // Configurar header inicial
+  updateHeader();
+  
+  // Inicializar sistemas
+  setupNoisePro();
+  initTsParticles();
+  initAudio();
+  initMobileMenu();
+  initSmoothScroll();
+  initScrollEffects();
+  initScrollStorytellingPro();
+  initCountdown();
+  initMicroInteractions();
+  initWhatsAppButton();
+  initIntro();
+  
+  // Configurar event listeners
+  window.addEventListener('scroll', handleScroll, { passive: true });
+  
+  // Marcar como cargado
+  setTimeout(() => {
+    document.body.classList.add('loaded');
+    console.log('✅ Sistema cargado correctamente');
+  }, 500);
+};
+
+// ===== EJECUCIÓN =====
 window.addEventListener('load', () => {
   init();
-  initWhatsAppButton();
   
-  // Fallback para asegurar inicialización
   setTimeout(() => {
     if (!document.body.classList.contains('loaded')) {
       console.log('⚠️ Usando fallback de inicialización');
@@ -973,21 +801,64 @@ window.addEventListener('load', () => {
 });
 
 // ===== DEBUG HELPER =====
-window.debugEffects = {
-  getConfig: () => config,
-  getElements: () => ({
-    scrollElements: scrollElements.length,
-    parallaxElements: parallaxElements.length,
-    isMobile: currentIsMobile,
-    isReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  }),
-  showVisibleElements: () => {
-    const visible = Array.from(scrollElements).filter(el => {
-      const rect = el.getBoundingClientRect();
-      return rect.top < window.innerHeight && rect.bottom > 0;
-    });
-    console.log('👀 Elementos visibles:', visible.length);
-    return visible;
+window.debugMerke = {
+  reloadEffects: () => {
+    document.body.classList.remove('loaded');
+    setTimeout(init, 100);
   },
-  reinit: init
+  toggleSound: () => {
+    config.soundEnabled = !config.soundEnabled;
+    console.log('🔊 Sonido:', config.soundEnabled ? 'Activado' : 'Desactivado');
+  },
+  showStoryStep: (step) => {
+    if (step >= 0 && step <= 3) {
+      currentStoryStep = step;
+      storySteps.forEach((s, i) => {
+        s.classList.remove('active', 'inactive');
+        if (i === step) s.classList.add('active');
+        if (i < step) s.classList.add('inactive');
+      });
+    }
+  },
+  adjustNoiseIntensity: (intensity) => {
+    const canvas = document.getElementById('noiseCanvas');
+    if (canvas) {
+      canvas.style.opacity = intensity;
+      console.log('🎨 Intensidad del noise ajustada a:', intensity);
+    }
+  }
 };
+
+
+const story = document.querySelector(".story-text");
+const text = story.dataset.text;
+const chars = text.split("");
+
+story.innerHTML = chars
+  .map(char => `<span>${char === " " ? "&nbsp;" : char}</span>`)
+  .join("");
+
+const spans = story.querySelectorAll("span");
+
+window.addEventListener("scroll", () => {
+  const rect = story.getBoundingClientRect();
+  const windowHeight = window.innerHeight;
+
+  // progreso de 0 a 1
+  const progress = 1 - Math.min(Math.max(rect.top / windowHeight, 0), 1);
+
+  const center = spans.length / 2;
+
+  spans.forEach((span, i) => {
+    const distance = i - center;
+    const translateX = distance * 60 * (1 - progress);
+    const rotate = distance * 8 * (1 - progress);
+    const opacity = Math.min(progress + 0.2, 1);
+
+    span.style.transform = `
+      translateX(${translateX}px)
+      rotate(${rotate}deg)
+    `;
+    span.style.opacity = opacity;
+  });
+});
