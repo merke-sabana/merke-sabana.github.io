@@ -2,7 +2,8 @@
 const config = {
   effects: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   smoothScroll: true,
-  soundEnabled: true,
+  soundEnabled: false,
+  parallaxEnabled: true,
   
   isMobile: () => {
     return window.innerWidth <= 768 || 
@@ -18,15 +19,11 @@ const scrollElements = document.querySelectorAll('[data-scroll-effect]');
 const header = document.querySelector('header');
 const menuToggle = document.querySelector('.menu-toggle');
 const navMenu = document.querySelector('.nav-menu');
-const storySteps = document.querySelectorAll('.story-step');
-const storySection = document.getElementById('scroll-story');
 const sections = document.querySelectorAll('section');
 
 // ===== VARIABLES DE ESTADO =====
 let lastScrollY = window.scrollY;
 let ticking = false;
-let currentStoryStep = 0;
-let audioContext = null;
 
 // ===== NOISE PRO CANVAS =====
 const setupNoisePro = () => {
@@ -46,21 +43,17 @@ const setupNoisePro = () => {
   window.addEventListener('resize', resize);
   resize();
 
-  // Generador de ruido estético (grano cinematográfico)
   const noise = () => {
     const idata = ctx.createImageData(wWidth, wHeight);
     const buffer32 = new Uint32Array(idata.data.buffer);
     const len = buffer32.length;
 
-    // Patrón de grano más realista
     for (let i = 0; i < len; i++) {
-      // Probabilidad de píxel blanco basada en posición para mayor realismo
       const x = i % wWidth;
       const y = Math.floor(i / wWidth);
       const intensity = 0.02 + (Math.sin(x * 0.01) * Math.sin(y * 0.01) * 0.01);
       
       if (Math.random() < intensity) {
-        // Diferentes tonos de gris para más realismo
         const shade = Math.floor(Math.random() * 100) + 155;
         buffer32[i] = (255 << 24) | (shade << 16) | (shade << 8) | shade;
       } else {
@@ -76,7 +69,7 @@ const setupNoisePro = () => {
   console.log('🎨 Noise Pro Canvas inicializado');
 };
 
-// ===== TSPARTICLES CONFIGURATION (TU JSON COMPLETO) =====
+// ===== TSPARTICLES CONFIGURATION =====
 const initTsParticles = () => {
   if (typeof tsParticles === 'undefined') {
     console.error('tsParticles no cargado');
@@ -171,7 +164,7 @@ const initTsParticles = () => {
           "width": 1920,
           "height": 1080
         },
-        "value": 120 // AUMENTADO para más visibilidad
+        "value": 120
       },
       "opacity": {
         "value": 0.7,
@@ -223,69 +216,10 @@ const initTsParticles = () => {
   tsParticles.load("tsparticles", particlesConfig).then(container => {
     console.log('✨ tsParticles inicializadas con éxito');
     
-    // Asegurar que las partículas estén siempre visibles
     container.options.particles.move.enable = true;
     container.options.particles.number.value = 120;
     container.refresh();
   });
-};
-
-// ===== INICIALIZACIÓN DE SONIDO =====
-const initAudio = () => {
-  if (!config.soundEnabled) return;
-  
-  try {
-    const initAudioOnInteraction = () => {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      document.removeEventListener('click', initAudioOnInteraction);
-      document.removeEventListener('touchstart', initAudioOnInteraction);
-      console.log('🔊 AudioContext inicializado');
-    };
-    
-    document.addEventListener('click', initAudioOnInteraction, { once: true });
-    document.addEventListener('touchstart', initAudioOnInteraction, { once: true });
-    
-    console.log('🔊 Sistema de audio listo');
-  } catch (e) {
-    console.log('Audio no soportado:', e);
-    config.soundEnabled = false;
-  }
-};
-
-const createClickSound = () => {
-  if (!audioContext) return;
-  
-  try {
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.value = 800;
-    oscillator.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.1);
-  } catch (e) {
-    console.log('Error creando sonido:', e);
-  }
-};
-
-const playClickSound = () => {
-  if (!config.soundEnabled || !audioContext || audioContext.state === 'suspended') return;
-  
-  try {
-    if (audioContext.state === 'suspended') {
-      audioContext.resume();
-    }
-    createClickSound();
-  } catch (e) {
-    console.log('Error reproduciendo sonido:', e);
-  }
 };
 
 // ===== SCROLL STORYTELLING PRO - SISTEMA AVANZADO =====
@@ -297,14 +231,13 @@ const initScrollStorytellingPro = () => {
   const iconItems = document.querySelectorAll('.story-icon-item');
   const scrollHint = document.querySelector('.scroll-hint');
 
-  if (!storySections.length) return;
+  if (!storySections.length || !scrollHint) return;
 
   // Preparar textos animados
   animatedTexts.forEach(textElement => {
     const text = textElement.dataset.text || textElement.textContent;
     const chars = text.split('');
     
-    // Crear elementos span para cada carácter
     const charElements = chars.map((char, index) => {
       const span = document.createElement('span');
       span.className = char === ' ' ? 'char space' : 'char';
@@ -314,7 +247,6 @@ const initScrollStorytellingPro = () => {
       return span;
     });
 
-    // Reemplazar contenido
     textElement.innerHTML = '';
     charElements.forEach(span => textElement.appendChild(span));
   });
@@ -380,49 +312,81 @@ const initScrollStorytellingPro = () => {
     storyObserver.observe(section);
   });
 
-  // Controlar visibilidad del hint de scroll
+  // ===== CONTROL MEJORADO DEL SCROLL HINT (FIXED) =====
   const updateScrollHint = () => {
-    if (!scrollHint) return;
-    
     const scrollY = window.scrollY;
     const heroHeight = document.getElementById('hero')?.offsetHeight || 0;
+    const heroSection = document.getElementById('hero');
     
-    if (scrollY > heroHeight * 0.7 && scrollY < heroHeight * 3) {
+    if (!heroSection) return;
+    
+    const heroRect = heroSection.getBoundingClientRect();
+    const heroBottom = heroRect.bottom;
+    const heroTop = heroRect.top;
+    
+    // Mostrar solo cuando el hero está visible en pantalla
+    if (heroBottom > 100 && heroTop < window.innerHeight - 100) {
+      // Hero visible - mostrar hint con animación
       scrollHint.style.opacity = '1';
+      scrollHint.style.transform = 'translateX(-50%) translateY(0)';
+      scrollHint.style.pointerEvents = 'auto';
     } else {
+      // Hero no visible - ocultar hint con animación
       scrollHint.style.opacity = '0';
+      scrollHint.style.transform = 'translateX(-50%) translateY(20px)';
+      scrollHint.style.pointerEvents = 'none';
     }
   };
 
-  // Actualizar hint en scroll
-  window.addEventListener('scroll', updateScrollHint);
-  updateScrollHint();
+  // Configurar transiciones iniciales
+  scrollHint.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+  
+  // Mostrar hint inicialmente
+  setTimeout(() => {
+    scrollHint.style.opacity = '1';
+    scrollHint.style.transform = 'translateX(-50%) translateY(0)';
+  }, 3000); // Después de la intro
 
-  console.log('🎬 Scroll Storytelling Pro inicializado');
-};
-
-// ===== SMOOTH SCROLL CON LENIS (OPCIONAL MEJORA) =====
-const initSmoothScrollPro = () => {
-  // Si prefieres un scroll más suave como en el ejemplo React
-  if (typeof Lenis !== 'undefined' && config.smoothScroll) {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      direction: 'vertical',
-      gestureDirection: 'vertical',
-      smooth: true,
-      smoothTouch: false,
-      touchMultiplier: 2,
-    });
-
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
+  // Ocultar automáticamente después de 10 segundos si el usuario no ha hecho scroll
+  let hideTimeout = setTimeout(() => {
+    const scrollY = window.scrollY;
+    if (scrollY < 50) { // Solo si no ha hecho scroll
+      scrollHint.style.opacity = '0';
+      scrollHint.style.transform = 'translateX(-50%) translateY(20px)';
     }
+  }, 10000);
 
-    requestAnimationFrame(raf);
-    console.log('🔄 Smooth Scroll Pro (Lenis) inicializado');
-  }
+  // Resetear timeout cuando hay interacción
+  const resetHideTimeout = () => {
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+      const scrollY = window.scrollY;
+      if (scrollY < 50) {
+        scrollHint.style.opacity = '0';
+        scrollHint.style.transform = 'translateX(-50%) translateY(20px)';
+      }
+    }, 10000);
+  };
+
+  // Event listeners para interacción
+  ['scroll', 'mousemove', 'touchstart', 'click', 'keydown'].forEach(event => {
+    window.addEventListener(event, resetHideTimeout, { passive: true });
+  });
+
+  // Actualizar visibilidad del hint en scroll (con throttling)
+  let scrollHintTimeout;
+  window.addEventListener('scroll', () => {
+    if (!scrollHintTimeout) {
+      scrollHintTimeout = setTimeout(() => {
+        updateScrollHint();
+        scrollHintTimeout = null;
+      }, 100); // Throttle a 100ms
+    }
+  }, { passive: true });
+
+  // Inicializar
+  updateScrollHint();
+  console.log('🎬 Scroll Storytelling Pro inicializado con hint mejorado');
 };
 
 // ===== COUNTDOWN TIMER =====
@@ -463,46 +427,38 @@ const initCountdown = () => {
   console.log('⏰ Countdown inicializado');
 };
 
-// ===== MICRO-INTERACCIONES =====
+// ===== MICRO-INTERACCIONES (SIN SONIDO) =====
 const initMicroInteractions = () => {
-  // Botones con sonido
+  // Efecto visual de ripple
+  const createRippleEffect = (event, element) => {
+    const ripple = document.createElement('span');
+    const rect = element.getBoundingClientRect();
+    
+    const size = Math.max(rect.width, rect.height);
+    const x = event.clientX - rect.left - size / 2;
+    const y = event.clientY - rect.top - size / 2;
+    
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    ripple.classList.add('ripple');
+    
+    element.appendChild(ripple);
+    
+    setTimeout(() => {
+      ripple.remove();
+    }, 600);
+  };
+
+  // Botones con efecto visual
   document.querySelectorAll('.hero-btn, .offer-btn, .contact-link, .card-link').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      playClickSound();
-      
-      // Efecto visual de ripple
       createRippleEffect(e, btn);
       
       btn.classList.add('vibrate');
       setTimeout(() => btn.classList.remove('vibrate'), 300);
     });
   });
-  
-  // Efecto de hover en cards (solo desktop)
-  if (!config.isMobile()) {
-    document.querySelectorAll('.card, .feature, .contact-card, .offer-card').forEach(card => {
-      card.addEventListener('mouseenter', () => {
-        if (config.soundEnabled && audioContext) {
-          try {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = 600;
-            oscillator.type = 'sine';
-            
-            gainNode.gain.setValueAtTime(0.03, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.2);
-          } catch (e) {}
-        }
-      });
-    });
-  }
   
   // Feedback táctil en móvil
   if (config.isMobile()) {
@@ -516,26 +472,6 @@ const initMicroInteractions = () => {
       }, { passive: true });
     });
   }
-};
-
-const createRippleEffect = (event, element) => {
-  const ripple = document.createElement('span');
-  const rect = element.getBoundingClientRect();
-  
-  const size = Math.max(rect.width, rect.height);
-  const x = event.clientX - rect.left - size / 2;
-  const y = event.clientY - rect.top - size / 2;
-  
-  ripple.style.width = ripple.style.height = `${size}px`;
-  ripple.style.left = `${x}px`;
-  ripple.style.top = `${y}px`;
-  ripple.classList.add('ripple');
-  
-  element.appendChild(ripple);
-  
-  setTimeout(() => {
-    ripple.remove();
-  }, 600);
 };
 
 // ===== MENÚ MÓVIL =====
@@ -758,6 +694,402 @@ const initIntro = () => {
   });
 };
 
+// ===== PARALLAX MEJORADO PARA MÓVIL Y DESKTOP =====
+const initComponentParallax = () => {
+  if (!config.effects) {
+    console.log('⚠️ Efectos desactivados (reduced-motion)');
+    return;
+  }
+  
+  console.log('🌀 Inicializando Parallax Optimizado...');
+  
+  // Elementos para diferentes tipos de parallax
+  const scrollParallaxElements = document.querySelectorAll(`
+    .hero-img, about-content, .about-image, .section-title,
+    .card, .offer-card, .contact-card,
+    .brand-item, .feature, .info-card,
+    .hero-text h1, .hero-text p,
+    .section-subtitle, .about-content p
+  `);
+  
+  const mouseParallaxElements = document.querySelectorAll(`
+    .card, .offer-card, .contact-card,
+    .brand-item, .feature, .info-card,
+    .story-icon-item, .hero-btn
+  `);
+  
+  // ===== SISTEMA DE SCROLL PARALLAX (PARA TODOS) =====
+const updateScrollParallax = () => {
+  const scrollY = window.scrollY;
+  const windowHeight = window.innerHeight;
+  const windowCenter = scrollY + (windowHeight / 2);
+  
+  // Seleccionar TODOS los elementos que necesitan parallax
+  const allParallaxElements = document.querySelectorAll(`
+    .reveal[data-speed],
+    [data-scroll-effect],
+    .hero-img, .about-image, .section-title,
+    .card, .offer-card, .contact-card,
+    .brand-item, .feature, .info-card,
+    .hero-text h1, .hero-text p,
+    .section-subtitle, .about-content,
+    .about-content p, .hero-text,
+    .hero-buttons, .about-features,
+    .story-icon-item, .story-text-animated
+  `);
+  
+  allParallaxElements.forEach(element => {
+    const rect = element.getBoundingClientRect();
+    const elementTop = rect.top + scrollY;
+    const elementCenter = elementTop + (rect.height / 2);
+    
+    const distanceFromCenter = elementCenter - windowCenter;
+    const normalizedDistance = distanceFromCenter / windowHeight;
+    
+    // Obtener la velocidad personalizada del data-speed
+    const speed = parseFloat(element.getAttribute('data-speed')) || 0.1;
+    
+    // Diferentes intensidades según dispositivo
+    const mobileMultiplier = config.isMobile() ? 0.5 : 1;
+    
+    // Aplicar parallax basado en el tipo de elemento
+    if (element.hasAttribute('data-speed')) {
+      // Elementos con data-speed específico
+      const translateY = normalizedDistance * 100 * speed * mobileMultiplier;
+      const opacity = 1 - Math.abs(normalizedDistance) * 0.3;
+      
+      element.style.transform = `translate3d(0, ${translateY}px, 0)`;
+      element.style.opacity = opacity;
+      
+    } else if (element.classList.contains('hero-img')) {
+      // Hero image: efecto pronunciado
+      const translateY = normalizedDistance * 100 * mobileMultiplier;
+      const opacity = 1 - Math.abs(normalizedDistance) * 0.3;
+      
+      element.style.transform = `translate3d(0, ${translateY}px, 0)`;
+      element.style.opacity = opacity;
+      
+    } else if (element.classList.contains('section-title')) {
+      // Títulos: rotación suave
+      const rotateX = normalizedDistance * 10 * mobileMultiplier;
+      const translateY = normalizedDistance * 50 * mobileMultiplier;
+      
+      element.style.transform = `
+        translate3d(0, ${translateY}px, 0)
+        rotateX(${rotateX}deg)
+      `;
+      
+    } else if (element.classList.contains('card') || 
+               element.classList.contains('offer-card') || 
+               element.classList.contains('contact-card')) {
+      // Tarjetas: elevación suave
+      const translateY = normalizedDistance * 40 * mobileMultiplier;
+      const scale = 1 - Math.abs(normalizedDistance) * 0.1;
+      
+      element.style.transform = `
+        translate3d(0, ${translateY}px, 0)
+        scale(${scale})
+      `;
+      
+    } else if (element.classList.contains('about-content') || 
+               element.classList.contains('hero-text')) {
+      // Contenido principal: movimiento suave
+      const speed = parseFloat(element.getAttribute('data-speed')) || 0.15;
+      const translateY = normalizedDistance * 80 * speed * mobileMultiplier;
+      
+      element.style.transform = `translate3d(0, ${translateY}px, 0)`;
+      
+    } else if (element.classList.contains('feature')) {
+      // Características: movimiento individual
+      const speed = parseFloat(element.getAttribute('data-speed')) || 0.08;
+      const translateY = normalizedDistance * 60 * speed * mobileMultiplier;
+      const scale = 1 - Math.abs(normalizedDistance) * 0.05;
+      
+      element.style.transform = `
+        translate3d(0, ${translateY}px, 0)
+        scale(${scale})
+      `;
+      
+    } else if (element.classList.contains('story-icon-item')) {
+      // Íconos del storytelling
+      const translateY = normalizedDistance * 30 * mobileMultiplier;
+      const rotateY = normalizedDistance * 5;
+      
+      element.style.transform = `
+        translate3d(0, ${translateY}px, 0)
+        rotateY(${rotateY}deg)
+      `;
+    }
+  });
+};
+  
+  // ===== SISTEMA DE MOUSE PARALLAX (SOLO DESKTOP) =====
+  if (!config.isMobile()) {
+    mouseParallaxElements.forEach(element => {
+      // Añadir brillo interno solo en desktop
+      if (element.classList.contains('card') || 
+          element.classList.contains('offer-card') || 
+          element.classList.contains('contact-card')) {
+        
+        const shine = document.createElement('div');
+        shine.className = 'card-shine';
+        shine.style.cssText = `
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.15) 0%,
+            rgba(255, 255, 255, 0) 70%
+          );
+          border-radius: inherit;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          z-index: 2;
+        `;
+        element.appendChild(shine);
+        
+        element.style.transformStyle = 'preserve-3d';
+      }
+      
+      element.addEventListener('mousemove', (e) => {
+        const rect = element.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const moveX = (x - centerX) / centerX;
+        const moveY = (y - centerY) / centerY;
+        
+        let intensity = 0.1;
+        let rotateY = 0;
+        let rotateX = 0;
+        let translateZ = 0;
+        
+        if (element.classList.contains('card') || 
+            element.classList.contains('offer-card') || 
+            element.classList.contains('contact-card')) {
+          intensity = 0.15;
+          rotateY = moveX * 8;
+          rotateX = -moveY * 5;
+          translateZ = 25;
+          
+          const shine = element.querySelector('.card-shine');
+          if (shine) {
+            shine.style.opacity = '0.8';
+            shine.style.background = `linear-gradient(
+              ${45 + (moveX * 45)}deg,
+              rgba(255, 255, 255, 0.2) 0%,
+              rgba(255, 255, 255, 0) 70%
+            )`;
+          }
+          
+        } else if (element.classList.contains('brand-item')) {
+          intensity = 0.05;
+          translateZ = 15;
+        } else if (element.classList.contains('story-icon-item')) {
+          intensity = 0.08;
+          rotateY = moveX * 10;
+          rotateX = -moveY * 8;
+          translateZ = 20;
+        } else if (element.classList.contains('hero-btn')) {
+          intensity = 0.12;
+          rotateY = moveX * 5;
+          rotateX = -moveY * 3;
+          translateZ = 10;
+        }
+        
+        const translateX = moveX * intensity * 20;
+        const translateY = moveY * intensity * 20;
+        
+        element.style.transform = `
+          translate3d(${translateX}px, ${translateY}px, ${translateZ}px)
+          rotateY(${rotateY}deg)
+          rotateX(${rotateX}deg)
+        `;
+        
+        if (!element.classList.contains('hero-btn')) {
+          element.style.boxShadow = `
+            ${-moveX * 10}px ${-moveY * 10}px 30px rgba(0, 0, 0, 0.2),
+            0 0 0 1px rgba(255, 214, 0, 0.1)
+          `;
+        }
+      });
+      
+      element.addEventListener('mouseleave', () => {
+        element.style.transform = '';
+        element.style.boxShadow = '';
+        
+        const shine = element.querySelector('.card-shine');
+        if (shine) {
+          shine.style.opacity = '0';
+        }
+        
+        element.style.transition = 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
+        setTimeout(() => {
+          element.style.transition = 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
+        }, 500);
+      });
+    });
+  }
+  
+  // ===== SISTEMA DE TOUCH PARALLAX (MEJORADO PARA MÓVIL) =====
+  else {
+    mouseParallaxElements.forEach(element => {
+      let touchStartY = 0;
+      let touchStartX = 0;
+      let isDragging = false;
+      
+      element.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+        touchStartX = e.touches[0].clientX;
+        isDragging = false;
+        element.style.transition = 'transform 0.1s linear';
+      }, { passive: true });
+      
+      element.addEventListener('touchmove', (e) => {
+        const touchY = e.touches[0].clientY;
+        const touchX = e.touches[0].clientX;
+        
+        const deltaY = (touchY - touchStartY) * 0.5;
+        const deltaX = (touchX - touchStartX) * 0.5;
+        
+        // Solo aplicar parallax si el movimiento es significativo
+        if (Math.abs(deltaY) > 5 || Math.abs(deltaX) > 5) {
+          isDragging = true;
+          
+          // Efecto más pronunciado en móvil (pero optimizado)
+          const translateY = deltaY * 0.5;
+          const translateX = deltaX * 0.3;
+          
+          element.style.transform = `translate3d(${translateX}px, ${translateY}px, 0)`;
+        }
+      }, { passive: true });
+      
+      element.addEventListener('touchend', () => {
+        // Volver a posición original con animación suave
+        element.style.transform = '';
+        element.style.transition = 'transform 0.3s cubic-bezier(0.23, 1, 0.32, 1)';
+        
+        // Solo efecto de "tap" si no estaba arrastrando
+        if (!isDragging) {
+          element.classList.add('tapped');
+          setTimeout(() => element.classList.remove('tapped'), 200);
+        }
+      }, { passive: true });
+    });
+    
+    // ===== EFECTO ESPECIAL PARA TEXTO EN MÓVIL =====
+    const textElements = document.querySelectorAll('.hero-text h1, .hero-text p, .section-title h2');
+    textElements.forEach(text => {
+      text.addEventListener('touchstart', () => {
+        text.style.transform = 'scale(0.98)';
+        text.style.transition = 'transform 0.2s ease';
+      }, { passive: true });
+      
+      text.addEventListener('touchend', () => {
+        text.style.transform = '';
+      }, { passive: true });
+    });
+  }
+  
+  // ===== OPTIMIZACIÓN DEL SCROLL PARALLAX =====
+  let scrollTicking = false;
+  const handleScrollParallax = () => {
+    if (!scrollTicking) {
+      requestAnimationFrame(() => {
+        updateScrollParallax();
+        scrollTicking = false;
+      });
+      scrollTicking = true;
+    }
+  };
+  
+  // Inicializar
+  updateScrollParallax();
+  
+  // Event listeners optimizados
+  window.addEventListener('scroll', handleScrollParallax, { passive: true });
+  window.addEventListener('resize', handleScrollParallax, { passive: true });
+  
+  console.log(`✅ Parallax optimizado inicializado:
+    - ${scrollParallaxElements.length} elementos con scroll parallax
+    - ${mouseParallaxElements.length} elementos interactivos
+    - ${config.isMobile() ? 'Modo móvil activado' : 'Modo desktop activado'}
+    - Efectos ${config.isMobile() ? 'moderados' : 'completos'}
+  `);
+};
+
+
+// ===== SISTEMA DE FONDOS DINÁMICOS =====
+const initDynamicBackgrounds = () => {
+  const sections = document.querySelectorAll('.parallax-section');
+  
+  sections.forEach((section, index) => {
+    const background = section.querySelector('.section-background');
+    
+    if (!background) return;
+    
+    // Crear capas adicionales
+    const layer3 = document.createElement('div');
+    layer3.className = 'gradient-layer-3';
+    background.appendChild(layer3);
+    
+    const layer4 = document.createElement('div');
+    layer4.className = 'gradient-layer-4';
+    background.appendChild(layer4);
+    
+    // Efecto de interacción con el mouse (solo desktop)
+    if (!config.isMobile()) {
+      section.addEventListener('mousemove', (e) => {
+        const rect = section.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        
+        const layers = background.querySelectorAll('.gradient-layer, .gradient-layer-2');
+        layers.forEach(layer => {
+          layer.style.transform = `translate(${(x - 50) * 0.1}%, ${(y - 50) * 0.1}%)`;
+        });
+      });
+      
+      section.addEventListener('mouseleave', () => {
+        const layers = background.querySelectorAll('.gradient-layer, .gradient-layer-2');
+        layers.forEach(layer => {
+          layer.style.transform = '';
+        });
+      });
+    }
+    
+    // Cambiar animaciones basado en scroll
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // Acelerar animaciones cuando está visible
+            const layers = background.querySelectorAll('[class*="gradient-layer"]');
+            layers.forEach(layer => {
+              if (layer.style.animationDuration) {
+                const currentDuration = parseFloat(layer.style.animationDuration);
+                layer.style.animationDuration = `${Math.max(10, currentDuration * 0.7)}s`;
+              }
+            });
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+    
+    observer.observe(section);
+  });
+  
+  console.log('🎨 Fondos dinámicos inicializados');
+};
+
 // ===== INICIALIZACIÓN PRINCIPAL =====
 const init = () => {
   console.log('🚀 Iniciando Merke+ de la Sabana...');
@@ -768,11 +1100,13 @@ const init = () => {
   // Inicializar sistemas
   setupNoisePro();
   initTsParticles();
-  initAudio();
   initMobileMenu();
   initSmoothScroll();
   initScrollEffects();
   initScrollStorytellingPro();
+  initComponentParallax();       // Parallax por elemento (mouse/hover)
+  //initScrollBasedParallax();     // Parallax con scroll (para elementos grandes)
+  initDynamicBackgrounds();
   initCountdown();
   initMicroInteractions();
   initWhatsAppButton();
@@ -806,20 +1140,6 @@ window.debugMerke = {
     document.body.classList.remove('loaded');
     setTimeout(init, 100);
   },
-  toggleSound: () => {
-    config.soundEnabled = !config.soundEnabled;
-    console.log('🔊 Sonido:', config.soundEnabled ? 'Activado' : 'Desactivado');
-  },
-  showStoryStep: (step) => {
-    if (step >= 0 && step <= 3) {
-      currentStoryStep = step;
-      storySteps.forEach((s, i) => {
-        s.classList.remove('active', 'inactive');
-        if (i === step) s.classList.add('active');
-        if (i < step) s.classList.add('inactive');
-      });
-    }
-  },
   adjustNoiseIntensity: (intensity) => {
     const canvas = document.getElementById('noiseCanvas');
     if (canvas) {
@@ -828,37 +1148,3 @@ window.debugMerke = {
     }
   }
 };
-
-
-const story = document.querySelector(".story-text");
-const text = story.dataset.text;
-const chars = text.split("");
-
-story.innerHTML = chars
-  .map(char => `<span>${char === " " ? "&nbsp;" : char}</span>`)
-  .join("");
-
-const spans = story.querySelectorAll("span");
-
-window.addEventListener("scroll", () => {
-  const rect = story.getBoundingClientRect();
-  const windowHeight = window.innerHeight;
-
-  // progreso de 0 a 1
-  const progress = 1 - Math.min(Math.max(rect.top / windowHeight, 0), 1);
-
-  const center = spans.length / 2;
-
-  spans.forEach((span, i) => {
-    const distance = i - center;
-    const translateX = distance * 60 * (1 - progress);
-    const rotate = distance * 8 * (1 - progress);
-    const opacity = Math.min(progress + 0.2, 1);
-
-    span.style.transform = `
-      translateX(${translateX}px)
-      rotate(${rotate}deg)
-    `;
-    span.style.opacity = opacity;
-  });
-});

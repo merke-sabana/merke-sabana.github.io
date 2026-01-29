@@ -7,7 +7,6 @@
 
   <link rel="icon" href="img/logo-sinfondo.png" type="image/jpg">
 
-
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
@@ -20,11 +19,6 @@
   <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
 
   <link rel="stylesheet" href="css/style.css">
-  
-  <!-- Audio preload para sonidos -->
-  <audio id="clickSound" preload="auto" style="display:none;">
-    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
-  </audio>
 </head>
 <body>
 
@@ -72,7 +66,7 @@
     </div>
     
     <div class="container hero-content"> 
-      <div class="hero-text reveal" data-speed="0.5" data-scroll-effect="fade-up">
+      <div class="hero-text reveal" data-speed="1.9" data-scroll-effect="fade-up">
         <h1>Tu supermercado de confianza</h1>
         <p>Productos frescos, precios justos y atención cercana para el barrio.</p>
         <div class="hero-buttons">
@@ -80,7 +74,7 @@
           <a class="hero-btn secondary" href="#productos">Ver Productos</a>
         </div>
       </div>
-      <div class="hero-img reveal" data-speed="0.5" data-scroll-effect="scale">
+      <div class="hero-img reveal" data-speed="1.9" data-scroll-effect="scale">
         <div class="spline-container" data-disable-parallax="true">
             <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.39/build/spline-viewer.js" defer></script>
             <spline-viewer 
@@ -92,175 +86,175 @@
       </div>
     </div>
 
-      <!-- Indicador de scroll -->
-  <div class="scroll-hint">
-    <span>Desplázate para descubrir</span>
-    <div class="hint-line"></div>
+    <!-- Indicador de scroll -->
+    <div class="scroll-hint">
+      <span>Desplázate para descubrir</span>
+      <div class="hint-line"></div>
+    </div>
+  </section>
+
+  <!-- SCROLL STORYTELLING PRO (TEXTO ANIMADO AL SCROLL) -->
+  <div id="scroll-story-pro" class="scroll-storytelling-pro">
+    <div></div>
+    <!-- Sección 1: Texto principal -->
+    <section class="story-section" id="story-section-1">
+      <div class="story-container">
+        <h2 class="story-text-animated" data-text="Más que un supermercado">
+          Más que un supermercado
+        </h2>
+      </div>
+    </section>
+
+    <div></div>
+    <!-- Sección 2: Texto secundario -->
+    <section class="story-section" id="story-section-2">
+      <div class="story-container">
+        <h2 class="story-text-animated" data-text="Somos tu vecino de confianza">
+          Somos tu vecino de confianza
+        </h2>
+      </div>
+    </section>
+
+    <div></div>
+    <!-- Sección 3: Texto con íconos -->
+    <section class="story-section" id="story-section-3">
+      <div class="story-container">
+        <div class="story-with-icons">
+          <div class="bracket-left">
+            <svg viewBox="0 0 27 78">
+              <path fill="currentColor" d="M26.52 77.21h-5.75c-6.83 0-12.38-5.56-12.38-12.38V48.38C8.39 43.76 4.63 40 .01 40v-4c4.62 0 8.38-3.76 8.38-8.38V12.4C8.38 5.56 13.94 0 20.77 0h5.75v4h-5.75c-4.62 0-8.38 3.76-8.38 8.38V27.6c0 4.34-2.25 8.17-5.64 10.38 3.39 2.21 5.64 6.04 5.64 10.38v16.45c0 4.62 3.76 8.38 8.38 8.38h5.75v4.02Z"/>
+            </svg>
+          </div>
+          <span class="icon-text">Todo lo que necesitas en un solo lugar</span>
+          <div class="bracket-right">
+            <svg viewBox="0 0 27 78">
+              <path fill="currentColor" d="M26.52 77.21h-5.75c-6.83 0-12.38-5.56-12.38-12.38V48.38C8.39 43.76 4.63 40 .01 40v-4c4.62 0 8.38-3.76 8.38-8.38V12.4C8.38 5.56 13.94 0 20.77 0h5.75v4h-5.75c-4.62 0-8.38 3.76-8.38 8.38V27.6c0 4.34-2.25 8.17-5.64 10.38 3.39 2.21 5.64 6.04 5.64 10.38v16.45c0 4.62 3.76 8.38 8.38 8.38h5.75v4.02Z"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="story-icons-grid">
+          <!-- Íconos... (mantener igual) -->
+          <div class="story-icon-item">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/>
+              <path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+            <span class="icon-label">Abierto todos los días</span>
+          </div>
+
+          <div class="story-icon-item">
+            <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2ZM7 12.5a.5.5 0 0 1 .495.43.762.762 0 0 0 .157.096c.213.106.553.208 1.005.295.896.173 2.111.262 3.343.262 1.232 0 2.447-.09 3.343-.262.452-.087.792-.19 1.006-.295a.764.764 0 0 0 .156-.096.5.5 0 0 1 .995.07c0 1.19-.644 2.438-1.618 3.375C14.9 17.319 13.531 18 12 18c-1.531 0-2.9-.681-3.882-1.625C7.144 15.438 6.5 14.19 6.5 13a.5.5 0 0 1 .5-.5Zm9.519.417.003-.004-.003.004Zm-9.038 0a.017.017 0 0 1-.003-.004l.003.004Zm.901-4.853L9 6.81l.619 1.253 1.381.2-1 .976.236 1.376-1.237-.65-1.235.65L8 9.239l-1-.975 1.382-.2Zm6 0L15 6.81l.619 1.253 1.381.2-1 .976.236 1.376-1.237-.65-1.235.65L14 9.239l-1-.975 1.382-.2Z" clip-rule="evenodd"/>
+            </svg>
+            <span class="icon-label">Atención cercana y de confianza</span>
+          </div>
+
+          <div class="story-icon-item">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
+              <path d="M12 2c4 4 6 7 6 10a6 6 0 1 1-12 0c0-3 2-6 6-10z" stroke="currentColor" stroke-width="2" fill="none"/>
+              <path d="M12 6v14" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span class="icon-label">Productos frescos cada día</span>
+          </div>
+
+          <div class="story-icon-item">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
+              <path d="M12 1v22" stroke="currentColor" stroke-width="2"/>
+              <path d="M17 5H9a3 3 0 0 0 0 6h6a3 3 0 0 1 0 6H6" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+            <span class="icon-label">Precios justos para tu bolsillo</span>
+          </div>
+
+          <div class="story-icon-item">
+            <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+              <path d="m12.75 20.66 6.184-7.098c2.677-2.884 2.559-6.506.754-8.705-.898-1.095-2.206-1.816-3.72-1.855-1.293-.034-2.652.43-3.963 1.442-1.315-1.012-2.678-1.476-3.973-1.442-1.515.04-2.825.76-3.724 1.855-1.806 2.201-1.915 5.823.772 8.706l6.183 7.097c.19.216.46.34.743.34a.985.985 0 0 0 .743-.34Z"/>
+            </svg>
+            <span class="icon-label">En el corazón de la vereda</span>
+          </div>
+
+          <div class="story-icon-item">
+            <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M4 19v2c0 .5523.44772 1 1 1h14c.5523 0 1-.4477 1-1v-2H4Z"/>
+              <path fill="currentColor" fill-rule="evenodd" d="M9 3c0-.55228.44772-1 1-1h8c.5523 0 1 .44772 1 1v3c0 .55228-.4477 1-1 1h-2v1h2c.5096 0 .9376.38314.9939.88957L19.8951 17H4.10498l.90116-8.11043C5.06241 8.38314 5.49047 8 6.00002 8H12V7h-2c-.55228 0-1-.44772-1-1V3Zm1.01 8H8.00002v2.01H10.01V11Zm.99 0h2.01v2.01H11V11Zm5.01 0H14v2.01h2.01V11Zm-8.00998 3H10.01v2.01H8.00002V14ZM13.01 14H11v2.01h2.01V14Zm.99 0h2.01v2.01H14V14ZM11 4h6v1h-6V4Z" clip-rule="evenodd"/>
+            </svg>
+            <span class="icon-label">Compra rápida y fácil</span>
+          </div>
+
+          <div class="story-icon-item">
+            <svg viewBox="0 0 24 24" width="48" height="48"
+              fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 4h2l2.5 12h9l2-8H7"/>
+              <circle cx="10" cy="20" r="1"/>
+              <circle cx="16" cy="20" r="1"/>
+            </svg>
+            <span class="icon-label">Variedad esencial para tu día a día</span>
+          </div>
+
+          <div class="story-icon-item">
+            <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" d="M11.293 3.293a1 1 0 0 1 1.414 0l6 6 2 2a1 1 0 0 1-1.414 1.414L19 12.414V19a2 2 0 0 1-2 2h-3a1 1 0 0 1-1-1v-3h-2v3a1 1 0 0 1-1 1H7a2 2 0 0 1-2-2v-6.586l-.293.293a1 1 0 0 1-1.414-1.414l2-2 6-6Z" clip-rule="evenodd"/>
+            </svg>
+            <span class="icon-label">Pensado para todo hogar</span>
+          </div>
+
+          <div class="story-icon-item">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="17" cy="4" r="2"/><path d="M15.777 10.969a2.007 2.007 0 0 0 2.148.83l3.316-.829-.483-1.94-3.316.829-1.379-2.067a2.01 2.01 0 0 0-1.272-.854l-3.846-.77a1.998 1.998 0 0 0-2.181 1.067l-1.658 3.316 1.789.895 1.658-3.317 1.967.394L7.434 17H3v2h4.434c.698 0 1.355-.372 1.715-.971l1.918-3.196 5.169 1.034 1.816 5.449 1.896-.633-1.815-5.448a2.007 2.007 0 0 0-1.506-1.33l-3.039-.607 1.772-2.954.417.625z"/></svg>
+            <span class="icon-label">Siempre listo para sacarte del apuro</span>
+          </div>
+
+          <div class="story-icon-item">
+            <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+              viewBox="0 0 57.001 57.001" style="enable-background:new 0 0 57.001 57.001;" xml:space="preserve">
+            <g>
+              <g>
+              </g>
+              <g>
+                <path d="M39,13.001c3.309,0,6-2.691,6-6s-2.691-6-6-6s-6,2.691-6,6S35.691,13.001,39,13.001z M39,3.001c2.206,0,4,1.794,4,4
+                  s-1.794,4-4,4c-0.117,0-0.226-0.025-0.34-0.034C39.476,10.234,40,9.182,40,8.001h-2c0,0.986-0.719,1.803-1.66,1.966
+                  C35.524,9.234,35,8.182,35,7.001C35,4.795,36.794,3.001,39,3.001z"/>
+                <path d="M8,25.001c3.309,0,6-2.691,6-6s-2.691-6-6-6s-6,2.691-6,6S4.691,25.001,8,25.001z M8,15.001c2.206,0,4,1.794,4,4
+                  c0,1.181-0.524,2.233-1.34,2.966C9.719,21.804,9,20.987,9,20.001H7c0,1.181,0.524,2.233,1.34,2.966
+                  C8.226,22.976,8.117,23.001,8,23.001c-2.206,0-4-1.794-4-4S5.794,15.001,8,15.001z"/>
+                <path d="M56.316,2.053l-6-2c-0.306-0.104-0.639-0.052-0.901,0.136C49.154,0.378,49,0.68,49,1.001v8v5H35
+                  c-0.234,0-0.461,0.082-0.641,0.231l-6,5c-0.105,0.089-0.192,0.198-0.254,0.321l-2.836,5.673l-6.314,2.705l-5.639-1.879
+                  c-0.102-0.033-0.209-0.051-0.316-0.051H5c-2.757,0-5,2.243-5,5v11c0,0.553,0.447,1,1,1h3v12H0v2h5h5h4c0.553,0,1-0.447,1-1v-5h2h5
+                  h7c0.553,0,1-0.447,1-1v-5h6h5c0.553,0,1-0.447,1-1v-5h6h5h3v-2h-2v-8c0-2.757-2.243-5-5-5h-4v-4h5c2.757,0,5-2.243,5-5v-6
+                  c0-0.553-0.447-1-1-1h-3V5.722l5.316-1.772C56.725,3.813,57,3.432,57,3.001S56.725,2.189,56.316,2.053z M40.523,16.001L40,17.309
+                  l-0.523-1.308H40.523z M14,49.001c-0.553,0-1,0.447-1,1v5h-2v-12h5v6H14z M18,49.001v-7c0-0.553-0.447-1-1-1h-7
+                  c-0.553,0-1,0.447-1,1v13H6v-23H4v9H2v-10c0-1.654,1.346-3,3-3h3v7h2v-7h2.838l5.846,1.948c0.232,0.079,0.486,0.066,0.71-0.029
+                  l6.235-2.672l0.607,0.91l0.303,0.455l-6.708,3.353l-6.69-0.956c-0.287-0.042-0.578,0.045-0.797,0.234
+                  C12.126,31.436,12,31.711,12,32.001v5c0,0.553,0.447,1,1,1h5c1.654,0,3,1.346,3,3v8H18z M29,43.001c-0.553,0-1,0.447-1,1v5h-5v-8
+                  c0-2.757-2.243-5-5-5h-4v-2.847l5.858,0.837c0.202,0.029,0.406-0.005,0.589-0.096l8-4c0.146-0.073,0.261-0.184,0.354-0.313
+                  c0.008-0.011,0.023-0.015,0.031-0.026l3.905-5.857L35,22.001v21H29z M47,37.001h-5v-6h5V37.001z M53,15.001c0,1.654-1.346,3-3,3
+                  h-6c-0.553,0-1,0.447-1,1v6c0,0.553,0.447,1,1,1h5c1.654,0,3,1.346,3,3v8h-3v-7c0-0.553-0.447-1-1-1h-7c-0.553,0-1,0.447-1,1v8v5
+                  h-3v-23c0-0.379-0.214-0.725-0.553-0.895c-0.338-0.168-0.745-0.133-1.047,0.095l-4,3c-0.091,0.067-0.17,0.15-0.232,0.245
+                  L28,27.198l-0.846-1.27l2.646-5.293l5.562-4.634h1.961l1.748,4.371c0.153,0.38,0.52,0.629,0.929,0.629s0.776-0.249,0.929-0.629
+                  l1.748-4.371H50c0.553,0,1-0.447,1-1v-5h2V15.001z M51,3.613V2.389l1.838,0.612L51,3.613z"/>
+                <rect x="24" y="5.001" width="2" height="2"/>
+                <rect x="20" y="5.001" width="2" height="2"/>
+                <rect x="16" y="5.001" width="2" height="2"/>
+              </g>
+            </g>
+            </svg>
+
+            <span class="icon-label">Experiencia que se nota</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección 4: Texto final -->
+    <section class="story-section" id="story-section-4">
+      <div class="story-container">
+        <h2 class="story-text-animated-final" data-text="Tu tienda de barrio digital">
+          Tu tienda de barrio digital
+        </h2>
+        <p class="story-subtitle">Calidad, cercanía y confianza desde 2010</p>
+      </div>
+    </section>
   </div>
-  </section>
-
-  <!-- SCROLL STORYTELLING (FIXED - TIPO APPLE) -->
-<!-- SCROLL STORYTELLING PRO (TEXTO ANIMADO AL SCROLL) -->
-<div id="scroll-story-pro" class="scroll-storytelling-pro">
-  <div></div>
-  <!-- Sección 1: Texto principal -->
-  <section class="story-section" id="story-section-1">
-    <div class="story-container">
-      <h2 class="story-text-animated" data-text="Más que un supermercado">
-        Más que un supermercado
-      </h2>
-    </div>
-  </section>
-
-  <!-- Sección 2: Texto secundario -->
-  <section class="story-section" id="story-section-2">
-    <div class="story-container">
-      <h2 class="story-text-animated" data-text="Somos tu vecino de confianza">
-        Somos tu vecino de confianza
-      </h2>
-    </div>
-  </section>
-
-  <!-- Sección 3: Texto con íconos -->
-  <section class="story-section" id="story-section-3">
-    <div class="story-container">
-      <div class="story-with-icons">
-        <div class="bracket-left">
-          <svg viewBox="0 0 27 78">
-            <path fill="currentColor" d="M26.52 77.21h-5.75c-6.83 0-12.38-5.56-12.38-12.38V48.38C8.39 43.76 4.63 40 .01 40v-4c4.62 0 8.38-3.76 8.38-8.38V12.4C8.38 5.56 13.94 0 20.77 0h5.75v4h-5.75c-4.62 0-8.38 3.76-8.38 8.38V27.6c0 4.34-2.25 8.17-5.64 10.38 3.39 2.21 5.64 6.04 5.64 10.38v16.45c0 4.62 3.76 8.38 8.38 8.38h5.75v4.02Z"/>
-          </svg>
-        </div>
-        <span class="icon-text">Todo lo que necesitas en un solo lugar</span>
-        <div class="bracket-right">
-          <svg viewBox="0 0 27 78">
-            <path fill="currentColor" d="M26.52 77.21h-5.75c-6.83 0-12.38-5.56-12.38-12.38V48.38C8.39 43.76 4.63 40 .01 40v-4c4.62 0 8.38-3.76 8.38-8.38V12.4C8.38 5.56 13.94 0 20.77 0h5.75v4h-5.75c-4.62 0-8.38 3.76-8.38 8.38V27.6c0 4.34-2.25 8.17-5.64 10.38 3.39 2.21 5.64 6.04 5.64 10.38v16.45c0 4.62 3.76 8.38 8.38 8.38h5.75v4.02Z"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="story-icons-grid">
-        <div class="story-icon-item">
-          <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
-            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/>
-            <path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
-          </svg>
-          <span class="icon-label">Abierto todos los días</span>
-        </div>
-
-      <div class="story-icon-item">
-        <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-          <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2ZM7 12.5a.5.5 0 0 1 .495.43.762.762 0 0 0 .157.096c.213.106.553.208 1.005.295.896.173 2.111.262 3.343.262 1.232 0 2.447-.09 3.343-.262.452-.087.792-.19 1.006-.295a.764.764 0 0 0 .156-.096.5.5 0 0 1 .995.07c0 1.19-.644 2.438-1.618 3.375C14.9 17.319 13.531 18 12 18c-1.531 0-2.9-.681-3.882-1.625C7.144 15.438 6.5 14.19 6.5 13a.5.5 0 0 1 .5-.5Zm9.519.417.003-.004-.003.004Zm-9.038 0a.017.017 0 0 1-.003-.004l.003.004Zm.901-4.853L9 6.81l.619 1.253 1.381.2-1 .976.236 1.376-1.237-.65-1.235.65L8 9.239l-1-.975 1.382-.2Zm6 0L15 6.81l.619 1.253 1.381.2-1 .976.236 1.376-1.237-.65-1.235.65L14 9.239l-1-.975 1.382-.2Z" clip-rule="evenodd"/>
-        </svg>
-        <span class="icon-label">Atención cercana y de confianza</span>
-      </div>
-
-      <div class="story-icon-item">
-        <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
-          <path d="M12 2c4 4 6 7 6 10a6 6 0 1 1-12 0c0-3 2-6 6-10z" stroke="currentColor" stroke-width="2" fill="none"/>
-          <path d="M12 6v14" stroke="currentColor" stroke-width="2"/>
-        </svg>
-        <span class="icon-label">Productos frescos cada día</span>
-      </div>
-
-      <div class="story-icon-item">
-        <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
-          <path d="M12 1v22" stroke="currentColor" stroke-width="2"/>
-          <path d="M17 5H9a3 3 0 0 0 0 6h6a3 3 0 0 1 0 6H6" stroke="currentColor" stroke-width="2" fill="none"/>
-        </svg>
-        <span class="icon-label">Precios justos para tu bolsillo</span>
-      </div>
-
-      <div class="story-icon-item">
-        <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-          <path d="m12.75 20.66 6.184-7.098c2.677-2.884 2.559-6.506.754-8.705-.898-1.095-2.206-1.816-3.72-1.855-1.293-.034-2.652.43-3.963 1.442-1.315-1.012-2.678-1.476-3.973-1.442-1.515.04-2.825.76-3.724 1.855-1.806 2.201-1.915 5.823.772 8.706l6.183 7.097c.19.216.46.34.743.34a.985.985 0 0 0 .743-.34Z"/>
-        </svg>
-        <span class="icon-label">En el corazón de la vereda</span>
-      </div>
-
-      <div class="story-icon-item">
-        <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-          <path fill="currentColor" d="M4 19v2c0 .5523.44772 1 1 1h14c.5523 0 1-.4477 1-1v-2H4Z"/>
-          <path fill="currentColor" fill-rule="evenodd" d="M9 3c0-.55228.44772-1 1-1h8c.5523 0 1 .44772 1 1v3c0 .55228-.4477 1-1 1h-2v1h2c.5096 0 .9376.38314.9939.88957L19.8951 17H4.10498l.90116-8.11043C5.06241 8.38314 5.49047 8 6.00002 8H12V7h-2c-.55228 0-1-.44772-1-1V3Zm1.01 8H8.00002v2.01H10.01V11Zm.99 0h2.01v2.01H11V11Zm5.01 0H14v2.01h2.01V11Zm-8.00998 3H10.01v2.01H8.00002V14ZM13.01 14H11v2.01h2.01V14Zm.99 0h2.01v2.01H14V14ZM11 4h6v1h-6V4Z" clip-rule="evenodd"/>
-        </svg>
-        <span class="icon-label">Compra rápida y fácil</span>
-      </div>
-
-      <div class="story-icon-item">
-        <svg viewBox="0 0 24 24" width="48" height="48"
-          fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 4h2l2.5 12h9l2-8H7"/>
-          <circle cx="10" cy="20" r="1"/>
-          <circle cx="16" cy="20" r="1"/>
-        </svg>
-        <span class="icon-label">Variedad esencial para tu día a día</span>
-      </div>
-
-
-      <div class="story-icon-item">
-        <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-          <path fill-rule="evenodd" d="M11.293 3.293a1 1 0 0 1 1.414 0l6 6 2 2a1 1 0 0 1-1.414 1.414L19 12.414V19a2 2 0 0 1-2 2h-3a1 1 0 0 1-1-1v-3h-2v3a1 1 0 0 1-1 1H7a2 2 0 0 1-2-2v-6.586l-.293.293a1 1 0 0 1-1.414-1.414l2-2 6-6Z" clip-rule="evenodd"/>
-        </svg>
-        <span class="icon-label">Pensado para todo hogar</span>
-      </div>
-
-      <div class="story-icon-item">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="17" cy="4" r="2"/><path d="M15.777 10.969a2.007 2.007 0 0 0 2.148.83l3.316-.829-.483-1.94-3.316.829-1.379-2.067a2.01 2.01 0 0 0-1.272-.854l-3.846-.77a1.998 1.998 0 0 0-2.181 1.067l-1.658 3.316 1.789.895 1.658-3.317 1.967.394L7.434 17H3v2h4.434c.698 0 1.355-.372 1.715-.971l1.918-3.196 5.169 1.034 1.816 5.449 1.896-.633-1.815-5.448a2.007 2.007 0 0 0-1.506-1.33l-3.039-.607 1.772-2.954.417.625z"/></svg>
-        <span class="icon-label">Siempre listo para sacarte del apuro</span>
-      </div>
-
-
-      <div class="story-icon-item">
-        <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-          viewBox="0 0 57.001 57.001" style="enable-background:new 0 0 57.001 57.001;" xml:space="preserve">
-        <g>
-          <g>
-          </g>
-          <g>
-            <path d="M39,13.001c3.309,0,6-2.691,6-6s-2.691-6-6-6s-6,2.691-6,6S35.691,13.001,39,13.001z M39,3.001c2.206,0,4,1.794,4,4
-              s-1.794,4-4,4c-0.117,0-0.226-0.025-0.34-0.034C39.476,10.234,40,9.182,40,8.001h-2c0,0.986-0.719,1.803-1.66,1.966
-              C35.524,9.234,35,8.182,35,7.001C35,4.795,36.794,3.001,39,3.001z"/>
-            <path d="M8,25.001c3.309,0,6-2.691,6-6s-2.691-6-6-6s-6,2.691-6,6S4.691,25.001,8,25.001z M8,15.001c2.206,0,4,1.794,4,4
-              c0,1.181-0.524,2.233-1.34,2.966C9.719,21.804,9,20.987,9,20.001H7c0,1.181,0.524,2.233,1.34,2.966
-              C8.226,22.976,8.117,23.001,8,23.001c-2.206,0-4-1.794-4-4S5.794,15.001,8,15.001z"/>
-            <path d="M56.316,2.053l-6-2c-0.306-0.104-0.639-0.052-0.901,0.136C49.154,0.378,49,0.68,49,1.001v8v5H35
-              c-0.234,0-0.461,0.082-0.641,0.231l-6,5c-0.105,0.089-0.192,0.198-0.254,0.321l-2.836,5.673l-6.314,2.705l-5.639-1.879
-              c-0.102-0.033-0.209-0.051-0.316-0.051H5c-2.757,0-5,2.243-5,5v11c0,0.553,0.447,1,1,1h3v12H0v2h5h5h4c0.553,0,1-0.447,1-1v-5h2h5
-              h7c0.553,0,1-0.447,1-1v-5h6h5c0.553,0,1-0.447,1-1v-5h6h5h3v-2h-2v-8c0-2.757-2.243-5-5-5h-4v-4h5c2.757,0,5-2.243,5-5v-6
-              c0-0.553-0.447-1-1-1h-3V5.722l5.316-1.772C56.725,3.813,57,3.432,57,3.001S56.725,2.189,56.316,2.053z M40.523,16.001L40,17.309
-              l-0.523-1.308H40.523z M14,49.001c-0.553,0-1,0.447-1,1v5h-2v-12h5v6H14z M18,49.001v-7c0-0.553-0.447-1-1-1h-7
-              c-0.553,0-1,0.447-1,1v13H6v-23H4v9H2v-10c0-1.654,1.346-3,3-3h3v7h2v-7h2.838l5.846,1.948c0.232,0.079,0.486,0.066,0.71-0.029
-              l6.235-2.672l0.607,0.91l0.303,0.455l-6.708,3.353l-6.69-0.956c-0.287-0.042-0.578,0.045-0.797,0.234
-              C12.126,31.436,12,31.711,12,32.001v5c0,0.553,0.447,1,1,1h5c1.654,0,3,1.346,3,3v8H18z M29,43.001c-0.553,0-1,0.447-1,1v5h-5v-8
-              c0-2.757-2.243-5-5-5h-4v-2.847l5.858,0.837c0.202,0.029,0.406-0.005,0.589-0.096l8-4c0.146-0.073,0.261-0.184,0.354-0.313
-              c0.008-0.011,0.023-0.015,0.031-0.026l3.905-5.857L35,22.001v21H29z M47,37.001h-5v-6h5V37.001z M53,15.001c0,1.654-1.346,3-3,3
-              h-6c-0.553,0-1,0.447-1,1v6c0,0.553,0.447,1,1,1h5c1.654,0,3,1.346,3,3v8h-3v-7c0-0.553-0.447-1-1-1h-7c-0.553,0-1,0.447-1,1v8v5
-              h-3v-23c0-0.379-0.214-0.725-0.553-0.895c-0.338-0.168-0.745-0.133-1.047,0.095l-4,3c-0.091,0.067-0.17,0.15-0.232,0.245
-              L28,27.198l-0.846-1.27l2.646-5.293l5.562-4.634h1.961l1.748,4.371c0.153,0.38,0.52,0.629,0.929,0.629s0.776-0.249,0.929-0.629
-              l1.748-4.371H50c0.553,0,1-0.447,1-1v-5h2V15.001z M51,3.613V2.389l1.838,0.612L51,3.613z"/>
-            <rect x="24" y="5.001" width="2" height="2"/>
-            <rect x="20" y="5.001" width="2" height="2"/>
-            <rect x="16" y="5.001" width="2" height="2"/>
-          </g>
-        </g>
-        </svg>
-        <span class="icon-label">Experiencia que se nota</span>
-      </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- Sección 4: Texto final -->
-  <section class="story-section" id="story-section-4">
-    <div class="story-container">
-      <h2 class="story-text-animated-final" data-text="Tu tienda de barrio digital">
-        Tu tienda de barrio digital
-      </h2>
-      <p class="story-subtitle">Calidad, cercanía y confianza desde 2010</p>
-    </div>
-  </section>
-</div>
 
   <!-- NOSOTROS -->
   <section id="nosotros" class="parallax-section" data-speed="0.08">
@@ -276,8 +270,8 @@
         <p class="section-subtitle">Conoce nuestra historia y compromiso</p>
       </div>
       <div class="about">
-        <div class="about-content reveal" data-speed="0.12" data-scroll-effect="slide-right">
-          <p>Merke+ de la Sabana es un supermercado de barrio comprometido con la comunidad, ofreciendo productos de calidad y una experiencia cercana. Llevamos más de 10 años sirviendo a la comunidad de Chía con atención personalizada y precios competitivos.</p>
+        <div class="about-content reveal" data-speed="1.0" data-scroll-effect="slide-right">
+          <p>Merke+ de la Sabana es un supermercado de barrio comprometido con la comunidad, ofreciendo productos de calidad y una experiencia cercana. Llevamos más de 30 años sirviendo a la comunidad de Chía con atención personalizada y precios competitivos.</p>
           <div class="about-features">
             <div class="feature" data-scroll-effect="pop">
               <span class="feature-icon">⭐</span>
@@ -291,8 +285,8 @@
             </div>
           </div>
         </div>
-        <div class="about-image reveal" data-speed="0.05" data-scroll-effect="slide-left">
-          <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092" alt="Nosotros" loading="lazy">
+        <div class="about-image reveal" data-speed="1.0" data-scroll-effect="slide-left">
+          <img src="img/Luis.png" alt="Nosotros" loading="lazy">
         </div>
       </div>
     </div>
@@ -306,31 +300,31 @@
       <div class="gradient-layer-2"></div>
     </div>
     
-    <div class="container">
+    <div class="container" data-speed="0.6">
       <div class="section-title reveal" data-scroll-effect="fade-up">
         <h2>Nuestros productos</h2>
         <p class="section-subtitle">Variedad y calidad para todos</p>
       </div>
       <div class="grid">
-        <div class="card reveal" data-scroll-effect="pop" data-delay="0">
+        <div class="card reveal" data-scroll-effect="pop" data-delay="0" data-speed="0.9">
           <div class="card-icon">🛒</div>
           <h3>Abarrotes</h3>
           <p>Todo lo esencial para tu despensa diaria</p>
           <a href="#" class="card-link">Ver productos →</a>
         </div>
-        <div class="card reveal" data-scroll-effect="pop" data-delay="100">
+        <div class="card reveal" data-scroll-effect="pop" data-delay="100" data-speed="0.9">
           <div class="card-icon">🍎</div>
           <h3>Frutas y Verduras</h3>
           <p>Frescas, locales y de temporada</p>
           <a href="#" class="card-link">Ver productos →</a>
         </div>
-        <div class="card reveal" data-scroll-effect="pop" data-delay="200">
+        <div class="card reveal" data-scroll-effect="pop" data-delay="200" data-speed="0.9">
           <div class="card-icon">🥛</div>
           <h3>Lácteos</h3>
           <p>Calidad y frescura garantizada</p>
           <a href="#" class="card-link">Ver productos →</a>
         </div>
-        <div class="card reveal" data-scroll-effect="pop" data-delay="300">
+        <div class="card reveal" data-scroll-effect="pop" data-delay="300" data-speed="0.9">
           <div class="card-icon">🥤</div>
           <h3>Bebidas</h3>
           <p>Variedad para todos los gustos</p>
@@ -363,7 +357,7 @@
             <span class="old-price">$15.000</span>
             <span class="new-price">$12.000</span>
           </div>
-          <button class="offer-btn" data-sound="click">Aprovechar</button>
+          <button class="offer-btn">Aprovechar</button>
         </div>
         
         <div class="offer-card" data-scroll-effect="pop" data-delay="100">
@@ -375,7 +369,7 @@
             <span class="old-price">$8.500</span>
             <span class="new-price">$7.225</span>
           </div>
-          <button class="offer-btn" data-sound="click">Aprovechar</button>
+          <button class="offer-btn">Aprovechar</button>
         </div>
         
         <div class="offer-card" data-scroll-effect="pop" data-delay="200">
@@ -387,7 +381,7 @@
             <span class="old-price">$12.000</span>
             <span class="new-price">$8.400</span>
           </div>
-          <button class="offer-btn" data-sound="click">Aprovechar</button>
+          <button class="offer-btn">Aprovechar</button>
         </div>
         
         <div class="offer-card" data-scroll-effect="pop" data-delay="300">
@@ -399,11 +393,11 @@
             <span class="old-price">$4.000</span>
             <span class="special-text">¡Llévate 2!</span>
           </div>
-          <button class="offer-btn" data-sound="click">Aprovechar</button>
+          <button class="offer-btn">Aprovechar</button>
         </div>
       </div>
       
-      <div class="offer-timer reveal" data-scroll-effect="fade-in">
+      <div class="offer-timer reveal" data-scroll-effect="fade-in" data-speed="0.6">
         <div class="timer-icon">⏰</div>
         <p class="timer-text">¡Ofertas terminan en <span id="countdown">24:00:00</span>!</p>
       </div>
@@ -423,7 +417,7 @@
         <h2>Marcas aliadas</h2>
         <p class="section-subtitle">Distribuidores oficiales de las mejores marcas</p>
       </div>
-      <div class="brands-container reveal" data-scroll-effect="fade-in">
+      <div class="brands-container reveal" data-scroll-effect="fade-in" data-speed="0.9">
         <div class="brands-grid">
           <div class="brand-item" data-scroll-effect="slide-up">
             <img src="https://dummyimage.com/200x60/fff/0B2C4D&text=Alpina" alt="Alpina" loading="lazy">
@@ -461,7 +455,7 @@
         <h2>Encuéntranos</h2>
         <p class="section-subtitle">Visítanos en nuestra ubicación</p>
       </div>
-      <div class="map-section reveal" data-scroll-effect="fade-in">
+      <div class="map-section reveal" data-scroll-effect="fade-in" data-speed="0.7">
         <div class="map-wrapper">
           <iframe 
             src="https://www.google.com/maps?q=Supermercado+Merke+Mas+De+La+Sabana&output=embed"

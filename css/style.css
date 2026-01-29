@@ -57,6 +57,7 @@ body {
 }
 
 /* ===== FONDOS POR SECCIÓN ===== */
+/* ===== FONDOS POR SECCIÓN MEJORADOS ===== */
 .section-background {
   position: absolute;
   top: 0;
@@ -66,45 +67,316 @@ body {
   z-index: -3;
   pointer-events: none;
   overflow: hidden;
+  background: linear-gradient(135deg, #051b38 0%, #0b2c4d 50%, #1a4b7c 100%);
 }
 
+/* Capa 1: Olas sutiles animadas */
 .gradient-layer {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background: 
+    radial-gradient(
+      circle at 30% 20%, 
+      rgba(255, 214, 0, 0.15) 0%, 
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 70% 80%, 
+      rgba(46, 204, 113, 0.12) 0%, 
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 50% 50%, 
+      rgba(231, 76, 60, 0.08) 0%, 
+      transparent 60%
+    );
+  animation: floatingWaves 40s ease-in-out infinite;
+  filter: blur(60px);
+}
+
+/* Capa 2: Partículas brillantes */
+.gradient-layer-2 {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background: 
+    radial-gradient(
+      2px 2px at 20% 30%,
+      rgba(255, 214, 0, 0.8) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      3px 3px at 40% 70%,
+      rgba(46, 204, 113, 0.6) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      2px 2px at 60% 40%,
+      rgba(231, 76, 60, 0.7) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      3px 3px at 80% 60%,
+      rgba(255, 214, 0, 0.5) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      2px 2px at 30% 80%,
+      rgba(46, 204, 113, 0.4) 0%,
+      transparent 100%
+    );
+  background-size: 200px 200px;
+  animation: sparkleParticles 20s linear infinite;
+  opacity: 0.5;
+}
+
+/* Capa 3: Efecto de neón/aura */
+.gradient-layer-3 {
   position: absolute;
   width: 150%;
   height: 150%;
   top: -25%;
   left: -25%;
   background: 
-    radial-gradient(circle at 20% 80%, rgba(46, 204, 113, 0.08) 0%, transparent 60%),
-    radial-gradient(circle at 80% 20%, rgba(255, 214, 0, 0.06) 0%, transparent 60%),
-    radial-gradient(circle at 40% 40%, rgba(11, 44, 77, 0.1) 0%, transparent 60%);
-  animation: gradientMove 20s ease infinite;
+    conic-gradient(
+      from 0deg at 50% 50%,
+      rgba(255, 214, 0, 0.1) 0deg,
+      rgba(46, 204, 113, 0.1) 120deg,
+      rgba(231, 76, 60, 0.1) 240deg,
+      rgba(255, 214, 0, 0.1) 360deg
+    );
+  animation: neonRotation 60s linear infinite;
+  filter: blur(80px);
+  opacity: 0.3;
 }
 
-.gradient-layer-2 {
+/* Capa 4: Efecto de grid sutil */
+.gradient-layer-4 {
   position: absolute;
-  width: 120%;
-  height: 120%;
-  top: -10%;
-  left: -10%;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridMove 30s linear infinite;
+  opacity: 0.2;
+  mask-image: radial-gradient(circle at center, black 20%, transparent 80%);
+}
+
+/* Animaciones mejoradas */
+@keyframes floatingWaves {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translate(-2%, 3%) rotate(1deg) scale(1.02);
+  }
+  50% {
+    transform: translate(3%, -2%) rotate(-1deg) scale(0.98);
+  }
+  75% {
+    transform: translate(-3%, -1%) rotate(0.5deg) scale(1.01);
+  }
+}
+
+@keyframes sparkleParticles {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 200px 200px;
+  }
+}
+
+@keyframes neonRotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes gridMove {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 40px 40px;
+  }
+}
+
+/* Efectos de pulsación sutil para diferentes secciones */
+.parallax-section:hover .gradient-layer {
+  animation-duration: 20s;
+  filter: blur(80px);
+  opacity: 0.8;
+}
+
+/* Variaciones por sección */
+#hero .section-background {
+  background: linear-gradient(135deg, 
+    #051b38 0%, 
+    #0b2c4d 30%, 
+    #1a4b7c 70%, 
+    #27ae60 100%
+  );
+}
+
+#hero .gradient-layer {
   background: 
-    radial-gradient(circle at 70% 30%, rgba(231, 76, 60, 0.05) 0%, transparent 60%),
-    radial-gradient(circle at 30% 70%, rgba(46, 204, 113, 0.05) 0%, transparent 60%);
-  animation: gradientMoveReverse 25s ease infinite;
+    radial-gradient(
+      circle at 30% 20%, 
+      rgba(255, 214, 0, 0.25) 0%, 
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 70% 80%, 
+      rgba(46, 204, 113, 0.2) 0%, 
+      transparent 50%
+    );
+  filter: blur(80px);
 }
 
-@keyframes gradientMove {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  33% { transform: translate(-3%, 3%) rotate(120deg); }
-  66% { transform: translate(3%, -3%) rotate(240deg); }
+#nosotros .section-background {
+  background: linear-gradient(135deg, 
+    #0f172a 0%, 
+    #1e293b 50%, 
+    #334155 100%
+  );
 }
 
-@keyframes gradientMoveReverse {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  33% { transform: translate(2%, -2%) rotate(-120deg); }
-  66% { transform: translate(-2%, 2%) rotate(-240deg); }
+#productos .section-background {
+  background: linear-gradient(135deg, 
+    #0b2c4d 0%, 
+    #1e3a5f 50%, 
+    #2d4a7a 100%
+  );
 }
 
+#ofertas .section-background {
+  background: linear-gradient(135deg, 
+    #703e3954 0%, 
+    #8a4c4557 30%, 
+    #123f523b 70%, 
+    #1a5b7562 100%
+  );
+}
+
+#marcas .section-background {
+  background: linear-gradient(135deg, 
+    #0f172a 0%, 
+    #1e293b 40%, 
+    #334155 80%, 
+    #475569 100%
+  );
+}
+
+#ubicacion .section-background {
+  background: linear-gradient(135deg, 
+    #051b38 0%, 
+    #0b2c4d 40%, 
+    #1a4b7c 80%, 
+    #2d5c9e 100%
+  );
+}
+
+#contacto .section-background {
+  background: linear-gradient(135deg, 
+    #051b3846 0%, 
+    #0b2c4d59 30%, 
+    #27ae5f65 70%, 
+    #2ecc705b 100%
+  );
+}
+
+/* Efectos especiales para hero */
+#hero .gradient-layer-2 {
+  background: 
+    radial-gradient(
+      4px 4px at 10% 20%,
+      rgba(255, 214, 0, 0.9) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      5px 5px at 90% 80%,
+      rgba(46, 204, 113, 0.7) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      3px 3px at 50% 50%,
+      rgba(255, 255, 255, 0.8) 0%,
+      transparent 100%
+    );
+  animation-duration: 15s;
+}
+
+
+/* Añadir capas adicionales dinámicamente con JS */
+.scroll-section:hover .gradient-layer-3 {
+  animation-duration: 30s;
+  opacity: 0.5;
+}
+
+/* Efectos de brillo al hacer hover */
+.card:hover ~ .section-background .gradient-layer,
+.offer-card:hover ~ .section-background .gradient-layer {
+  filter: blur(100px) brightness(1.5);
+  transition: filter 1s ease;
+}
+
+/* Media queries para optimización */
+@media (max-width: 768px) {
+  .gradient-layer {
+    filter: blur(40px);
+    animation-duration: 60s;
+  }
+  
+  .gradient-layer-2 {
+    background-size: 100px 100px;
+    opacity: 0.3;
+  }
+  
+  .gradient-layer-3 {
+    filter: blur(40px);
+    opacity: 0.2;
+  }
+  
+  .gradient-layer-4 {
+    background-size: 30px 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gradient-layer {
+    filter: blur(30px);
+    animation-duration: 80s;
+  }
+  
+  .gradient-layer-2,
+  .gradient-layer-3,
+  .gradient-layer-4 {
+    display: none; /* Mejor rendimiento en móviles */
+  }
+  
+
+}
+/* Preferencias de reducción de movimiento */
+/* Preferencias de reducción de movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .gradient-layer,
+  .gradient-layer-2,
+  .gradient-layer-3,
+  .gradient-layer-4 /* ELIMINAR: , .scan-line */ {
+    animation: none !important;
+  }
+}
 /* ===== TIPOGRAFÍA RESPONSIVE ===== */
 html {
   font-size: 16px;
@@ -130,7 +402,7 @@ html {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 99999;
   animation: introFade 1s ease 4s forwards;
 }
 
@@ -1281,7 +1553,7 @@ footer {
     gap: 2rem;
     transition: right 0.4s cubic-bezier(0.77, 0, 0.175, 1);
     box-shadow: -5px 0 25px rgba(0,0,0,0.3);
-    z-index: 9999; /* Por encima del noise */
+    z-index: 1000; /* Por encima del noise */
   }
   
   .nav-menu.active {
@@ -1374,7 +1646,7 @@ footer {
     gap: 1.5rem;
     transition: right 0.4s cubic-bezier(0.77, 0, 0.175, 1);
     box-shadow: -5px 0 25px rgba(0,0,0,0.3);
-    z-index: 9999;
+    z-index: 1000;
   }
   
   .nav-menu.active {
@@ -1396,24 +1668,6 @@ footer {
   
   .story-text {
     font-size: clamp(2.5rem, 6vw, 4rem);
-  }
-}
-
-/* ===== PERFORMANCE OPTIMIZATIONS ===== */
-@media (prefers-reduced-motion: reduce) {
-  .gradient-layer,
-  .gradient-layer-2,
-  [data-scroll-effect],
-  .reveal,
-  .offer-badge,
-  .timer-icon,
-  .whatsapp-float {
-    animation: none !important;
-    transition: none !important;
-  }
-  
-  .story-step {
-    transition: none !important;
   }
 }
 
@@ -1447,74 +1701,86 @@ footer {
 /* ANIMACIÓN PARA SCROLL HINT */
 .scroll-hint {
   position: absolute;
-  bottom: 30px;
+  bottom: 40px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(20px);
   text-align: center;
   z-index: 10;
   opacity: 0;
-  animation: fadeInHint 1s ease 3s forwards;
   pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .scroll-hint span {
   display: block;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
   text-transform: uppercase;
   letter-spacing: 3px;
-  margin-bottom: 10px;
-  font-weight: 300;
-  animation: pulseText 2s ease-in-out infinite 4s;
+  margin-bottom: 12px;
+  font-weight: 400;
+  animation: pulseText 3s ease-in-out infinite;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .hint-line {
   width: 1px;
-  height: 60px;
+  height: 50px;
   background: linear-gradient(
     to bottom,
-    rgba(255, 214, 0, 0.8) 0%,
-    rgba(255, 214, 0, 0.2) 30%,
+    var(--yellow) 0%,
+    rgba(255, 214, 0, 0.4) 30%,
+    rgba(255, 214, 0, 0.1) 70%,
     transparent 100%
   );
   margin: 0 auto;
-  animation: bounceLine 2s ease-in-out infinite;
   position: relative;
+  overflow: hidden;
 }
 
-/* Añadir un pequeño círculo que baja */
+.hint-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--yellow) 50%,
+    transparent 100%
+  );
+  animation: lineFlow 2s ease-in-out infinite;
+}
+
 .hint-line::after {
   content: '';
   position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   background: var(--yellow);
   border-radius: 50%;
-  animation: scrollBall 2s ease-in-out infinite;
-  box-shadow: 0 0 10px rgba(255, 214, 0, 0.5);
+  box-shadow: 0 0 15px var(--yellow);
+  animation: scrollBall 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-/* KEYFRAMES */
-@keyframes fadeInHint {
-  from {
+/* KEYFRAMES MEJORADOS */
+@keyframes lineFlow {
+  0% {
+    transform: translateY(-100%);
     opacity: 0;
-    transform: translateX(-50%) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-@keyframes bounceLine {
-  0%, 100% {
-    transform: scaleY(1);
   }
   50% {
-    transform: scaleY(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(200%);
+    opacity: 0;
   }
 }
 
@@ -1524,29 +1790,47 @@ footer {
     opacity: 1;
     transform: translateX(-50%) scale(1);
   }
-  70% {
+  50% {
+    top: 50%;
+    opacity: 0.8;
+    transform: translateX(-50%) scale(0.9);
+  }
+  100% {
     top: 100%;
     opacity: 0;
     transform: translateX(-50%) scale(0.5);
-  }
-  71% {
-    top: 0;
-    opacity: 0;
-    transform: translateX(-50%) scale(0.5);
-  }
-  100% {
-    top: 0;
-    opacity: 1;
-    transform: translateX(-50%) scale(1);
   }
 }
 
 @keyframes pulseText {
   0%, 100% {
     opacity: 0.7;
+    letter-spacing: 3px;
   }
   50% {
     opacity: 1;
+    letter-spacing: 4px;
+  }
+}
+
+/* Ajustes responsive */
+@media (max-width: 768px) {
+  .scroll-hint {
+    bottom: 30px;
+  }
+  
+  .scroll-hint span {
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+  }
+  
+  .hint-line {
+    height: 40px;
+  }
+  
+  .hint-line::after {
+    width: 6px;
+    height: 6px;
   }
 }
 
@@ -1827,20 +2111,231 @@ footer {
   animation-delay: calc(var(--index) * 0.05s);
 }
 
-/* Desactivar animaciones para preferencias de reducción de movimiento */
-@media (prefers-reduced-motion: reduce) {
-  .story-text-animated .char,
-  .story-icon-item,
-  .story-with-icons,
-  .story-icons-grid {
-    transition: none !important;
-    animation: none !important;
-    transform: none !important;
-    opacity: 1 !important;
+
+
+
+/* ===== EFECTOS PARALLAX MEJORADOS ===== */
+.card, .offer-card, .contact-card,
+.brand-item, .feature, .info-card,
+.story-icon-item {
+  transition: 
+    transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 0.5s ease,
+    border-color 0.3s ease;
+  will-change: transform, opacity, box-shadow;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Hero image con parallax potente */
+.hero-img {
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 1s ease;
+  will-change: transform, opacity;
+}
+
+/* Títulos con efecto 3D */
+.section-title {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.8s ease;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+/* Efecto de brillo para tarjetas (mejorado) */
+.card-shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+  mix-blend-mode: overlay;
+}
+
+/* Efecto táctil */
+.tapped {
+  transform: scale(0.95) !important;
+  transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1) !important;
+}
+
+/* Para íconos del storytelling */
+.story-icon-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.story-icon-item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 214, 0, 0.1) 0%,
+    transparent 70%
+  );
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.story-icon-item:hover::after {
+  opacity: 1;
+}
+
+/* ===== OPTIMIZACIONES ESPECÍFICAS PARA MÓVIL ===== */
+@media (max-width: 768px) {
+  /* Mantén efectos pero optimizados */
+  .card, .offer-card, .contact-card,
+  .brand-item, .feature, .info-card,
+  .story-icon-item {
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform;
+    transition: 
+      transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+      opacity 0.4s ease,
+      box-shadow 0.4s ease !important;
   }
   
-  .story-text-animated-final {
-    animation: none;
+  /* Efectos más sutiles pero visibles */
+  .hero-img {
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1) !important;
+    will-change: transform;
+  }
+  
+  /* Efecto táctil mejorado */
+  .tapped {
+    transform: scale(0.96) !important;
+    transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1) !important;
+  }
+  
+  /* Ajusta las animaciones del storytelling para móvil */
+  .story-text-animated {
+    font-size: clamp(2.2rem, 6vw, 3.5rem) !important;
+  }
+  
+  .story-text-animated .char {
+    transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+                opacity 0.5s ease !important;
   }
 }
 
+
+/* ===== EFECTOS ESPECIALES PARA TEXTO EN MÓVIL ===== */
+@media (max-width: 480px) and (prefers-reduced-motion: no-preference) {
+  /* Efectos más ligeros pero presentes */
+  .reveal[data-speed] {
+    transition: transform 0.5s ease, opacity 0.5s ease !important;
+  }
+  
+  /* Limitar efectos 3D en móviles antiguos */
+  .card, .offer-card, .contact-card {
+    transform-style: flat !important;
+  }
+}
+
+/* Optimizaciones de rendimiento específicas para móvil */
+@media (max-width: 768px) {
+  /* Acelera renderizado con GPU */
+  .reveal, [data-scroll-effect], [data-speed] {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  /* Reduce complejidad de animaciones */
+  .story-icons-grid {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+  
+  /* Mejor rendimiento para gradientes animados */
+  .gradient-layer, .gradient-layer-2 {
+    animation-duration: 30s !important; /* Más lento en móvil */
+    animation-timing-function: ease-in-out !important;
+  }
+  
+  /* Optimizar partículas para móvil */
+  #tsparticles {
+    opacity: 0.6; /* Reducir opacidad en móvil */
+  }
+  
+  /* Noise más sutil en móvil */
+  #noiseCanvas {
+    opacity: 0.15;
+  }
+}
+
+/* Detección de dispositivos táctiles */
+@media (hover: none) and (pointer: coarse) {
+  .card:hover, .offer-card:hover, .contact-card:hover {
+    transform: translateY(-3px) !important; /* Efecto hover más sutil */
+    box-shadow: 0 8px 20px rgba(46, 204, 113, 0.15) !important;
+  }
+}
+
+
+/* ===== MEDIA QUERIES ESPECÍFICAS PARA SCROLL HINT ===== */
+
+/* Tablet */
+@media (min-width: 768px) {
+  .scroll-hint {
+    bottom: 30px;
+  }
+  
+  .scroll-hint span {
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+  }
+  
+  .hint-line {
+    height: 50px;
+  }
+}
+
+/* Teléfonos pequeños */
+@media (max-width: 480px) {
+  .scroll-hint {
+    bottom: 15px;
+    max-width: 180px;
+  }
+  
+  .scroll-hint span {
+    font-size: 0.7rem;
+    letter-spacing: 1.5px;
+    padding: 0 10px;
+  }
+  
+  .hint-line {
+    height: 35px;
+    width: 0.5px;
+  }
+  
+  .hint-line::after {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+/* Ajustes para landscape móvil */
+@media (max-height: 500px) and (orientation: landscape) {
+  .scroll-hint {
+    display: none !important; /* Ocultar en modo landscape */
+  }
+}
+
+
+@media (max-height: 785px) {
+  .scroll-hint {
+    display: none !important;
+  }
+}
