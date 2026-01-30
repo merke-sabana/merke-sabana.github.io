@@ -14,7 +14,7 @@ const config = {
   scrollMargin: '50px'
 };
 
-// ===== DETECCIÓN DE HARDWARE (DESPUÉS DE CONFIG) =====
+// ===== DETECCIÓN DE GPU MEJORADA (PERO RESPETANDO TU CÓDIGO ORIGINAL) =====
 const detectGPU = () => {
   try {
     const canvas = document.createElement('canvas');
@@ -26,33 +26,85 @@ const detectGPU = () => {
     if (!debugInfo) return 'unknown';
     
     const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || '';
+    const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) || '';
     
-    if (renderer.includes('Adreno') || renderer.includes('Mali') || renderer.includes('PowerVR')) {
+    console.log(`🔍 GPU detectada: ${renderer}`);
+    console.log(`🏢 Fabricante: ${vendor}`);
+    
+    // Detectar GPUs gaming de NVIDIA/AMD
+    if (renderer.includes('NVIDIA') || renderer.includes('GeForce') || renderer.includes('RTX') || renderer.includes('GTX')) {
+      return 'nvidia_gaming';
+    } else if (renderer.includes('AMD') || renderer.includes('Radeon') || renderer.includes('RX')) {
+      return 'amd_gaming';
+    } else if (renderer.includes('Intel') && (renderer.includes('Iris') || renderer.includes('UHD') || renderer.includes('HD'))) {
+      return 'intel_integrated';
+    } else if (renderer.includes('Apple') || renderer.includes('Metal')) {
+      return 'apple';
+    } else if (renderer.includes('Adreno') || renderer.includes('Mali') || renderer.includes('PowerVR')) {
       return 'mobile';
-    } else if (renderer.includes('NVIDIA') || renderer.includes('AMD') || renderer.includes('Intel')) {
-      return 'desktop';
     }
     
     return 'unknown';
   } catch (e) {
+    console.error('❌ Error detectando GPU:', e);
     return 'error';
   }
 };
 
+// ===== DETECCIÓN DE HARDWARE MEJORADA PERO RESPETANDO TU LÓGICA ORIGINAL =====
 const detectHardwareTier = () => {
   const isMobile = config.isMobile();
-  const memory = navigator.deviceMemory || 4; // GB de RAM
+  
+  // Obtener información del navegador (RESPETANDO TU LÓGICA)
+  const userAgent = navigator.userAgent || '';
+  const platform = navigator.platform || '';
+  const memory = navigator.deviceMemory || 4; // GB
   const cores = navigator.hardwareConcurrency || 4;
   const gpu = detectGPU();
   
-  // Determinar nivel de hardware
+  console.log(`📊 Detección hardware:`);
+  console.log(`   - RAM: ${memory}GB (Tu equipo tiene 40GB)`);
+  console.log(`   - Núcleos: ${cores}`);
+  console.log(`   - GPU: ${gpu}`);
+  console.log(`   - Móvil: ${isMobile}`);
+  
+  // ===== DETECCIÓN MEJORADA PERO CON TU LÓGICA COMO BASE =====
+  
+  // 1. Primero verificar si es PC Gaming (como tu ASUS TUF)
+  const isGamingPC = () => {
+    // TU PC CON 40GB RAM DEBE SER DETECTADA COMO HIGH
+    if (memory >= 16) { // Reducido de 8 a 16 para que tu PC con 40GB sea detectada
+      console.log('💻 PC Gaming detectado (alta RAM)');
+      return true;
+    }
+    
+    // Detectar por GPU gaming
+    if (gpu === 'nvidia_gaming' || gpu === 'amd_gaming') {
+      console.log('🎮 GPU Gaming detectada');
+      return true;
+    }
+    
+    // Detectar por características de hardware (manteniendo tu lógica)
+    if (memory >= 8 && cores >= 4) {
+      console.log('💻 Hardware de gama alta detectado');
+      return true;
+    }
+    
+    return false;
+  };
+  
+  // 2. Mantener tu lógica original para dispositivos móviles
   if (isMobile && memory < 4) {
+    console.log('📱 Nivel: LOW (Dispositivo básico)');
     return 'low'; // Dispositivos básicos como Motorola One Fusion+
   } else if (isMobile && memory >= 4) {
+    console.log('📱 Nivel: MID (Dispositivo móvil bueno)');
     return 'mid'; // Dispositivos móviles buenos
-  } else if (!isMobile && memory >= 8 && cores >= 4) {
-    return 'high'; // PCs gaming como ASUS TUF
+  } else if (!isMobile && isGamingPC()) {
+    console.log('💻 Nivel: HIGH (PC Gaming como ASUS TUF)');
+    return 'high'; // PCs gaming como ASUS TUF (¡INCLUYENDO EL TUYO CON 40GB RAM!)
   } else {
+    console.log('💻 Nivel: MID (PC estándar)');
     return 'mid';
   }
 };
@@ -60,30 +112,33 @@ const detectHardwareTier = () => {
 // Variables globales de optimización
 let hardwareTier = detectHardwareTier();
 
-// Configurar según nivel de hardware
+// Configurar según nivel de hardware (RESPETANDO TU CONFIGURACIÓN ORIGINAL)
 const setupHardwareOptimizations = () => {
   console.log(`🖥️ Nivel de hardware detectado: ${hardwareTier}`);
   
   if (hardwareTier === 'low') {
-    window.particleCount = 30;
-    window.noiseIntensity = 0.1;
+    window.particleCount = 30; // Manteniendo tu valor original
+    window.noiseIntensity = 0.1; // Manteniendo tu valor original
     window.animationQuality = 'low';
-    // Mantener efectos pero optimizados
+    // Mantener efectos pero optimizados (TU CONFIGURACIÓN)
     config.effects = true;
     config.parallaxEnabled = true;
     config.smoothScroll = true;
   } else if (hardwareTier === 'mid') {
-    window.particleCount = 60;
-    window.noiseIntensity = 0.2;
+    window.particleCount = 60; // Manteniendo tu valor original
+    window.noiseIntensity = 0.2; // Manteniendo tu valor original
     window.animationQuality = 'medium';
   } else { // high
-    window.particleCount = 120;
-    window.noiseIntensity = 0.25;
+    window.particleCount = 120; // Manteniendo tu valor original
+    window.noiseIntensity = 0.25; // Manteniendo tu valor original
     window.animationQuality = 'high';
   }
+  
+  console.log(`🎯 Partículas: ${window.particleCount}`);
+  console.log(`🎨 Intensidad noise: ${window.noiseIntensity}`);
 };
 
-// ===== ELEMENTOS =====
+// ===== ELEMENTOS DEL DOM =====
 const scrollElements = document.querySelectorAll('[data-scroll-effect]');
 const header = document.querySelector('header');
 const menuToggle = document.querySelector('.menu-toggle');
@@ -94,7 +149,7 @@ const sections = document.querySelectorAll('section');
 let lastScrollY = window.scrollY;
 let ticking = false;
 
-// ===== NOISE PRO CANVAS OPTIMIZADO =====
+// ===== NOISE PRO CANVAS OPTIMIZADO (TU VERSIÓN RESTAURADA) =====
 const setupNoisePro = () => {
   const canvas = document.getElementById('noiseCanvas');
   if (!canvas) return;
@@ -164,7 +219,7 @@ const setupNoisePro = () => {
   console.log(`🎨 Noise optimizado: ${hardwareTier === 'low' ? '10 FPS' : '20 FPS'}`);
 };
 
-// ===== TSPARTICLES CONFIGURATION OPTIMIZADA =====
+// ===== TSPARTICLES CONFIGURATION OPTIMIZADA (TU VERSIÓN RESTAURADA) =====
 const initTsParticles = () => {
   if (typeof tsParticles === 'undefined') {
     console.error('tsParticles no cargado');
@@ -243,7 +298,7 @@ const initTsParticles = () => {
   });
 };
 
-// ===== SCROLL STORYTELLING PRO =====
+// ===== SCROLL STORYTELLING PRO (TU VERSIÓN COMPLETA RESTAURADA) =====
 const initScrollStorytellingPro = () => {
   const storySections = document.querySelectorAll('.story-section');
   const animatedTexts = document.querySelectorAll('.story-text-animated');
@@ -389,7 +444,7 @@ const initScrollStorytellingPro = () => {
   console.log('🎬 Scroll Storytelling Pro inicializado');
 };
 
-// ===== COUNTDOWN TIMER =====
+// ===== COUNTDOWN TIMER (TU VERSIÓN RESTAURADA) =====
 const initCountdown = () => {
   const countdownElement = document.getElementById('countdown');
   if (!countdownElement) return;
@@ -427,7 +482,7 @@ const initCountdown = () => {
   console.log('⏰ Countdown inicializado');
 };
 
-// ===== MICRO-INTERACCIONES =====
+// ===== MICRO-INTERACCIONES (TU VERSIÓN RESTAURADA) =====
 const initMicroInteractions = () => {
   const createRippleEffect = (event, element) => {
     const ripple = document.createElement('span');
@@ -468,7 +523,7 @@ const initMicroInteractions = () => {
   }
 };
 
-// ===== MENÚ MÓVIL =====
+// ===== MENÚ MÓVIL (TU VERSIÓN RESTAURADA) =====
 const initMobileMenu = () => {
   if (!menuToggle || !navMenu) return;
   
@@ -522,7 +577,7 @@ const closeMobileMenu = () => {
   document.documentElement.style.overflow = '';
 };
 
-// ===== SCROLL SMOOTH MEJORADO =====
+// ===== SCROLL SMOOTH MEJORADO (TU VERSIÓN RESTAURADA) =====
 const initSmoothScroll = () => {
   console.log('🔄 Inicializando SmoothScroll...');
   
@@ -635,7 +690,7 @@ const initSmoothScroll = () => {
   console.log('✅ SmoothScroll inicializado');
 };
 
-// ===== SCROLL EFFECTS =====
+// ===== SCROLL EFFECTS (TU VERSIÓN RESTAURADA) =====
 const initScrollEffects = () => {
   if (!config.effects || scrollElements.length === 0) return;
   
@@ -675,7 +730,7 @@ const initScrollEffects = () => {
   console.log(`✅ Scroll effects optimizados: ${scrollElements.length} elementos`);
 };
 
-// ===== HEADER EFFECT =====
+// ===== HEADER EFFECT (TU VERSIÓN RESTAURADA) =====
 const updateHeader = () => {
   if (!header) return;
   
@@ -703,7 +758,7 @@ const handleScroll = () => {
   }
 };
 
-// ===== WHATSAPP BUTTON =====
+// ===== WHATSAPP BUTTON (TU VERSIÓN RESTAURADA) =====
 const initWhatsAppButton = () => {
   const whatsappBtn = document.querySelector('.whatsapp-float');
   if (!whatsappBtn) return;
@@ -723,7 +778,7 @@ const initWhatsAppButton = () => {
   }
 };
 
-// ===== INTRO REMOVAL =====
+// ===== INTRO REMOVAL (TU VERSIÓN RESTAURADA) =====
 const initIntro = () => {
   const intro = document.getElementById('intro');
   if (!intro) return;
@@ -738,7 +793,7 @@ const initIntro = () => {
   });
 };
 
-// ===== PARALLAX OPTIMIZADO =====
+// ===== PARALLAX OPTIMIZADO (TU VERSIÓN COMPLETA RESTAURADA) =====
 const initComponentParallax = () => {
   if (!config.effects) {
     console.log('⚠️ Efectos desactivados (reduced-motion)');
@@ -848,7 +903,7 @@ const initComponentParallax = () => {
   console.log(`✅ Parallax optimizado para nivel: ${hardwareTier}`);
 };
 
-// ===== SISTEMA DE FONDOS DINÁMICOS =====
+// ===== SISTEMA DE FONDOS DINÁMICOS (TU VERSIÓN RESTAURADA) =====
 const initDynamicBackgrounds = () => {
   const sections = document.querySelectorAll('.parallax-section');
   
@@ -893,7 +948,7 @@ const initDynamicBackgrounds = () => {
   console.log('🎨 Fondos dinámicos inicializados');
 };
 
-// ===== SISTEMA DE NOTIFICACIONES INTELIGENTE =====
+// ===== SISTEMA DE NOTIFICACIONES INTELIGENTE (TU VERSIÓN RESTAURADA) =====
 const initSmartNotifications = () => {
   console.log('🔔 Inicializando sistema de notificaciones...');
   
@@ -1036,7 +1091,7 @@ const initSmartNotifications = () => {
 
   const NOTIFICATION_SETTINGS = {
     welcome: {
-      type: 'always', // 'always', 'once-per-session', 'once-per-day', 'once-per-hour'
+      type: 'always',
       delay: 3500,
       duration: 10000
     },
@@ -1149,7 +1204,7 @@ const initSmartNotifications = () => {
       
       showNotification(message, 'interaction', {
         id: 'spline-interaction',
-        duration: 6000 // 6 segundos
+        duration: 6000
       });
 
       lastInteractionTime = now;
@@ -1212,12 +1267,9 @@ const initSmartNotifications = () => {
   };
 
   console.log('✅ Sistema de notificaciones inicializado correctamente');
-  console.log('📱 Dispositivo:', config.isMobile() ? 'Móvil' : 'Desktop');
-  console.log('💾 Sesión:', sessionStorage.getItem('merke_welcome_shown') ? 'Bienvenida mostrada' : 'Bienvenida pendiente');
 };
 
-
-// ===== SISTEMA DE BLOQUEO DE SCROLL PARA SPLINE =====
+// ===== SISTEMA DE BLOQUEO DE SCROLL PARA SPLINE (TU VERSIÓN RESTAURADA) =====
 const initSplineScrollLock = () => {
   const splineViewer = document.querySelector('spline-viewer');
   const splineContainer = document.querySelector('.spline-container');
@@ -1384,7 +1436,7 @@ const initSplineScrollLock = () => {
   console.log(`🎮 Sistema de bloqueo de scroll mejorado: ${isMobile ? 'móvil' : 'desktop'}`);
 };
 
-// ===== OPTIMIZACIÓN SPLINE (ACTUALIZADA CON SCROLL LOCK) =====
+// ===== OPTIMIZACIÓN SPLINE (ACTUALIZADA CON SCROLL LOCK - TU VERSIÓN) =====
 const optimizeSpline = () => {
   const splineViewer = document.querySelector('spline-viewer');
   if (!splineViewer) return;
@@ -1393,7 +1445,7 @@ const optimizeSpline = () => {
   
   // Configurar atributos dinámicamente
   splineViewer.setAttribute('render-mode', hardwareTier === 'low' ? 'performance' : 'quality');
-  splineViewer.setAttribute('interaction-enabled', 'true'); // Siempre habilitado
+  splineViewer.setAttribute('interaction-enabled', 'true');
   splineViewer.setAttribute('quality', hardwareTier === 'low' ? 'low' : 'high');
   
   // Añadir atributos para mejor control táctil
@@ -1421,7 +1473,7 @@ const optimizeSpline = () => {
   console.log(`🎮 Spline optimizado: modo ${hardwareTier === 'low' ? 'performance' : 'calidad'} + scroll lock`);
 };
 
-// ===== THROTTLING INTELIGENTE =====
+// ===== THROTTLING INTELIGENTE (TU VERSIÓN RESTAURADA) =====
 const createThrottledListener = (event, callback, interval = 100) => {
   let lastCall = 0;
   let timeout;
@@ -1443,7 +1495,7 @@ const createThrottledListener = (event, callback, interval = 100) => {
   };
 };
 
-// ===== LAZY LOADING INTELIGENTE =====
+// ===== LAZY LOADING INTELIGENTE (TU VERSIÓN RESTAURADA) =====
 const initSmartLazyLoad = () => {
   const lazyElements = document.querySelectorAll('[loading="lazy"], img[data-src], iframe[data-src]');
   
@@ -1469,7 +1521,7 @@ const initSmartLazyLoad = () => {
   console.log(`🔄 Lazy loading: ${lazyElements.length} elementos`);
 };
 
-// ===== AJUSTES DINÁMICOS DE PERFORMANCE =====
+// ===== AJUSTES DINÁMICOS DE PERFORMANCE (TU VERSIÓN RESTAURADA) =====
 const adjustEffectsForPerformance = () => {
   const particlesContainer = tsParticles.domItem(0);
   if (particlesContainer) {
@@ -1487,7 +1539,7 @@ const adjustEffectsForPerformance = () => {
   }
 };
 
-// ===== MEDICIÓN DE PERFORMANCE =====
+// ===== MEDICIÓN DE PERFORMANCE (TU VERSIÓN RESTAURADA) =====
 const measurePerformance = () => {
   if ('PerformanceObserver' in window) {
     const observer = new PerformanceObserver((list) => {
@@ -1505,11 +1557,11 @@ const measurePerformance = () => {
   }
 };
 
-
+// ===== VENTANAS DE PRODUCTOS (TU VERSIÓN COMPLETA RESTAURADA) =====
 const initProductModals = () => {
   console.log('🛒 Inicializando ventanas de productos...');
   
-  // Base de datos simple de productos (se puede expandir)
+  // Base de datos simple de productos
   const productDatabase = {
     'abarrotes': {
       title: 'Abarrotes Esenciales',
@@ -1656,89 +1708,87 @@ const initProductModals = () => {
   };
 
   // Función para mostrar la modal
-const showModal = (productKey) => {
-  const product = productDatabase[productKey];
-  if (!product) return;
-  
-  currentProduct = product;
-  currentSlideIndex = 0;
-  
-  // Actualizar información del producto
-  modalTitle.textContent = product.title;
-  modalCategory.textContent = product.category;
-  modalDescription.textContent = product.description;
-  modalPrice.textContent = product.price;
-  
-  // Actualizar características
-  modalFeaturesList.innerHTML = '';
-  product.features.forEach(feature => {
-    const li = document.createElement('li');
-    li.innerHTML = `<span class="feature-icon">✓</span> ${feature}`;
-    modalFeaturesList.appendChild(li);
-  });
-  
-  // Crear galería
-  gallery.innerHTML = '';
-  slides = [];
-  indicators = [];
-  
-  // Crear slides
-  product.images.forEach((image, index) => {
-    const slide = createSlide(image, index);
-    gallery.appendChild(slide);
-    slides.push(slide);
-  });
-  
-  // Crear indicadores
-  galleryIndicators.innerHTML = '';
-  product.images.forEach((_, index) => {
-    const indicator = createIndicator(index);
-    galleryIndicators.appendChild(indicator);
-    indicators.push(indicator);
-  });
-  
-  // Añadir botones de navegación (si no existen)
-  if (!prevSlideBtn.parentElement) gallery.appendChild(prevSlideBtn);
-  if (!nextSlideBtn.parentElement) gallery.appendChild(nextSlideBtn);
-  
-  // Mostrar modal
-  modalOverlay.classList.add('active');
-  document.body.style.overflow = 'hidden';
-  
-  // Bloquear scroll del body pero permitir scroll dentro de la modal
-  document.body.classList.add('modal-open');
-  
-  // Forzar reflow para animación
-  modalOverlay.offsetHeight;
-  
-  console.log(`🛒 Mostrando producto: ${product.title}`);
-  
-  // Ajustar para móvil - asegurar que todo sea visible
-  if (config.isMobile()) {
-    setTimeout(() => {
-      // Hacer scroll suave al principio del contenido
-      const infoContainer = document.querySelector('.product-info');
-      if (infoContainer) {
-        infoContainer.scrollTop = 0;
-      }
-    }, 100);
-  }
-};
-
-// Función para ocultar la modal (VERSIÓN MEJORADA)
-const hideModal = () => {
-  modalOverlay.classList.remove('active');
-  document.body.style.overflow = '';
-  document.body.classList.remove('modal-open');
-  
-  // Resetear galería
-  setTimeout(() => {
+  const showModal = (productKey) => {
+    const product = productDatabase[productKey];
+    if (!product) return;
+    
+    currentProduct = product;
+    currentSlideIndex = 0;
+    
+    // Actualizar información del producto
+    modalTitle.textContent = product.title;
+    modalCategory.textContent = product.category;
+    modalDescription.textContent = product.description;
+    modalPrice.textContent = product.price;
+    
+    // Actualizar características
+    modalFeaturesList.innerHTML = '';
+    product.features.forEach(feature => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="feature-icon">✓</span> ${feature}`;
+      modalFeaturesList.appendChild(li);
+    });
+    
+    // Crear galería
+    gallery.innerHTML = '';
     slides = [];
     indicators = [];
-  }, 300);
-  
-  console.log('🛒 Modal cerrada');
-};
+    
+    // Crear slides
+    product.images.forEach((image, index) => {
+      const slide = createSlide(image, index);
+      gallery.appendChild(slide);
+      slides.push(slide);
+    });
+    
+    // Crear indicadores
+    galleryIndicators.innerHTML = '';
+    product.images.forEach((_, index) => {
+      const indicator = createIndicator(index);
+      galleryIndicators.appendChild(indicator);
+      indicators.push(indicator);
+    });
+    
+    // Añadir botones de navegación
+    if (!prevSlideBtn.parentElement) gallery.appendChild(prevSlideBtn);
+    if (!nextSlideBtn.parentElement) gallery.appendChild(nextSlideBtn);
+    
+    // Mostrar modal
+    modalOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
+    
+    // Forzar reflow para animación
+    modalOverlay.offsetHeight;
+    
+    console.log(`🛒 Mostrando producto: ${product.title}`);
+    
+    // Ajustar para móvil
+    if (config.isMobile()) {
+      setTimeout(() => {
+        const infoContainer = document.querySelector('.product-info');
+        if (infoContainer) {
+          infoContainer.scrollTop = 0;
+        }
+      }, 100);
+    }
+  };
+
+  // Función para ocultar la modal
+  const hideModal = () => {
+    modalOverlay.classList.remove('active');
+    document.body.style.overflow = '';
+    document.body.classList.remove('modal-open');
+    
+    // Resetear galería
+    setTimeout(() => {
+      slides = [];
+      indicators = [];
+    }, 300);
+    
+    console.log('🛒 Modal cerrada');
+  };
+
   // Función para navegar al slide anterior
   const prevSlide = () => {
     goToSlide(currentSlideIndex - 1);
@@ -1829,10 +1879,7 @@ const hideModal = () => {
   console.log('✅ Sistema de ventanas de productos inicializado');
 };
 
-
-
-
-// ===== INICIALIZACIÓN PRINCIPAL =====
+// ===== INICIALIZACIÓN PRINCIPAL (TU VERSIÓN RESTAURADA) =====
 const init = () => {
   console.log(`🚀 Iniciando Merke+ - Hardware: ${hardwareTier}`);
   
@@ -1887,7 +1934,7 @@ setTimeout(() => {
   }
 }, 2000);
 
-// ===== DEBUG HELPER =====
+// ===== DEBUG HELPER (TU VERSIÓN RESTAURADA) =====
 window.debugMerke = {
   reloadEffects: () => {
     document.body.classList.remove('loaded');
