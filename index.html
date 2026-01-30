@@ -33,7 +33,7 @@
     <div class="intro-content">
         <img src="img/logo-sinfondo.png" class="cart" alt="Logo" />
         <h1>Merke+ de la Sabana</h1>
-        <p>El supermercado del barrio, ahora digital</p>
+        <p>El supermercado de vereda, ahora digital</p>
     </div>
   </div>
 
@@ -75,13 +75,14 @@
         </div>
       </div>
       <div class="hero-img reveal" data-speed="1.9" data-scroll-effect="scale">
-        <div class="spline-container" data-disable-parallax="true">
-            <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.39/build/spline-viewer.js" defer></script>
-            <spline-viewer 
-              url="https://prod.spline.design/IsLjBvKzdTOzGYGd/scene.splinecode"
-              loading="lazy"
-              events-target="global">
-            </spline-viewer>
+        <div class="spline-container" data-disable-parallax="true" id="spline-container">
+          <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.39/build/spline-viewer.js" defer></script>
+          <spline-viewer 
+            id="spline-viewer"
+            url="https://prod.spline.design/IsLjBvKzdTOzGYGd/scene.splinecode"
+            loading="lazy"
+            events-target="global">
+          </spline-viewer>
         </div>
       </div>
     </div>
@@ -249,9 +250,9 @@
     <section class="story-section" id="story-section-4">
       <div class="story-container">
         <h2 class="story-text-animated-final" data-text="Tu tienda de barrio digital">
-          Tu tienda de barrio digital
+          Tu tienda de vereda ahora virtual
         </h2>
-        <p class="story-subtitle">Calidad, cercanía y confianza desde 2010</p>
+        <p class="story-subtitle">Calidad, cercanía y confianza desde 1995</p>
       </div>
     </section>
   </div>
@@ -470,15 +471,15 @@
             <div class="info-icon">📍</div>
             <div>
               <h3>Nuestra dirección</h3>
-              <p>Carrera 12 #8-45, Chía, Cundinamarca</p>
+              <p>Cra. 2, Cajicá, Chía, Cundinamarca</p>
             </div>
           </div>
           <div class="info-card" data-scroll-effect="slide-left" data-delay="200">
             <div class="info-icon">🕒</div>
             <div>
               <h3>Horario de atención</h3>
-              <p>Lunes a Sábado: 7:00 AM - 9:00 PM</p>
-              <p>Domingos y festivos: 8:00 AM - 8:00 PM</p>
+              <p>Lunes a Sábado: 8:00 AM - 8:00 PM</p>
+              <p>Domingos y festivos: 9:00 AM - 8:00 PM</p>
             </div>
           </div>
         </div>
@@ -553,6 +554,56 @@
       </div>
     </div>
   </footer>
+
+
+  <!-- Ventana Modal de Productos -->
+  <div id="productModalOverlay" class="product-modal-overlay">
+    <div class="product-modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalProductTitle">Producto</h2>
+        <button class="modal-close" id="modalClose">&times;</button>
+      </div>
+      
+      <div class="modal-content">
+        <div class="product-gallery">
+          <!-- Slides se generan dinámicamente -->
+          <div class="gallery-nav prev" id="prevSlide">‹</div>
+          <div class="gallery-nav next" id="nextSlide">›</div>
+          <div class="gallery-indicators" id="galleryIndicators"></div>
+        </div>
+        
+        <div class="product-info">
+          <div class="product-category" id="modalProductCategory">Categoría</div>
+          
+          <p class="product-description" id="modalProductDescription">
+            Descripción del producto...
+          </p>
+          
+          <div class="product-features">
+            <h4>Características</h4>
+            <ul class="features-list" id="modalFeaturesList">
+              <!-- Características se generan dinámicamente -->
+            </ul>
+          </div>
+          
+          <div class="product-price">
+            <div class="price-label">Precio especial</div>
+            <div class="price-value" id="modalProductPrice">$0.00</div>
+            
+            <div class="product-actions">
+              <a href="https://wa.me/573219876543" class="action-btn primary" target="_blank" rel="noopener">
+                📱 Pedir por WhatsApp
+              </a>
+              <button class="action-btn secondary" id="modalCloseBtn">
+                ✕ Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <!-- Botón WhatsApp Flotante -->
   <a href="https://wa.me/573219876543" class="whatsapp-float" target="_blank" aria-label="Chat en WhatsApp" rel="noopener">
