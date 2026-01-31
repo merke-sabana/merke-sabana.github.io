@@ -1,4 +1,4 @@
-// ===== CONFIGURACIÓN ADAPTATIVA (PRIMERO) =====
+// ===== CONFIGURACIÓN FIJA DE ALTA CALIDAD =====
 const config = {
   effects: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   smoothScroll: true,
@@ -14,399 +14,37 @@ const config = {
   scrollMargin: '50px'
 };
 
-// ===== DETECCIÓN DE GPU MEJORADA =====
+// ===== DETECCIÓN SIMPLIFICADA (SOLO PARA LOG) =====
 const detectGPU = () => {
   try {
     const canvas = document.createElement('canvas');
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    
-    if (!gl) return 'none';
-    
+    if (!gl) return 'unknown';
     const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
     if (!debugInfo) return 'unknown';
-    
-    const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || '';
-    
-    console.log(`🔍 GPU detectada: ${renderer}`);
-    
-    // Clasificación detallada de GPUs
-    if (renderer.includes('Adreno (TM) 618')) {
-      return 'adreno_618'; // Motorola One Fusion+
-    } else if (renderer.includes('Adreno')) {
-      // Adreno series más específica
-      if (renderer.includes('Adreno 7')) return 'adreno_high';
-      if (renderer.includes('Adreno 6')) return 'adreno_mid';
-      if (renderer.includes('Adreno 5')) return 'adreno_low';
-      return 'adreno_mid';
-    } else if (renderer.includes('Mali')) {
-      if (renderer.includes('Mali-G7') || renderer.includes('Mali-G7')) return 'mali_high';
-      if (renderer.includes('Mali-G5')) return 'mali_mid';
-      return 'mali_low';
-    } else if (renderer.includes('PowerVR')) {
-      return 'powervr_low';
-    } else if (renderer.includes('NVIDIA') || renderer.includes('GeForce') || renderer.includes('RTX')) {
-      return 'nvidia_gaming';
-    } else if (renderer.includes('AMD') || renderer.includes('Radeon')) {
-      return 'amd_gaming';
-    } else if (renderer.includes('Intel')) {
-      if (renderer.includes('Iris') || renderer.includes('UHD')) return 'intel_high';
-      return 'intel_integrated';
-    } else if (renderer.includes('Apple')) {
-      if (renderer.includes('Apple M')) return 'apple_silicon';
-      return 'apple';
-    }
-    
-    return 'unknown';
+    return gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || 'unknown';
   } catch (e) {
     return 'unknown';
   }
 };
 
-// ===== DETECCIÓN DE RAM REAL (NO SOLO deviceMemory) =====
-const detectRealMemory = () => {
-  const userAgent = navigator.userAgent;
-  const isMobile = config.isMobile();
+// ===== CONFIGURACIÓN FIJA DE EFECTOS (TODOS ACTIVOS) =====
+const setupFixedEffects = () => {
+  console.log('🎯 CONFIGURACIÓN FIJA DE ALTA CALIDAD');
+  console.log('✨ TODOS los efectos activados para todos los dispositivos');
   
-  // 1. Intentar con deviceMemory primero (si está disponible)
-  if (navigator.deviceMemory && navigator.deviceMemory !== 4) {
-    console.log(`📊 RAM detectada (deviceMemory): ${navigator.deviceMemory}GB`);
-    return navigator.deviceMemory;
-  }
-  
-  // 2. Detección por User Agent específico
-  if (isMobile) {
-    // Android
-    if (/Android/.test(userAgent)) {
-      // Motorola One Fusion+ específico
-      if (userAgent.includes('XT2067') || userAgent.includes('motorola one fusion+')) {
-        console.log('📱 Motorola One Fusion+ detectado: 4GB RAM');
-        return 4;
-      }
-      
-      // Samsung Galaxy S/Note series (gama alta)
-      if (userAgent.includes('SM-G9') || userAgent.includes('SM-N9') || userAgent.includes('SM-F7')) {
-        console.log('📱 Samsung flagship detectado: 8GB+ RAM');
-        return 8;
-      }
-      
-      // Samsung Galaxy A series (gama media)
-      if (userAgent.includes('SM-A')) {
-        if (userAgent.includes('SM-A5') || userAgent.includes('SM-A7')) {
-          console.log('📱 Samsung A series gama media: 4-6GB RAM');
-          return 6;
-        }
-        return 4;
-      }
-      
-      // Google Pixel
-      if (userAgent.includes('Pixel')) {
-        const pixelMatch = userAgent.match(/Pixel (\d+)/);
-        if (pixelMatch) {
-          const pixelNum = parseInt(pixelMatch[1]);
-          if (pixelNum >= 6) return 8;
-          if (pixelNum >= 4) return 6;
-          return 4;
-        }
-        return 6;
-      }
-      
-      // OnePlus
-      if (userAgent.includes('OnePlus') || userAgent.includes('ONEPLUS')) {
-        if (userAgent.includes('10') || userAgent.includes('11') || userAgent.includes('12')) return 12;
-        if (userAgent.includes('8') || userAgent.includes('9')) return 8;
-        if (userAgent.includes('6') || userAgent.includes('7')) return 6;
-        return 4;
-      }
-      
-      // Xiaomi/Redmi/Poco
-      if (userAgent.includes('Redmi') || userAgent.includes('Xiaomi') || userAgent.includes('POCO')) {
-        if (userAgent.includes('Note 1') || userAgent.includes('12') || userAgent.includes('13')) return 8;
-        if (userAgent.includes('Note 1') || userAgent.includes('11')) return 6;
-        return 4;
-      }
-      
-      // Por defecto para Android
-      console.log('📱 Android estándar: asumiendo 4GB RAM');
-      return 4;
-    }
-    
-    // iOS/iPadOS
-    if (/iPhone|iPad|iPod/.test(userAgent)) {
-      // iPhone 15/14/13 Pro
-      if (userAgent.includes('iPhone15,') || userAgent.includes('iPhone14,') || userAgent.includes('iPhone13,')) {
-        if (userAgent.includes('Pro')) return 6;
-        return 4;
-      }
-      
-      // iPhone 12/11 Pro
-      if (userAgent.includes('iPhone12,') || userAgent.includes('iPhone11,')) {
-        if (userAgent.includes('Pro')) return 6;
-        return 4;
-      }
-      
-      // iPhone X/XS/XR
-      if (userAgent.includes('iPhone10,') || userAgent.includes('iPhone11,')) {
-        return 4;
-      }
-      
-      // iPhone 8 y anteriores
-      if (userAgent.includes('iPhone9,') || userAgent.includes('iPhone8,')) {
-        return 3;
-      }
-      
-      // iPad
-      if (/iPad/.test(userAgent)) {
-        if (userAgent.includes('iPad13,') || userAgent.includes('iPad14,')) return 8; // iPad Pro M1/M2
-        if (userAgent.includes('iPad12,')) return 6; // iPad Air
-        return 4;
-      }
-      
-      // Por defecto para iOS
-      console.log('📱 iOS estándar: asumiendo 4GB RAM');
-      return 4;
-    }
-  } else {
-    // PC/Desktop
-    // Detectar por sistema operativo y user agent
-    if (/Windows NT/.test(userAgent)) {
-      // Windows - asumir mejor hardware
-      console.log('💻 Windows detectado: asumiendo 8GB+ RAM');
-      return 8;
-    }
-    
-    if (/Mac OS X/.test(userAgent)) {
-      // Mac - asumir buen hardware
-      console.log('🍎 macOS detectado: asumiendo 8GB+ RAM');
-      return 8;
-    }
-    
-    if (/Linux/.test(userAgent)) {
-      // Linux - asumir buen hardware (usuarios técnicos)
-      console.log('🐧 Linux detectado: asumiendo 8GB+ RAM');
-      return 8;
-    }
-  }
-  
-  // Por defecto conservador
-  console.log('⚠️ No se pudo detectar RAM específica, usando valor por defecto: 4GB');
-  return 4;
-};
-
-// ===== DETECCIÓN DE NÚCLEOS REALES =====
-const detectRealCores = () => {
-  // 1. Intentar con hardwareConcurrency primero
-  if (navigator.hardwareConcurrency && navigator.hardwareConcurrency !== 4) {
-    console.log(`🔢 Núcleos detectados (hardwareConcurrency): ${navigator.hardwareConcurrency}`);
-    return navigator.hardwareConcurrency;
-  }
-  
-  const userAgent = navigator.userAgent;
-  const isMobile = config.isMobile();
-  
-  // 2. Detección por User Agent específico
-  if (isMobile) {
-    // Android
-    if (/Android/.test(userAgent)) {
-      // Procesadores de gama alta (Snapdragon 8 series, Dimensity 9000+)
-      if (userAgent.includes('SM85') || userAgent.includes('SM84') || userAgent.includes('SM83')) {
-        console.log('📱 Procesador Snapdragon 8 series: 8 núcleos');
-        return 8;
-      }
-      
-      // Motorola One Fusion+ (Snapdragon 730G)
-      if (userAgent.includes('XT2067') || userAgent.includes('motorola one fusion+')) {
-        console.log('📱 Motorola One Fusion+ (SD 730G): 8 núcleos');
-        return 8;
-      }
-      
-      // Procesadores de gama media (Snapdragon 7, 6 series)
-      if (userAgent.includes('SM73') || userAgent.includes('SM63')) {
-        console.log('📱 Procesador Snapdragon 7/6 series: 8 núcleos');
-        return 8;
-      }
-      
-      // MediaTek Dimensity
-      if (userAgent.includes('MT') && (userAgent.includes('68') || userAgent.includes('81') || userAgent.includes('92'))) {
-        console.log('📱 MediaTek Dimensity: 8 núcleos');
-        return 8;
-      }
-      
-      // Por defecto para Android moderno
-      console.log('📱 Android moderno: asumiendo 8 núcleos');
-      return 8;
-    }
-    
-    // iOS
-    if (/iPhone|iPad|iPod/.test(userAgent)) {
-      // iPhone 15/14/13 (A16/A15 bionic)
-      if (userAgent.includes('iPhone15,') || userAgent.includes('iPhone14,') || userAgent.includes('iPhone13,')) {
-        console.log('📱 iPhone 13/14/15: 6 núcleos CPU');
-        return 6;
-      }
-      
-      // iPhone 12/11 (A14/A13 bionic)
-      if (userAgent.includes('iPhone12,') || userAgent.includes('iPhone11,')) {
-        console.log('📱 iPhone 11/12: 6 núcleos CPU');
-        return 6;
-      }
-      
-      // iPhone X/XS/XR (A12 bionic)
-      if (userAgent.includes('iPhone10,')) {
-        console.log('📱 iPhone X/XS/XR: 6 núcleos CPU');
-        return 6;
-      }
-      
-      // iPad con M1/M2
-      if (/iPad/.test(userAgent) && (userAgent.includes('iPad13,') || userAgent.includes('iPad14,'))) {
-        console.log('📱 iPad Pro M1/M2: 8+ núcleos CPU');
-        return 8;
-      }
-      
-      // Por defecto para iOS
-      console.log('📱 iOS estándar: asumiendo 6 núcleos');
-      return 6;
-    }
-  } else {
-    // PC/Desktop
-    if (/Windows NT/.test(userAgent)) {
-      const winVersion = userAgent.match(/Windows NT (\d+\.\d+)/);
-      if (winVersion) {
-        const version = parseFloat(winVersion[1]);
-        // Windows 10/11 - asumir hardware más moderno
-        if (version >= 10) {
-          console.log('💻 Windows 10/11: asumiendo 4+ núcleos');
-          return 4;
-        }
-      }
-    }
-    
-    // Por defecto para PC
-    console.log('💻 PC estándar: asumiendo 4 núcleos');
-    return 4;
-  }
-  
-  // Por defecto conservador
-  console.log('⚠️ No se pudo detectar núcleos específicos, usando valor por defecto: 4');
-  return 4;
-};
-
-// ===== DETECCIÓN DE HARDWARE COMPLETA =====
-const detectHardwareTier = () => {
-  const isMobile = config.isMobile();
-  const memory = detectRealMemory(); // ¡USANDO DETECCIÓN REAL!
-  const cores = detectRealCores();   // ¡USANDO DETECCIÓN REAL!
-  const gpu = detectGPU();
-  const userAgent = navigator.userAgent;
-  
-  console.log(`📊 DETECCIÓN HARDWARE COMPLETA:`);
-  console.log(`   - RAM REAL: ${memory}GB`);
-  console.log(`   - NÚCLEOS REALES: ${cores}`);
-  console.log(`   - GPU: ${gpu}`);
-  console.log(`   - MÓVIL: ${isMobile}`);
-  console.log(`   - USER AGENT: ${userAgent.substring(0, 80)}...`);
-  
-  // ===== DETECCIÓN ESPECÍFICA PARA TU MOTOROLA ONE FUSION+ =====
-  if (isMobile) {
-    // 1. Motorola One Fusion+ específico
-    if (userAgent.includes('XT2067') || userAgent.includes('motorola one fusion+') || 
-        (gpu === 'adreno_618' && memory === 4 && cores === 8)) {
-      console.log('🎯 MOTOROLA ONE FUSION+ DETECTADO EXACTAMENTE');
-      console.log('⚡ Configuración especial: 4GB RAM, 8 núcleos, Adreno 618');
-      return 'mid_optimized';
-    }
-    
-    // 2. Dispositivos de gama baja (basados en GPU y RAM)
-    if (memory < 3 || gpu === 'powervr_low' || gpu === 'mali_low' || gpu === 'adreno_low') {
-      console.log('📱 Nivel: LOW (Dispositivo básico)');
-      return 'low';
-    }
-    
-    // 3. Dispositivos de gama media
-    if ((memory >= 3 && memory <= 6) || 
-        gpu === 'adreno_mid' || gpu === 'mali_mid' || 
-        (cores >= 4 && cores <= 6)) {
-      console.log('📱 Nivel: MID (Dispositivo gama media)');
-      return 'mid';
-    }
-    
-    // 4. Dispositivos de gama alta
-    if (memory > 6 || gpu === 'adreno_high' || gpu === 'mali_high' || 
-        gpu === 'apple_silicon' || cores >= 8) {
-      console.log('📱 Nivel: HIGH (Dispositivo gama alta)');
-      return 'high';
-    }
-    
-    // Por defecto para móviles
-    console.log('📱 Nivel: MID (Móvil estándar)');
-    return 'mid';
-    
-  } else {
-    // ===== PC/DESKTOP =====
-    
-    // 1. PC Gaming de alta gama (como tu ASUS TUF con 40GB RAM)
-    if (memory >= 16 || gpu === 'nvidia_gaming' || gpu === 'amd_gaming') {
-      console.log('💻 Nivel: HIGH (PC Gaming/Gama alta)');
-      return 'high';
-    }
-    
-    // 2. PC estándar
-    if (memory >= 8 && cores >= 4) {
-      console.log('💻 Nivel: MID (PC estándar)');
-      return 'mid';
-    }
-    
-    // 3. PC básico/antiguo
-    console.log('💻 Nivel: LOW (PC básico/antiguo)');
-    return 'low';
-  }
-};
-
-// Variables globales de optimización
-let hardwareTier = detectHardwareTier();
-
-// ===== CONFIGURACIÓN OPTIMIZADA =====
-const setupHardwareOptimizations = () => {
-  console.log(`🖥️ Nivel de hardware detectado: ${hardwareTier}`);
-  console.log(`🎯 Configurando optimizaciones específicas...`);
-  
-  if (hardwareTier === 'low') {
-    window.particleCount = 20;
-    window.noiseIntensity = 0.08;
-    window.animationQuality = 'low';
-    config.effects = true;
-    config.parallaxEnabled = true;
-    config.smoothScroll = true;
-    
-    console.log('⚙️ Configurado para dispositivos básicos');
-    
-  } else if (hardwareTier === 'mid_optimized') {
-    window.particleCount = 35;
-    window.noiseIntensity = 0.15;
-    window.animationQuality = 'medium_optimized';
-    config.effects = true;
-    config.parallaxEnabled = true;
-    config.smoothScroll = true;
-    
-    console.log('⚙️ Configuración ESPECIAL para Motorola One Fusion+');
-    console.log('✨ Efectos optimizados para fluidez máxima');
-    
-  } else if (hardwareTier === 'mid') {
-    window.particleCount = 50;
-    window.noiseIntensity = 0.18;
-    window.animationQuality = 'medium';
-    
-    console.log('⚙️ Configurado para gama media');
-    
-  } else { // high
-    window.particleCount = 120;
-    window.noiseIntensity = 0.25;
-    window.animationQuality = 'high';
-    
-    console.log('⚙️ Configurado para gama alta');
-  }
+  // Configuración fija para máxima calidad
+  window.particleCount = 60; // Más partículas que antes
+  window.noiseIntensity = 0.18;
+  window.animationQuality = 'high';
+  config.effects = true;
+  config.parallaxEnabled = true;
+  config.smoothScroll = true;
   
   console.log(`🎯 Partículas: ${window.particleCount}`);
   console.log(`🎨 Intensidad noise: ${window.noiseIntensity}`);
+  console.log(`📱 Dispositivo: ${config.isMobile() ? 'Móvil' : 'Desktop'}`);
+  console.log(`🎮 GPU: ${detectGPU()}`);
 };
 
 // ===== ELEMENTOS DEL DOM =====
@@ -420,37 +58,18 @@ const sections = document.querySelectorAll('section');
 let lastScrollY = window.scrollY;
 let ticking = false;
 
-// ===== NOISE PRO OPTIMIZADO PARA FLUIDEZ =====
+// ===== NOISE PRO OPTIMIZADO PERO COMPLETO =====
 const setupNoisePro = () => {
   const canvas = document.getElementById('noiseCanvas');
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
   
-  // AJUSTES ESPECÍFICOS PARA FLUIDEZ
-  let scale, frameRate, density, opacity;
-  
-  if (hardwareTier === 'low') {
-    scale = 0.3; // Más reducido
-    frameRate = 8; // Más FPS bajo
-    density = 0.015;
-    opacity = 0.08;
-  } else if (hardwareTier === 'mid_optimized') {
-    scale = 0.4; // Optimizado para Motorola
-    frameRate = 12; // Balanceado
-    density = 0.025;
-    opacity = 0.12;
-  } else if (hardwareTier === 'mid') {
-    scale = 0.5;
-    frameRate = 15;
-    density = 0.035;
-    opacity = 0.15;
-  } else { // high
-    scale = 1.0;
-    frameRate = 20;
-    density = 0.05;
-    opacity = 0.25;
-  }
+  // CONFIGURACIÓN FIJA DE ALTA CALIDAD
+  const scale = 0.6; // Más detalle
+  const frameRate = 20; // FPS altos
+  const density = 0.035;
+  const opacity = 0.15;
 
   let isVisible = true;
   let lastFrameTime = 0;
@@ -465,37 +84,11 @@ const setupNoisePro = () => {
 
   resize();
   
-  // Throttle de resize optimizado
   let resizeTimeout;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(resize, 300);
   }, { passive: true });
-
-  // PRE-GENERAR PATRONES PARA MÁS FLUIDEZ
-  let noisePatterns = [];
-  if (hardwareTier === 'low' || hardwareTier === 'mid_optimized') {
-    // Pre-generar 4 patrones para rotar (más fluido que generar en tiempo real)
-    for (let p = 0; p < 4; p++) {
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = 200;
-      tempCanvas.height = 200;
-      const tempCtx = tempCanvas.getContext('2d');
-      const imageData = tempCtx.createImageData(200, 200);
-      const buffer32 = new Uint32Array(imageData.data.buffer);
-      
-      for (let i = 0; i < buffer32.length; i++) {
-        if (Math.random() < density) {
-          const shade = 200 + (Math.random() * 55);
-          buffer32[i] = (255 << 24) | (shade << 16) | (shade << 8) | shade;
-        } else {
-          buffer32[i] = 0xff000000;
-        }
-      }
-      tempCtx.putImageData(imageData, 0, 0);
-      noisePatterns.push(tempCanvas);
-    }
-  }
 
   const generateNoise = (currentTime) => {
     if (!isVisible || currentTime - lastFrameTime < frameInterval) {
@@ -506,29 +99,21 @@ const setupNoisePro = () => {
     lastFrameTime = currentTime;
     canvas.style.opacity = opacity;
     
-    // USAR PATRONES PRE-GENERADOS PARA MÁS FLUIDEZ
-    if ((hardwareTier === 'low' || hardwareTier === 'mid_optimized') && noisePatterns.length > 0) {
-      const patternIndex = Math.floor((currentTime / 500) % noisePatterns.length); // Cambiar cada 500ms
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(noisePatterns[patternIndex], 0, 0, canvas.width, canvas.height);
-    } else {
-      // Método original para hardware mejor
-      const imageData = ctx.createImageData(canvas.width, canvas.height);
-      const buffer32 = new Uint32Array(imageData.data.buffer);
-      const len = buffer32.length;
+    // Método de alta calidad
+    const imageData = ctx.createImageData(canvas.width, canvas.height);
+    const buffer32 = new Uint32Array(imageData.data.buffer);
+    const len = buffer32.length;
 
-      for (let i = 0; i < len; i++) {
-        if (Math.random() < density) {
-          const shade = 200 + (Math.random() * 55);
-          buffer32[i] = (255 << 24) | (shade << 16) | (shade << 8) | shade;
-        } else {
-          buffer32[i] = 0xff000000;
-        }
+    for (let i = 0; i < len; i++) {
+      if (Math.random() < density) {
+        const shade = 200 + (Math.random() * 55);
+        buffer32[i] = (255 << 24) | (shade << 16) | (shade << 8) | shade;
+      } else {
+        buffer32[i] = 0xff000000;
       }
-
-      ctx.putImageData(imageData, 0, 0);
     }
-    
+
+    ctx.putImageData(imageData, 0, 0);
     requestAnimationFrame(generateNoise);
   };
 
@@ -540,60 +125,35 @@ const setupNoisePro = () => {
   });
 
   generateNoise(0);
-  console.log(`🎨 Noise optimizado: ${frameRate} FPS (${hardwareTier})`);
+  console.log(`🎨 Noise Pro activado: ${frameRate} FPS`);
 };
 
-// ===== TSPARTICLES OPTIMIZADO PARA FLUIDEZ =====
+// ===== TSPARTICLES OPTIMIZADO PERO COMPLETO =====
 const initTsParticles = () => {
   if (typeof tsParticles === 'undefined') {
     console.error('tsParticles no cargado');
     return;
   }
 
-  const isMobile = config.isMobile();
-  let particleCount = window.particleCount || (isMobile ? 30 : 80);
-  
-  // AJUSTES ESPECÍFICOS PARA FLUIDEZ
-  let fpsLimit, speed, opacityValue, maxSize, linksEnabled;
-  
-  if (hardwareTier === 'low') {
-    fpsLimit = 20;
-    speed = 0.3;
-    opacityValue = 0.3;
-    maxSize = 10;
-    linksEnabled = false;
-  } else if (hardwareTier === 'mid_optimized') {
-    fpsLimit = 25; // Más bajo para fluidez
-    speed = 0.8; // Más lento
-    opacityValue = 0.5;
-    maxSize = 15;
-    linksEnabled = true; // Pero mantener links
-    particleCount = Math.min(particleCount, 35); // Limitar partículas
-  } else if (hardwareTier === 'mid') {
-    fpsLimit = 30;
-    speed = 1.2;
-    opacityValue = 0.6;
-    maxSize = 20;
-    linksEnabled = true;
-  } else { // high
-    fpsLimit = 60;
-    speed = 2;
-    opacityValue = 0.7;
-    maxSize = 30;
-    linksEnabled = true;
-  }
+  // CONFIGURACIÓN FIJA DE ALTA CALIDAD
+  const particleCount = window.particleCount || 60;
+  const fpsLimit = 45; // FPS altos pero estables
+  const speed = 1.5;
+  const opacityValue = 0.6;
+  const maxSize = 25;
+  const linksEnabled = true;
   
   const particlesConfig = {
     autoPlay: true,
     background: { color: { value: "transparent" }, opacity: 0 },
     fullScreen: { enable: false, zIndex: -2 },
-    fpsLimit: fpsLimit, // FPS ajustado para fluidez
+    fpsLimit: fpsLimit,
     interactivity: {
       detectsOn: "window",
       events: {
-        onClick: { enable: hardwareTier !== 'low', mode: "push" },
+        onClick: { enable: true, mode: "push" },
         onHover: { 
-          enable: hardwareTier !== 'low',
+          enable: true,
           mode: "repulse",
           parallax: { enable: false }
         }
@@ -603,7 +163,7 @@ const initTsParticles = () => {
       color: { value: ["#FFD600", "#2ECC71", "#E74C3C", "#0B2C4D"] },
       move: {
         enable: true,
-        speed: speed, // Velocidad ajustada
+        speed: speed,
         direction: "none",
         outModes: { default: "out" }
       },
@@ -614,14 +174,14 @@ const initTsParticles = () => {
       opacity: {
         value: opacityValue,
         animation: { 
-          enable: hardwareTier !== 'low' && hardwareTier !== 'mid_optimized', // Desactivar animación de opacidad en optimizado
+          enable: true,
           speed: 2, 
           sync: false 
         }
       },
       size: {
-        value: { min: 1, max: maxSize },
-        animation: { enable: hardwareTier === 'high', speed: 5 } // Solo animación en high
+        value: { min: 2, max: maxSize },
+        animation: { enable: true, speed: 5 }
       },
       shape: {
         close: true,
@@ -631,21 +191,20 @@ const initTsParticles = () => {
       },
       links: {
         enable: linksEnabled,
-        distance: 120, // Reducido para mejor performance
-        opacity: hardwareTier === 'mid_optimized' ? 0.2 : 0.4, // Más transparente en optimizado
-        width: hardwareTier === 'mid_optimized' ? 0.5 : 1
+        distance: 150,
+        opacity: 0.4,
+        width: 1.2
       }
     },
     pauseOnBlur: true,
     pauseOnOutsideViewport: true,
     smooth: false,
-    detectRetina: hardwareTier === 'high'
+    detectRetina: true
   };
 
   tsParticles.load("tsparticles", particlesConfig).then(container => {
-    console.log(`✨ tsParticles: ${particleCount} partículas (${hardwareTier}) - ${fpsLimit} FPS`);
+    console.log(`✨ tsParticles activado: ${particleCount} partículas - ${fpsLimit} FPS`);
     
-    // Pausar cuando no es visible
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         container.pause();
@@ -656,7 +215,7 @@ const initTsParticles = () => {
   });
 };
 
-// ===== SCROLL STORYTELLING PRO OPTIMIZADO =====
+// ===== SCROLL STORYTELLING PRO COMPLETO =====
 const initScrollStorytellingPro = () => {
   const storySections = document.querySelectorAll('.story-section');
   const animatedTexts = document.querySelectorAll('.story-text-animated');
@@ -667,49 +226,28 @@ const initScrollStorytellingPro = () => {
 
   if (!storySections.length || !scrollHint) return;
 
-  // PREPARAR TEXTOS ANIMADOS CON OPTIMIZACIÓN
+  // Textos animados con caracteres individuales (máxima calidad)
   animatedTexts.forEach(textElement => {
     const text = textElement.dataset.text || textElement.textContent;
+    const chars = text.split('');
     
-    // OPTIMIZACIÓN: Usar palabras en lugar de caracteres para dispositivos móviles
-    if (hardwareTier === 'low' || hardwareTier === 'mid_optimized') {
-      const words = text.split(' ');
-      
-      textElement.innerHTML = '';
-      words.forEach((word, wordIndex) => {
-        const wordSpan = document.createElement('span');
-        wordSpan.className = 'word-animated';
-        wordSpan.style.display = 'inline-block';
-        wordSpan.style.marginRight = '0.3em';
-        wordSpan.style.opacity = '0';
-        wordSpan.style.transform = 'translateY(20px)';
-        wordSpan.textContent = word + (wordIndex < words.length - 1 ? ' ' : '');
-        wordSpan.style.setProperty('--index', wordIndex);
-        textElement.appendChild(wordSpan);
-      });
-    } else {
-      // Método original para dispositivos buenos
-      const chars = text.split('');
-      
-      const charElements = chars.map((char, index) => {
-        const span = document.createElement('span');
-        span.className = char === ' ' ? 'char space' : 'char';
-        span.textContent = char === ' ' ? ' ' : char;
-        span.style.setProperty('--distance', index - (chars.length / 2));
-        span.style.setProperty('--index', index);
-        return span;
-      });
+    const charElements = chars.map((char, index) => {
+      const span = document.createElement('span');
+      span.className = char === ' ' ? 'char space' : 'char';
+      span.textContent = char === ' ' ? ' ' : char;
+      span.style.setProperty('--distance', index - (chars.length / 2));
+      span.style.setProperty('--index', index);
+      return span;
+    });
 
-      textElement.innerHTML = '';
-      charElements.forEach(span => textElement.appendChild(span));
-    }
+    textElement.innerHTML = '';
+    charElements.forEach(span => textElement.appendChild(span));
   });
 
-  // CONFIGURAR OBSERVER CON MÁRGENES AJUSTADOS
   const observerOptions = {
     root: null,
-    rootMargin: hardwareTier === 'mid_optimized' ? '-80px 0px -80px 0px' : '-100px 0px -100px 0px',
-    threshold: hardwareTier === 'mid_optimized' ? 0.15 : 0.1
+    rootMargin: '-80px 0px -80px 0px',
+    threshold: 0.15
   };
 
   const storyObserver = new IntersectionObserver((entries) => {
@@ -717,25 +255,15 @@ const initScrollStorytellingPro = () => {
       const section = entry.target;
       
       if (entry.isIntersecting) {
-        // ANIMAR CON RETARDOS OPTIMIZADOS
-        if (hardwareTier === 'low' || hardwareTier === 'mid_optimized') {
-          const words = section.querySelectorAll('.word-animated');
-          words.forEach((word, index) => {
-            setTimeout(() => {
-              word.style.opacity = '1';
-              word.style.transform = 'translateY(0)';
-              word.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            }, index * 120); // Retardo mayor para más fluidez
-          });
-        } else {
-          const chars = section.querySelectorAll('.char');
-          chars.forEach((char, index) => {
-            setTimeout(() => {
-              char.style.opacity = '1';
-              char.style.transform = 'translateX(0) rotateX(0)';
-            }, index * 50);
-          });
-        }
+        // Animar caracteres
+        const chars = section.querySelectorAll('.char');
+        chars.forEach((char, index) => {
+          setTimeout(() => {
+            char.style.opacity = '1';
+            char.style.transform = 'translateX(0) rotateX(0)';
+            char.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+          }, index * 40);
+        });
 
         // Animar íconos si es la sección 3
         if (section.id === 'story-section-3') {
@@ -746,25 +274,17 @@ const initScrollStorytellingPro = () => {
             iconItems.forEach((item, index) => {
               setTimeout(() => {
                 item.classList.add('active');
-              }, index * 150); // Retardo mayor
+              }, index * 100);
             });
           }, 500);
         }
       } else {
-        // Resetear animaciones (solo opacidad para mejor performance)
-        if (hardwareTier === 'low' || hardwareTier === 'mid_optimized') {
-          const words = section.querySelectorAll('.word-animated');
-          words.forEach(word => {
-            word.style.opacity = '0';
-            word.style.transform = 'translateY(20px)';
-          });
-        } else {
-          const chars = section.querySelectorAll('.char');
-          chars.forEach(char => {
-            char.style.opacity = '0';
-            char.style.transform = 'translateX(calc(var(--distance) * 60px)) rotateX(calc(var(--distance) * 30deg))';
-          });
-        }
+        // Resetear animaciones
+        const chars = section.querySelectorAll('.char');
+        chars.forEach(char => {
+          char.style.opacity = '0';
+          char.style.transform = 'translateX(calc(var(--distance) * 60px)) rotateX(calc(var(--distance) * 30deg))';
+        });
 
         if (section.id === 'story-section-3') {
           if (storyWithIcons) storyWithIcons.classList.remove('active');
@@ -777,7 +297,7 @@ const initScrollStorytellingPro = () => {
 
   storySections.forEach(section => storyObserver.observe(section));
 
-  // CONTROL DEL SCROLL HINT OPTIMIZADO
+  // Scroll hint
   const updateScrollHint = () => {
     const heroSection = document.getElementById('hero');
     if (!heroSection || !scrollHint) return;
@@ -799,13 +319,11 @@ const initScrollStorytellingPro = () => {
 
   scrollHint.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
   
-  // Mostrar hint después de la intro
   setTimeout(() => {
     scrollHint.style.opacity = '1';
     scrollHint.style.transform = 'translateX(-50%) translateY(0)';
   }, 3000);
 
-  // Ocultar automáticamente después de 10 segundos
   let hideTimeout = setTimeout(() => {
     if (window.scrollY < 50) {
       scrollHint.style.opacity = '0';
@@ -827,29 +345,22 @@ const initScrollStorytellingPro = () => {
     window.addEventListener(event, resetHideTimeout, { passive: true });
   });
 
-  // THROTTLE DEL SCROLL PARA MEJOR PERFORMANCE
+  // Scroll optimizado
   let scrollHintTimeout;
-  let lastScrollTime = 0;
-  const scrollThrottle = hardwareTier === 'mid_optimized' ? 150 : 100;
-  
   window.addEventListener('scroll', () => {
-    const now = Date.now();
-    if (now - lastScrollTime > scrollThrottle) {
-      lastScrollTime = now;
-      if (!scrollHintTimeout) {
-        scrollHintTimeout = setTimeout(() => {
-          updateScrollHint();
-          scrollHintTimeout = null;
-        }, 50);
-      }
+    if (!scrollHintTimeout) {
+      scrollHintTimeout = setTimeout(() => {
+        updateScrollHint();
+        scrollHintTimeout = null;
+      }, 50);
     }
   }, { passive: true });
 
   updateScrollHint();
-  console.log(`🎬 Scroll Storytelling optimizado para: ${hardwareTier}`);
+  console.log('🎬 Scroll Storytelling activado');
 };
 
-// ===== COUNTDOWN TIMER (SIN CAMBIOS - YA ES EFICIENTE) =====
+// ===== COUNTDOWN TIMER =====
 const initCountdown = () => {
   const countdownElement = document.getElementById('countdown');
   if (!countdownElement) return;
@@ -884,17 +395,12 @@ const initCountdown = () => {
   
   updateCountdown();
   setInterval(updateCountdown, 1000);
-  console.log('⏰ Countdown inicializado');
+  console.log('⏰ Countdown activado');
 };
 
-// ===== MICRO-INTERACCIONES OPTIMIZADAS =====
+// ===== MICRO-INTERACCIONES COMPLETAS =====
 const initMicroInteractions = () => {
   const createRippleEffect = (event, element) => {
-    // OPTIMIZACIÓN: Limitar ripples en dispositivos móviles
-    if (hardwareTier === 'low' && element.classList.contains('ripple-active')) {
-      return;
-    }
-    
     const ripple = document.createElement('span');
     const rect = element.getBoundingClientRect();
     
@@ -909,12 +415,6 @@ const initMicroInteractions = () => {
     
     element.appendChild(ripple);
     
-    // Marcar elemento como activo para evitar ripples múltiples
-    if (hardwareTier === 'low') {
-      element.classList.add('ripple-active');
-      setTimeout(() => element.classList.remove('ripple-active'), 300);
-    }
-    
     setTimeout(() => ripple.remove(), 600);
   };
 
@@ -928,7 +428,6 @@ const initMicroInteractions = () => {
   
   if (config.isMobile()) {
     document.querySelectorAll('.card, .offer-card, .contact-card').forEach(card => {
-      // OPTIMIZACIÓN: Usar transform 2D en lugar de 3D para móviles
       card.addEventListener('touchstart', () => {
         card.style.transform = 'scale(0.98)';
         card.style.transition = 'transform 0.2s ease';
@@ -938,13 +437,12 @@ const initMicroInteractions = () => {
         card.style.transform = '';
       }, { passive: true });
       
-      // Evitar hover en móviles
       card.style.willChange = 'transform';
     });
   }
 };
 
-// ===== MENÚ MÓVIL (SIN CAMBIOS NECESARIOS) =====
+// ===== MENÚ MÓVIL =====
 const initMobileMenu = () => {
   if (!menuToggle || !navMenu) return;
   
@@ -1000,26 +498,17 @@ const closeMobileMenu = () => {
 
 // ===== SCROLL SMOOTH OPTIMIZADO =====
 const initSmoothScroll = () => {
-  console.log('🔄 Inicializando SmoothScroll optimizado...');
+  console.log('🔄 SmoothScroll activado');
   
-  // AJUSTAR CONFIGURACIÓN SEGÚN HARDWARE
   const smoothConfig = {
-    duration: hardwareTier === 'mid_optimized' ? 800 : 700, // Más lento pero más suave
+    duration: 700,
     easing: (t) => {
-      // Easing más suave para dispositivos móviles
-      if (hardwareTier === 'mid_optimized' || hardwareTier === 'low') {
-        return t < 0.5 
-          ? 4 * t * t * t
-          : 1 - Math.pow(-2 * t + 2, 3) / 2;
-      }
       return t < 0.5 
         ? 8 * t * t * t * t
         : 1 - Math.pow(-2 * t + 2, 4) / 2;
     },
     offset: 80,
-    minDistance: 50,
-    maxDistance: 3000,
-    fps: hardwareTier === 'mid_optimized' ? 50 : 60, // FPS reducido para fluidez
+    fps: 60,
   };
 
   let rafId = null;
@@ -1038,7 +527,6 @@ const initSmoothScroll = () => {
     
     let duration = customDuration || smoothConfig.duration;
     
-    // OPTIMIZACIÓN: Scroll más rápido en distancias cortas
     if (absoluteDistance < 300) {
       duration = Math.max(300, absoluteDistance * 0.8);
     } else if (absoluteDistance > 2000) {
@@ -1109,17 +597,17 @@ const initSmoothScroll = () => {
     document.documentElement.style.scrollBehavior = 'smooth';
   }
 
-  console.log(`✅ SmoothScroll optimizado para: ${hardwareTier}`);
+  console.log('✅ SmoothScroll listo');
 };
 
-// ===== SCROLL EFFECTS OPTIMIZADOS =====
+// ===== SCROLL EFFECTS COMPLETOS =====
 const initScrollEffects = () => {
   if (!config.effects || scrollElements.length === 0) return;
   
   const observerOptions = {
     root: null,
-    rootMargin: hardwareTier === 'mid_optimized' ? '80px 0px 80px 0px' : '100px 0px 100px 0px',
-    threshold: hardwareTier === 'mid_optimized' ? 0.05 : 0.01
+    rootMargin: '100px 0px 100px 0px',
+    threshold: 0.01
   };
   
   const observer = new IntersectionObserver(
@@ -1129,38 +617,21 @@ const initScrollEffects = () => {
           const element = entry.target;
           const delay = parseInt(element.getAttribute('data-delay')) || 0;
           
-          // USAR setTimeout EN LUGAR DE requestAnimationFrame PARA MÓVILES
-          if (hardwareTier === 'mid_optimized' || hardwareTier === 'low') {
-            setTimeout(() => {
-              element.classList.add('active');
-            }, delay);
-          } else {
-            requestAnimationFrame(() => {
-              setTimeout(() => {
-                element.classList.add('active');
-              }, delay);
-            });
-          }
+          setTimeout(() => {
+            element.classList.add('active');
+          }, delay);
         }
       });
     },
     observerOptions
   );
   
-  // OBSERVAR ELEMENTOS EN BATCHES PARA MEJOR PERFORMANCE
-  const batchSize = hardwareTier === 'mid_optimized' ? 5 : 10;
-  for (let i = 0; i < scrollElements.length; i += batchSize) {
-    const batch = Array.from(scrollElements).slice(i, i + batchSize);
-    
-    setTimeout(() => {
-      batch.forEach(el => observer.observe(el));
-    }, i * 20); // Espaciar la observación
-  }
+  scrollElements.forEach(el => observer.observe(el));
   
-  console.log(`✅ Scroll effects optimizados: ${scrollElements.length} elementos (${hardwareTier})`);
+  console.log(`✅ Scroll effects: ${scrollElements.length} elementos`);
 };
 
-// ===== HEADER EFFECT OPTIMIZADO =====
+// ===== HEADER EFFECT =====
 const updateHeader = () => {
   if (!header) return;
   
@@ -1168,23 +639,12 @@ const updateHeader = () => {
   
   if (scrollY > 100) {
     header.classList.add('scrolled');
-    // OPTIMIZACIÓN: Usar backgroundColor en lugar de backdropFilter cuando sea posible
-    if (hardwareTier === 'mid_optimized') {
-      header.style.backgroundColor = 'rgba(5, 27, 56, 0.98)';
-      header.style.backdropFilter = 'blur(8px)'; // Reducido
-    } else {
-      header.style.backgroundColor = 'rgba(5, 27, 56, 0.98)';
-      header.style.backdropFilter = 'blur(15px)';
-    }
+    header.style.backgroundColor = 'rgba(5, 27, 56, 0.98)';
+    header.style.backdropFilter = 'blur(15px)';
   } else {
     header.classList.remove('scrolled');
-    if (hardwareTier === 'mid_optimized') {
-      header.style.backgroundColor = 'rgba(11, 44, 77, 0.95)';
-      header.style.backdropFilter = 'blur(5px)'; // Reducido
-    } else {
-      header.style.backgroundColor = 'rgba(11, 44, 77, 0.95)';
-      header.style.backdropFilter = 'blur(10px)';
-    }
+    header.style.backgroundColor = 'rgba(11, 44, 77, 0.95)';
+    header.style.backdropFilter = 'blur(10px)';
   }
 };
 
@@ -1192,23 +652,14 @@ const updateHeader = () => {
 const handleScroll = () => {
   if (!ticking) {
     ticking = true;
-    
-    // USAR setTimeout EN LUGAR DE requestAnimationFrame PARA MÓVILES
-    if (hardwareTier === 'mid_optimized' || hardwareTier === 'low') {
-      setTimeout(() => {
-        updateHeader();
-        ticking = false;
-      }, 16); // ~60fps
-    } else {
-      requestAnimationFrame(() => {
-        updateHeader();
-        ticking = false;
-      });
-    }
+    requestAnimationFrame(() => {
+      updateHeader();
+      ticking = false;
+    });
   }
 };
 
-// ===== WHATSAPP BUTTON OPTIMIZADO =====
+// ===== WHATSAPP BUTTON =====
 const initWhatsAppButton = () => {
   const whatsappBtn = document.querySelector('.whatsapp-float');
   if (!whatsappBtn) return;
@@ -1220,18 +671,15 @@ const initWhatsAppButton = () => {
   }, 2000);
   
   if (config.effects) {
-    // OPTIMIZACIÓN: Pulso menos frecuente en móviles
-    const pulseInterval = hardwareTier === 'mid_optimized' ? 5000 : 3000;
-    
     setInterval(() => {
       if (!document.hidden) {
         whatsappBtn.classList.toggle('pulse');
       }
-    }, pulseInterval);
+    }, 3000);
   }
 };
 
-// ===== INTRO REMOVAL (SIN CAMBIOS) =====
+// ===== INTRO =====
 const initIntro = () => {
   const intro = document.getElementById('intro');
   if (!intro) return;
@@ -1246,14 +694,14 @@ const initIntro = () => {
   });
 };
 
-// ===== PARALLAX OPTIMIZADO PARA FLUIDEZ =====
+// ===== PARALLAX COMPLETO =====
 const initComponentParallax = () => {
   if (!config.effects) {
     console.log('⚠️ Efectos desactivados (reduced-motion)');
     return;
   }
   
-  console.log(`🌀 Inicializando Parallax Optimizado para: ${hardwareTier}`);
+  console.log('🌀 Parallax activado');
   
   const mouseParallaxElements = document.querySelectorAll(`
     .card, .offer-card, .contact-card,
@@ -1266,23 +714,17 @@ const initComponentParallax = () => {
     const windowHeight = window.innerHeight;
     const windowCenter = scrollY + (windowHeight / 2);
     
-    // SELECCIONAR MENOS ELEMENTOS EN MÓVILES
-    const parallaxSelector = hardwareTier === 'mid_optimized' ? 
-      `.reveal[data-speed],
-       [data-scroll-effect],
-       .hero-img, .about-image,
-       .card, .offer-card,
-       .hero-text h1, .section-title` :
-      `.reveal[data-speed],
-       [data-scroll-effect],
-       .hero-img, .about-image, .section-title,
-       .card, .offer-card, .contact-card,
-       .brand-item, .feature, .info-card,
-       .hero-text h1, .hero-text p,
-       .section-subtitle, .about-content,
-       .about-content p, .hero-text,
-       .hero-buttons, .about-features,
-       .story-icon-item, .story-text-animated`;
+    const parallaxSelector = `
+      .reveal[data-speed],
+      [data-scroll-effect],
+      .hero-img, .about-image, .section-title,
+      .card, .offer-card, .contact-card,
+      .brand-item, .feature, .info-card,
+      .hero-text h1, .hero-text p,
+      .section-subtitle, .about-content,
+      .about-content p, .hero-text,
+      .hero-buttons, .about-features,
+      .story-icon-item, .story-text-animated`;
     
     const allParallaxElements = document.querySelectorAll(parallaxSelector);
     
@@ -1296,38 +738,18 @@ const initComponentParallax = () => {
       
       const speed = parseFloat(element.getAttribute('data-speed')) || 0.1;
       
-      // AJUSTAR MULTIPLICADOR SEGÚN HARDWARE
-      let mobileMultiplier;
-      if (hardwareTier === 'low') {
-        mobileMultiplier = 0.2;
-      } else if (hardwareTier === 'mid_optimized') {
-        mobileMultiplier = 0.4; // Reducido para más fluidez
-      } else if (hardwareTier === 'mid') {
-        mobileMultiplier = 0.6;
-      } else {
-        mobileMultiplier = 0.7;
-      }
-      
       if (element.hasAttribute('data-speed')) {
-        const translateY = normalizedDistance * 80 * speed * mobileMultiplier; // Reducido de 100
-        const opacity = 1 - Math.abs(normalizedDistance) * 0.2; // Menos cambio de opacidad
+        const translateY = normalizedDistance * 80 * speed;
+        const opacity = 1 - Math.abs(normalizedDistance) * 0.2;
         
-        // USAR transform 2D EN LUGAR DE 3D PARA MÓVILES
-        if (hardwareTier === 'mid_optimized' || hardwareTier === 'low') {
-          element.style.transform = `translateY(${translateY}px)`;
-        } else {
-          element.style.transform = `translate3d(0, ${translateY}px, 0)`;
-        }
-        
-        if (hardwareTier !== 'low') {
-          element.style.opacity = opacity;
-        }
+        element.style.transform = `translate3d(0, ${translateY}px, 0)`;
+        element.style.opacity = opacity;
       }
     });
   };
   
-  // MOUSE PARALLAX SOLO EN DESKTOP Y HARDWARE BUENO
-  if (!config.isMobile() && hardwareTier !== 'low' && hardwareTier !== 'mid_optimized') {
+  // Mouse parallax solo en desktop
+  if (!config.isMobile()) {
     mouseParallaxElements.forEach(element => {
       element.addEventListener('mousemove', (e) => {
         const rect = element.getBoundingClientRect();
@@ -1364,10 +786,10 @@ const initComponentParallax = () => {
     });
   }
   
-  // THROTTLE DEL SCROLL PARALLAX
+  // Scroll parallax
   let scrollTicking = false;
   let lastParallaxUpdate = 0;
-  const parallaxThrottle = hardwareTier === 'mid_optimized' ? 50 : 33; // ~20fps vs ~30fps
+  const parallaxThrottle = 33; // ~30fps
   
   const handleScrollParallax = () => {
     const now = Date.now();
@@ -1376,17 +798,10 @@ const initComponentParallax = () => {
       scrollTicking = true;
       lastParallaxUpdate = now;
       
-      if (hardwareTier === 'mid_optimized' || hardwareTier === 'low') {
-        setTimeout(() => {
-          updateScrollParallax();
-          scrollTicking = false;
-        }, 0);
-      } else {
-        requestAnimationFrame(() => {
-          updateScrollParallax();
-          scrollTicking = false;
-        });
-      }
+      requestAnimationFrame(() => {
+        updateScrollParallax();
+        scrollTicking = false;
+      });
     }
   };
   
@@ -1394,37 +809,29 @@ const initComponentParallax = () => {
   window.addEventListener('scroll', handleScrollParallax, { passive: true });
   window.addEventListener('resize', handleScrollParallax, { passive: true });
   
-  console.log(`✅ Parallax optimizado para: ${hardwareTier} (${Math.floor(1000/parallaxThrottle)} FPS)`);
+  console.log('✅ Parallax listo');
 };
 
-// ===== SISTEMA DE FONDOS DINÁMICOS OPTIMIZADO =====
+// ===== SISTEMA DE FONDOS DINÁMICOS =====
 const initDynamicBackgrounds = () => {
   const sections = document.querySelectorAll('.parallax-section');
-  
-  // SOLO APLICAR EN HARDWARE SUFICIENTE
-  if (hardwareTier === 'low') {
-    console.log('🎨 Fondos dinámicos desactivados para low tier');
-    return;
-  }
   
   sections.forEach((section) => {
     const background = section.querySelector('.section-background');
     
     if (!background) return;
     
-    // Solo añadir capas extras en hardware bueno
-    if (hardwareTier === 'high') {
-      const layer3 = document.createElement('div');
-      layer3.className = 'gradient-layer-3';
-      background.appendChild(layer3);
-      
-      const layer4 = document.createElement('div');
-      layer4.className = 'gradient-layer-4';
-      background.appendChild(layer4);
-    }
+    // Añadir capas extras
+    const layer3 = document.createElement('div');
+    layer3.className = 'gradient-layer-3';
+    background.appendChild(layer3);
     
-    // Efecto de interacción solo en desktop y hardware bueno
-    if (!config.isMobile() && hardwareTier === 'high') {
+    const layer4 = document.createElement('div');
+    layer4.className = 'gradient-layer-4';
+    background.appendChild(layer4);
+    
+    // Efecto de interacción solo en desktop
+    if (!config.isMobile()) {
       section.addEventListener('mousemove', (e) => {
         const rect = section.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -1445,34 +852,29 @@ const initDynamicBackgrounds = () => {
     }
   });
   
-  console.log('🎨 Fondos dinámicos inicializados (optimizados)');
+  console.log('🎨 Fondos dinámicos activados');
 };
 
-// ===== SISTEMA DE NOTIFICACIONES INTELIGENTE OPTIMIZADO =====
+// ===== SISTEMA DE NOTIFICACIONES =====
 const initSmartNotifications = () => {
-  console.log('🔔 Inicializando sistema de notificaciones optimizado...');
+  console.log('🔔 Sistema de notificaciones activado');
   
-  // Verificar si ya existe un contenedor
   let notificationContainer = document.querySelector('.notification-container');
   
   if (!notificationContainer) {
     notificationContainer = document.createElement('div');
     notificationContainer.className = `notification-container ${config.isMobile() ? 'mobile' : 'desktop'}`;
     document.body.appendChild(notificationContainer);
-    console.log('✅ Contenedor de notificaciones creado');
   }
   
   let activeNotifications = new Set();
   let notificationTimeouts = new Map();
 
-  // Función para mostrar notificación
   const showNotification = (message, type = 'info', options = {}) => {
-    // Si no hay mensaje, no mostrar
     if (!message || message.trim() === '') return null;
     
-    console.log(`🔔 Mostrando: "${message.substring(0, 30)}${message.length > 30 ? '...' : ''}"`);
+    console.log(`🔔 Mostrando: "${message.substring(0, 30)}..."`);
     
-    // Remover notificación existente con el mismo ID
     if (options.id) {
       const existing = document.getElementById(options.id);
       if (existing) {
@@ -1482,12 +884,8 @@ const initSmartNotifications = () => {
     }
 
     const notificationId = options.id || `notification-${Date.now()}`;
+    const duration = config.isMobile() ? 6000 : 10000;
     
-    // DURACIÓN REDUCIDA EN MÓVILES PARA MEJOR EXPERIENCIA
-    const baseDuration = config.isMobile() ? 6000 : 10000;
-    const duration = hardwareTier === 'mid_optimized' ? 5000 : baseDuration;
-    
-    // Crear elemento de notificación
     const notification = document.createElement('div');
     notification.className = `notification ${type} ${config.isMobile() ? 'mobile-notification' : 'desktop-notification'}`;
     notification.id = notificationId;
@@ -1495,7 +893,6 @@ const initSmartNotifications = () => {
     notification.setAttribute('aria-live', 'polite');
     notification.style.zIndex = '10002';
 
-    // Icono según tipo
     const icons = {
       info: 'ℹ️',
       success: '✅',
@@ -1506,7 +903,6 @@ const initSmartNotifications = () => {
     
     const icon = icons[type] || icons.info;
 
-    // Contenido HTML optimizado
     notification.innerHTML = `
       <div class="notification-content">
         <span class="notification-icon">${icon}</span>
@@ -1518,45 +914,33 @@ const initSmartNotifications = () => {
       <div class="notification-progress"></div>
     `;
 
-    // Añadir al DOM
     notificationContainer.appendChild(notification);
     activeNotifications.add(notificationId);
 
-    // Animación de entrada
     setTimeout(() => {
       notification.classList.add('show');
-      console.log(`✅ Notificación ${notificationId} visible`);
     }, 10);
 
-    // Configurar barra de progreso (solo en dispositivos buenos)
-    if (hardwareTier !== 'low') {
-      const progressBar = notification.querySelector('.notification-progress');
-      if (progressBar) {
-        progressBar.style.animationDuration = `${duration}ms`;
-        progressBar.style.animationPlayState = 'running';
-      }
+    const progressBar = notification.querySelector('.notification-progress');
+    if (progressBar) {
+      progressBar.style.animationDuration = `${duration}ms`;
+      progressBar.style.animationPlayState = 'running';
     }
 
-    // Timeout para auto-eliminar
     const timeout = setTimeout(() => {
-      console.log(`⏰ Auto-dismiss: ${notificationId}`);
       removeNotification(notificationId);
     }, duration);
 
     notificationTimeouts.set(notificationId, timeout);
 
-    // Botón de cerrar
     const closeBtn = notification.querySelector('.notification-close');
     closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      console.log(`❌ Cerrada manualmente: ${notificationId}`);
       removeNotification(notificationId);
     });
 
-    // Clic en la notificación para cerrar
     notification.addEventListener('click', (e) => {
       if (e.target === notification) {
-        console.log(`👆 Clic en notificación: ${notificationId}`);
         removeNotification(notificationId);
       }
     });
@@ -1564,430 +948,55 @@ const initSmartNotifications = () => {
     return notificationId;
   };
 
-  // Función para remover notificación
   const removeNotification = (id) => {
-    console.log(`🗑️ Eliminando: ${id}`);
-    
     const notification = document.getElementById(id);
-    if (!notification) {
-      console.warn(`⚠️ Notificación ${id} no encontrada`);
-      return;
-    }
+    if (!notification) return;
 
-    // Limpiar timeout
     if (notificationTimeouts.has(id)) {
       clearTimeout(notificationTimeouts.get(id));
       notificationTimeouts.delete(id);
     }
 
-    // Animación de salida
     notification.classList.remove('show');
     notification.classList.add('hide');
 
-    // Eliminar después de la animación
     setTimeout(() => {
       if (notification.parentNode) {
         notification.parentNode.removeChild(notification);
       }
       activeNotifications.delete(id);
-      console.log(`✅ Completamente eliminada: ${id}`);
     }, 300);
   };
 
-  const NOTIFICATION_SETTINGS = {
-    welcome: {
-      type: 'always',
-      delay: hardwareTier === 'mid_optimized' ? 4000 : 3500, // Delay mayor para que cargue primero
-      duration: hardwareTier === 'mid_optimized' ? 7000 : 10000
-    },
-    spline: {
-      type: 'once-per-session',
-      delay: 0,
-      duration: 5000 // Reducido
-    }
-  };
-  
-  // Verificar si debe mostrarse según el tipo
-  const shouldShowNotification = (notificationType) => {
-    const settings = NOTIFICATION_SETTINGS[notificationType];
-    if (!settings) return true;
-    
-    const storageKey = `merke_${notificationType}_shown`;
-    
-    switch(settings.type) {
-      case 'always':
-        return true;
-        
-      case 'once-per-session':
-        return !sessionStorage.getItem(storageKey);
-        
-      case 'once-per-day':
-        const lastShown = localStorage.getItem(storageKey);
-        if (!lastShown) return true;
-        
-        const lastDate = new Date(parseInt(lastShown));
-        const now = new Date();
-        return lastDate.getDate() !== now.getDate() || 
-               lastDate.getMonth() !== now.getMonth() || 
-               lastDate.getFullYear() !== now.getFullYear();
-        
-      case 'once-per-hour':
-        const lastShownHour = localStorage.getItem(storageKey);
-        if (!lastShownHour) return true;
-        
-        const lastHour = new Date(parseInt(lastShownHour));
-        const nowHour = new Date();
-        return (nowHour.getTime() - lastHour.getTime()) > (60 * 60 * 1000);
-        
-      default:
-        return true;
-    }
-  };
-  
-  // Marcar como mostrada
-  const markAsShown = (notificationType) => {
-    const settings = NOTIFICATION_SETTINGS[notificationType];
-    if (!settings) return;
-    
-    const storageKey = `merke_${notificationType}_shown`;
-    
-    if (settings.type === 'once-per-session') {
-      sessionStorage.setItem(storageKey, 'true');
-    } else if (settings.type === 'once-per-day' || settings.type === 'once-per-hour') {
-      localStorage.setItem(storageKey, Date.now().toString());
-    }
-  };
-  
-  // ===== NOTIFICACIÓN DE BIENVENIDA AUTOMÁTICA =====
-  const showWelcomeNotification = () => {
-    if (!shouldShowNotification('welcome')) {
-      console.log('⚠️ Bienvenida ya mostrada según configuración');
-      return;
-    }
-    
-    console.log('👋 Mostrando notificación de bienvenida automática');
-    
-    setTimeout(() => {
-      showNotification(
-        '¡Bienvenido a Merke+ de la sabana!',
-        'info',
-        {
-          id: 'welcome-notification',
-          duration: NOTIFICATION_SETTINGS.welcome.duration
-        }
-      );
-      
-      markAsShown('welcome');
-    }, NOTIFICATION_SETTINGS.welcome.delay);
-  };
-
-  // ===== NOTIFICACIONES PARA SPLINE =====
-  const setupSplineNotifications = () => {
-    const splineViewer = document.querySelector('spline-viewer');
-    if (!splineViewer) {
-      console.error('❌ Spline viewer no encontrado');
-      return;
-    }
-
-    let lastInteractionTime = 0;
-    const INTERACTION_COOLDOWN = hardwareTier === 'mid_optimized' ? 15000 : 10000; // Mayor cooldown
-
-    const showSplineNotification = () => {
-      const now = Date.now();
-      
-      // Cooldown para evitar notificaciones repetitivas
-      if (now - lastInteractionTime < INTERACTION_COOLDOWN) {
-        console.log('⏳ Cooldown activo, omitiendo notificación Spline');
-        return;
-      }
-
-      const message = config.isMobile() 
-        ? 'Modo interacción: Dos dedos para zoom, un dedo para rotar'
-        : 'Modo interacción: Usa la rueda del mouse para zoom';
-
-      console.log('🎮 Mostrando notificación de interacción Spline');
-      
-      showNotification(message, 'interaction', {
-        id: 'spline-interaction',
-        duration: 5000
-      });
-
-      lastInteractionTime = now;
-    };
-
-    // Añadir listeners con delay para asegurar que Spline esté listo
-    setTimeout(() => {
-      console.log('🎯 Añadiendo listeners a Spline');
-      
-      // Desktop
-      splineViewer.addEventListener('mousedown', showSplineNotification);
-      splineViewer.addEventListener('wheel', showSplineNotification);
-      
-      // Móvil - solo un listener para mejor performance
-      if (config.isMobile()) {
-        splineViewer.addEventListener('touchstart', (e) => {
-          if (e.touches.length === 2) { // Solo para zoom con dos dedos
-            showSplineNotification();
-          }
-        }, { passive: true });
-      }
-      
-      console.log('✅ Listeners para Spline configurados');
-    }, 2000); // Delay mayor
-  };
-
-  // ===== INICIALIZACIÓN =====
-  
-  // 1. Mostrar bienvenida automáticamente
+  // Notificación de bienvenida
   setTimeout(() => {
-    showWelcomeNotification();
-  }, 1000);
+    showNotification(
+      '¡Bienvenido a Merke+ de la sabana!',
+      'info',
+      {
+        id: 'welcome-notification',
+        duration: 10000
+      }
+    );
+  }, 3500);
   
-  // 2. Configurar notificaciones para Spline (con mayor delay)
-  setTimeout(() => {
-    setupSplineNotifications();
-  }, 3000);
-  
-  // 3. Exponer funciones para debugging
-  window.debugNotifications = {
-    show: (message, type = 'info', duration = 10000) => {
-      return showNotification(message, type, { 
-        id: `debug-${Date.now()}`,
-        duration: duration 
-      });
-    },
-    remove: (id) => removeNotification(id),
-    list: () => Array.from(activeNotifications),
-    testWelcome: () => {
-      showNotification(
-        '[TEST] ¡Bienvenido a Merke+! Esta es una prueba',
-        'info',
-        { id: 'test-welcome', duration: 5000 }
-      );
-    },
-    testSpline: () => {
-      const message = config.isMobile() 
-        ? '[TEST] Interacción Spline: Dos dedos zoom'
-        : '[TEST] Interacción Spline: Rueda mouse zoom';
-      showNotification(message, 'interaction', { 
-        id: 'test-spline', 
-        duration: 5000 
-      });
-    },
-    clearAll: () => {
-      activeNotifications.forEach(id => removeNotification(id));
-    }
-  };
-
-  console.log(`✅ Sistema de notificaciones optimizado para: ${hardwareTier}`);
+  console.log('✅ Sistema de notificaciones listo');
 };
 
-// ===== SISTEMA DE BLOQUEO DE SCROLL PARA SPLINE OPTIMIZADO =====
-const initSplineScrollLock = () => {
-  const splineViewer = document.querySelector('spline-viewer');
-  const splineContainer = document.querySelector('.spline-container');
-  
-  if (!splineViewer || !splineContainer) return;
-  
-  // Variables de estado
-  let isInteracting = false;
-  let interactionTimeout = null;
-  let isMobile = config.isMobile();
-  let touchStartY = 0;
-  let isPinching = false;
-  let initialTouchDistance = 0;
-  
-  // Función mejorada para bloquear scroll
-  const lockScroll = () => {
-    if (isInteracting) return;
-    
-    isInteracting = true;
-    
-    // Añadir clase al body
-    document.body.classList.add('scroll-locked');
-    
-    // Guardar posición actual del scroll
-    window.scrollLockPosition = window.pageYOffset;
-    
-    // Añadir clase al contenedor Spline
-    splineContainer.classList.add('interacting');
-    
-    console.log('🔒 Scroll bloqueado para interacción');
-  };
-  
-  // Función mejorada para desbloquear scroll
-  const unlockScroll = () => {
-    if (!isInteracting) return;
-    
-    isInteracting = false;
-    
-    // Remover clase del body
-    document.body.classList.remove('scroll-locked');
-    
-    // Remover clase del contenedor Spline
-    splineContainer.classList.remove('interacting');
-    
-    console.log('🔓 Scroll desbloqueado');
-  };
-  
-  // Detectar interacción en desktop
-  const handleDesktopInteraction = () => {
-    // Mouse down - comenzar interacción
-    splineViewer.addEventListener('mousedown', () => {
-      lockScroll();
-      
-      // Resetear timeout si ya existe
-      if (interactionTimeout) {
-        clearTimeout(interactionTimeout);
-      }
-    });
-    
-    // Mouse up - terminar después de delay corto
-    splineViewer.addEventListener('mouseup', () => {
-      if (interactionTimeout) clearTimeout(interactionTimeout);
-      interactionTimeout = setTimeout(() => {
-        if (!splineViewer.matches(':active')) {
-          unlockScroll();
-        }
-      }, 300);
-    });
-    
-    // Mouse leave - terminar inmediatamente
-    splineViewer.addEventListener('mouseleave', () => {
-      if (interactionTimeout) clearTimeout(interactionTimeout);
-      unlockScroll();
-    });
-    
-    // Wheel - mantener bloqueado durante
-    splineViewer.addEventListener('wheel', (e) => {
-      e.stopPropagation();
-      
-      if (!isInteracting) {
-        lockScroll();
-      }
-      
-      // Resetear timeout
-      if (interactionTimeout) clearTimeout(interactionTimeout);
-      interactionTimeout = setTimeout(() => {
-        unlockScroll();
-      }, 500);
-    }, { passive: false });
-  };
-  
-  // Detectar interacción en móvil OPTIMIZADO
-  const handleMobileInteraction = () => {
-    splineViewer.style.touchAction = 'none';
-    
-    let lastTouchTime = 0;
-    const TOUCH_THROTTLE = 100; // Throttle para touches
-    
-    splineViewer.addEventListener('touchstart', (e) => {
-      const now = Date.now();
-      if (now - lastTouchTime < TOUCH_THROTTLE) return;
-      lastTouchTime = now;
-      
-      // Guardar posición inicial
-      touchStartY = e.touches[0].clientY;
-      
-      // Detectar pinch (zoom) - solo bloquear para zoom
-      if (e.touches.length === 2) {
-        isPinching = true;
-        initialTouchDistance = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        lockScroll();
-      }
-    }, { passive: true });
-    
-    splineViewer.addEventListener('touchmove', (e) => {
-      // Prevenir scroll de página solo cuando hay dos dedos
-      if (isPinching) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-    
-    splineViewer.addEventListener('touchend', () => {
-      isPinching = false;
-      
-      // Desbloquear más rápido en móviles optimizados
-      const unlockDelay = hardwareTier === 'mid_optimized' ? 300 : 500;
-      
-      if (interactionTimeout) clearTimeout(interactionTimeout);
-      interactionTimeout = setTimeout(() => {
-        if (!isPinching) {
-          unlockScroll();
-        }
-      }, unlockDelay);
-    }, { passive: true });
-  };
-  
-  // Prevenir scroll accidental cuando el cursor está sobre Spline
-  splineViewer.addEventListener('mouseenter', () => {
-    splineViewer.style.pointerEvents = 'auto';
-  });
-  
-  splineViewer.addEventListener('mouseleave', () => {
-    if (interactionTimeout) clearTimeout(interactionTimeout);
-    interactionTimeout = setTimeout(() => {
-      if (!splineViewer.matches(':active')) {
-        unlockScroll();
-      }
-    }, 200);
-  });
-  
-  // Escape key para desbloquear manualmente
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isInteracting) {
-      unlockScroll();
-    }
-  });
-  
-  // Inicializar según dispositivo
-  if (isMobile) {
-    handleMobileInteraction();
-  } else {
-    handleDesktopInteraction();
-  }
-  
-  console.log(`🎮 Sistema de bloqueo de scroll optimizado: ${isMobile ? 'móvil' : 'desktop'}`);
-};
-
-// ===== OPTIMIZACIÓN SPLINE MEJORADA =====
+// ===== SPLINE OPTIMIZADO =====
 const optimizeSpline = () => {
   const splineViewer = document.querySelector('spline-viewer');
   if (!splineViewer) return;
   
-  const isMobile = config.isMobile();
-  
-  // CONFIGURACIÓN ESPECÍFICA SEGÚN HARDWARE
-  let renderMode, quality;
-  
-  if (hardwareTier === 'low') {
-    renderMode = 'performance';
-    quality = 'low';
-  } else if (hardwareTier === 'mid_optimized') {
-    renderMode = 'balanced'; // Balance entre calidad y performance
-    quality = 'medium';
-  } else if (hardwareTier === 'mid') {
-    renderMode = 'quality';
-    quality = 'medium';
-  } else { // high
-    renderMode = 'quality';
-    quality = 'high';
-  }
-  
-  splineViewer.setAttribute('render-mode', renderMode);
+  splineViewer.setAttribute('render-mode', 'quality');
   splineViewer.setAttribute('interaction-enabled', 'true');
-  splineViewer.setAttribute('quality', quality);
+  splineViewer.setAttribute('quality', 'high');
   
-  // Añadir atributos para mejor control táctil
-  if (isMobile) {
+  if (config.isMobile()) {
     splineViewer.setAttribute('touch-action', 'none');
     splineViewer.style.touchAction = 'none';
   }
   
-  // Pausar cuando no es visible
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) {
@@ -2000,40 +1009,12 @@ const optimizeSpline = () => {
   
   observer.observe(splineViewer);
   
-  // Inicializar sistema de bloqueo de scroll
-  initSplineScrollLock();
-  
-  console.log(`🎮 Spline optimizado: modo ${renderMode}, calidad ${quality}`);
+  console.log('🎮 Spline configurado en alta calidad');
 };
 
-// ===== THROTTLING MEJORADO =====
-const createThrottledListener = (event, callback, interval = 100) => {
-  let lastCall = 0;
-  let timeout;
-  
-  return function(...args) {
-    const now = Date.now();
-    const remaining = interval - (now - lastCall);
-    
-    if (remaining <= 0) {
-      lastCall = now;
-      callback.apply(this, args);
-    } else if (!timeout) {
-      timeout = setTimeout(() => {
-        lastCall = Date.now();
-        timeout = null;
-        callback.apply(this, args);
-      }, remaining);
-    }
-  };
-};
-
-// ===== LAZY LOADING INTELIGENTE OPTIMIZADO =====
+// ===== LAZY LOADING =====
 const initSmartLazyLoad = () => {
   const lazyElements = document.querySelectorAll('[loading="lazy"], img[data-src], iframe[data-src]');
-  
-  // MÁRGENES AJUSTADOS SEGÚN HARDWARE
-  const rootMargin = hardwareTier === 'mid_optimized' ? '150px 0px' : '200px 0px';
   
   const lazyObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -2041,129 +1022,29 @@ const initSmartLazyLoad = () => {
         const element = entry.target;
         
         if (element.dataset.src) {
-          // Cargar con un pequeño delay para no saturar
           setTimeout(() => {
             element.src = element.dataset.src;
             element.removeAttribute('data-src');
-          }, hardwareTier === 'mid_optimized' ? 100 : 50);
+          }, 50);
         }
         
         lazyObserver.unobserve(element);
       }
     });
   }, {
-    rootMargin: rootMargin,
+    rootMargin: '200px 0px',
     threshold: 0.01
   });
   
   lazyElements.forEach(el => lazyObserver.observe(el));
-  console.log(`🔄 Lazy loading optimizado: ${lazyElements.length} elementos`);
+  console.log(`🔄 Lazy loading: ${lazyElements.length} elementos`);
 };
 
-// ===== AJUSTES DINÁMICOS DE PERFORMANCE MEJORADOS =====
-const adjustEffectsForPerformance = () => {
-  const particlesContainer = tsParticles.domItem(0);
-  if (particlesContainer) {
-    // REDUCCIÓN GRADUAL EN LUGAR DE BRUSCA
-    const currentCount = particlesContainer.options.particles.number.value;
-    const newCount = Math.max(10, Math.floor(currentCount * 0.8));
-    
-    if (newCount < currentCount) {
-      particlesContainer.options.particles.number.value = newCount;
-      particlesContainer.refresh();
-      console.log(`🔄 Partículas reducidas gradualmente a: ${newCount}`);
-    }
-  }
-  
-  const noiseCanvas = document.getElementById('noiseCanvas');
-  if (noiseCanvas) {
-    const currentOpacity = parseFloat(noiseCanvas.style.opacity || 0.25);
-    noiseCanvas.style.opacity = Math.max(0.05, currentOpacity * 0.8);
-  }
-};
-
-// ===== MEDICIÓN DE PERFORMANCE MEJORADA =====
-const measurePerformance = () => {
-  if ('PerformanceObserver' in window && hardwareTier !== 'high') {
-    const observer = new PerformanceObserver((list) => {
-      list.getEntries().forEach((entry) => {
-        console.log(`📊 Performance: ${entry.name} - ${entry.duration.toFixed(2)}ms`);
-        
-        // AJUSTAR EFECTOS SI HAY PROBLEMAS DE PERFORMANCE
-        if (entry.duration > (hardwareTier === 'mid_optimized' ? 40 : 50)) {
-          console.log('⚠️ Performance baja detectada, ajustando efectos...');
-          adjustEffectsForPerformance();
-        }
-      });
-    });
-    
-    observer.observe({ entryTypes: ['longtask'] });
-  }
-};
-
-// ===== VENTANAS DE PRODUCTOS OPTIMIZADAS =====
+// ===== VENTANAS DE PRODUCTOS =====
 const initProductModals = () => {
-  console.log('🛒 Inicializando ventanas de productos optimizadas...');
+  console.log('🛒 Ventanas de productos activadas');
   
-  // Base de datos simple de productos
   const productDatabase = {
-    'abarrotes': {
-      title: 'Abarrotes Esenciales',
-      category: 'Abarrotes',
-      description: 'Todo lo esencial para tu despensa diaria. Productos de alta calidad que garantizan sabor y durabilidad.',
-      price: 'Desde $5.000',
-      images: [
-        'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop'
-      ],
-      features: [
-        'Productos no perecederos',
-        'Marcas reconocidas',
-        'Precios competitivos',
-        'Variedad en presentaciones',
-        'Calidad garantizada',
-        'Almacenamiento adecuado'
-      ]
-    },
-    'frutas-y-verduras': {
-      title: 'Frutas y Verduras Frescas',
-      category: 'Frutas y Verduras',
-      description: 'Productos frescos, locales y de temporada. Seleccionados cuidadosamente para garantizar máxima frescura y sabor.',
-      price: 'Desde $3.000',
-      images: [
-        'https://images.unsplash.com/photo-1577046848358-82b4afcb21d0?w=800&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1592921870789-04563d55041c?w=800&auto=format&fit=crop'
-      ],
-      features: [
-        'Productos locales',
-        'Recogidos diariamente',
-        'Sin pesticidas nocivos',
-        'Variedad de temporada',
-        'Precios por unidad o kilo',
-        'Máxima frescura'
-      ]
-    },
-    'lacteos': {
-      title: 'Lácteos Frescos',
-      category: 'Lácteos',
-      description: 'Leche, yogurt y quesos de la más alta calidad. Productos frescos que mantienen todo su sabor y propiedades nutricionales.',
-      price: 'Desde $4.500',
-      images: [
-        'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=800&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1567306301408-9b74779a11af?w=800&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800&auto=format&fit=crop'
-      ],
-      features: [
-        'Productos refrigerados',
-        'Fechas de vencimiento vigentes',
-        'Marcas de confianza',
-        'Variedad de presentaciones',
-        'Alta calidad nutricional',
-        'Precios especiales por cantidad'
-      ]
-    },
     'bebidas': {
       title: 'Bebidas Refrescantes',
       category: 'Bebidas',
@@ -2183,9 +1064,9 @@ const initProductModals = () => {
         'Productos importados y nacionales'
       ]
     }
+    // Agrega más productos según necesites
   };
 
-  // Elementos DOM
   const modalOverlay = document.getElementById('productModalOverlay');
   const modalClose = document.getElementById('modalClose');
   const modalCloseBtn = document.getElementById('modalCloseBtn');
@@ -2199,13 +1080,11 @@ const initProductModals = () => {
   const nextSlideBtn = document.getElementById('nextSlide');
   const galleryIndicators = document.getElementById('galleryIndicators');
 
-  // Variables de estado
   let currentProduct = null;
   let currentSlideIndex = 0;
   let slides = [];
   let indicators = [];
 
-  // Función para crear un slide OPTIMIZADA
   const createSlide = (imageUrl, index) => {
     const slide = document.createElement('div');
     slide.className = `gallery-slide ${index === 0 ? 'active' : ''}`;
@@ -2217,17 +1096,10 @@ const initProductModals = () => {
     img.className = 'gallery-image';
     img.loading = 'lazy';
     
-    // OPTIMIZACIÓN: Pre-cargar siguiente imagen
-    if (index === 0 && currentProduct.images.length > 1) {
-      const nextImg = new Image();
-      nextImg.src = currentProduct.images[1];
-    }
-    
     slide.appendChild(img);
     return slide;
   };
 
-  // Función para crear indicador
   const createIndicator = (index) => {
     const indicator = document.createElement('div');
     indicator.className = `gallery-dot ${index === 0 ? 'active' : ''}`;
@@ -2240,33 +1112,19 @@ const initProductModals = () => {
     return indicator;
   };
 
-  // Función para mostrar un slide específico
   const goToSlide = (index) => {
-    // Validar índice
     if (index < 0) index = slides.length - 1;
     if (index >= slides.length) index = 0;
     
-    // Ocultar slide actual
     slides.forEach(slide => slide.classList.remove('active'));
     indicators.forEach(indicator => indicator.classList.remove('active'));
     
-    // Mostrar nuevo slide
     slides[index].classList.add('active');
     indicators[index].classList.add('active');
     
     currentSlideIndex = index;
-    
-    // Pre-cargar siguiente imagen
-    const nextIndex = (index + 1) % slides.length;
-    if (slides[nextIndex]) {
-      const nextImg = slides[nextIndex].querySelector('img');
-      if (nextImg && nextImg.src.includes('data:image')) {
-        nextImg.src = currentProduct.images[nextIndex];
-      }
-    }
   };
 
-  // Función para mostrar la modal OPTIMIZADA
   const showModal = (productKey) => {
     const product = productDatabase[productKey];
     if (!product) return;
@@ -2274,13 +1132,11 @@ const initProductModals = () => {
     currentProduct = product;
     currentSlideIndex = 0;
     
-    // Actualizar información del producto
     modalTitle.textContent = product.title;
     modalCategory.textContent = product.category;
     modalDescription.textContent = product.description;
     modalPrice.textContent = product.price;
     
-    // Actualizar características
     modalFeaturesList.innerHTML = '';
     product.features.forEach(feature => {
       const li = document.createElement('li');
@@ -2288,19 +1144,16 @@ const initProductModals = () => {
       modalFeaturesList.appendChild(li);
     });
     
-    // Crear galería
     gallery.innerHTML = '';
     slides = [];
     indicators = [];
     
-    // Crear slides (solo cargar primera imagen inmediatamente)
     product.images.forEach((image, index) => {
-      const slide = createSlide(index === 0 ? image : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', index);
+      const slide = createSlide(image, index);
       gallery.appendChild(slide);
       slides.push(slide);
     });
     
-    // Crear indicadores
     galleryIndicators.innerHTML = '';
     product.images.forEach((_, index) => {
       const indicator = createIndicator(index);
@@ -2308,73 +1161,43 @@ const initProductModals = () => {
       indicators.push(indicator);
     });
     
-    // Añadir botones de navegación
     if (!prevSlideBtn.parentElement) gallery.appendChild(prevSlideBtn);
     if (!nextSlideBtn.parentElement) gallery.appendChild(nextSlideBtn);
     
-    // Mostrar modal
     modalOverlay.classList.add('active');
     document.body.style.overflow = 'hidden';
     document.body.classList.add('modal-open');
     
-    // Cargar demás imágenes en background
-    setTimeout(() => {
-      for (let i = 1; i < product.images.length; i++) {
-        const img = slides[i].querySelector('img');
-        if (img) {
-          img.src = product.images[i];
-        }
-      }
-    }, 300);
-    
     console.log(`🛒 Mostrando producto: ${product.title}`);
   };
 
-  // Función para ocultar la modal
   const hideModal = () => {
     modalOverlay.classList.remove('active');
     document.body.style.overflow = '';
     document.body.classList.remove('modal-open');
     
-    // Limpiar slides para liberar memoria
     setTimeout(() => {
       slides = [];
       indicators = [];
     }, 300);
-    
-    console.log('🛒 Modal cerrada');
   };
 
-  // Función para navegar al slide anterior
   const prevSlide = () => {
     goToSlide(currentSlideIndex - 1);
   };
 
-  // Función para navegar al siguiente slide
   const nextSlide = () => {
     goToSlide(currentSlideIndex + 1);
   };
 
-  // Asignar eventos a los botones "Ver productos"
+  // Asignar eventos (ajusta los selectores según tu HTML)
   document.querySelectorAll('.card-link').forEach((link, index) => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      
-      // Determinar qué producto mostrar basado en la tarjeta
-      let productKey = '';
-      switch(index) {
-        case 0: productKey = 'abarrotes'; break;
-        case 1: productKey = 'frutas-y-verduras'; break;
-        case 2: productKey = 'lacteos'; break;
-        case 3: productKey = 'bebidas'; break;
-        default: productKey = 'abarrotes';
-      }
-      
-      showModal(productKey);
+      showModal('bebidas'); // O el producto correspondiente
     });
   });
 
-  // Eventos de la modal
   modalClose.addEventListener('click', hideModal);
   modalCloseBtn.addEventListener('click', hideModal);
   modalOverlay.addEventListener('click', (e) => {
@@ -2383,11 +1206,9 @@ const initProductModals = () => {
     }
   });
 
-  // Eventos de navegación de galería
   prevSlideBtn.addEventListener('click', prevSlide);
   nextSlideBtn.addEventListener('click', nextSlide);
 
-  // Navegación con teclado
   document.addEventListener('keydown', (e) => {
     if (!modalOverlay.classList.contains('active')) return;
     
@@ -2404,132 +1225,74 @@ const initProductModals = () => {
     }
   });
 
-  // Navegación táctil para móvil OPTIMIZADA
+  // Navegación táctil
   let touchStartX = 0;
   let touchEndX = 0;
-  let lastSwipeTime = 0;
-  const SWIPE_THROTTLE = 300;
-
+  
   gallery.addEventListener('touchstart', (e) => {
     touchStartX = e.changedTouches[0].screenX;
   }, { passive: true });
 
   gallery.addEventListener('touchend', (e) => {
-    const now = Date.now();
-    if (now - lastSwipeTime < SWIPE_THROTTLE) return;
-    lastSwipeTime = now;
-    
     touchEndX = e.changedTouches[0].screenX;
-    handleSwipe();
-  }, { passive: true });
-
-  const handleSwipe = () => {
-    const swipeThreshold = hardwareTier === 'mid_optimized' ? 60 : 50;
     const diff = touchStartX - touchEndX;
     
-    if (Math.abs(diff) > swipeThreshold) {
+    if (Math.abs(diff) > 50) {
       if (diff > 0) {
         nextSlide();
       } else {
         prevSlide();
       }
     }
-  };
+  }, { passive: true });
 
-  console.log('✅ Sistema de ventanas de productos optimizado');
+  console.log('✅ Sistema de productos listo');
 };
 
-// ===== INICIALIZACIÓN PRINCIPAL OPTIMIZADA =====
+// ===== INICIALIZACIÓN PRINCIPAL =====
 const init = () => {
-  console.log(`🚀 Iniciando Merke+ optimizado - Hardware: ${hardwareTier}`);
+  console.log('🚀 Iniciando Merke+ con TODOS los efectos activados');
   
-  // Configurar optimizaciones de hardware
-  setupHardwareOptimizations();
+  // Configurar efectos fijos de alta calidad
+  setupFixedEffects();
   
-  // CARGAR POR ETAPAS PARA MEJOR FLUIDEZ
-  if (hardwareTier === 'mid_optimized' || hardwareTier === 'low') {
-    console.log('⚡ Carga por etapas para mejor fluidez');
-    
-    // Etapa 1: Inmediato (crítico)
-    initMobileMenu();
-    initSmartLazyLoad();
-    
-    // Etapa 2: Con pequeño delay
-    setTimeout(() => {
-      initProductModals();
-      setupNoisePro();
-    }, 300);
-    
-    // Etapa 3: Con mayor delay
+  // Cargar todo inmediatamente
+  initMobileMenu();
+  initSmartLazyLoad();
+  initProductModals();
+  setupNoisePro();
+  
+  window.addEventListener('load', () => {
     setTimeout(() => {
       initTsParticles();
       initSmoothScroll();
       initScrollEffects();
       initSmartNotifications();
-    }, 800);
-    
-    // Etapa 4: Después de que todo esté listo
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        initScrollStorytellingPro();
-        initComponentParallax();
-        optimizeSpline();
-        initDynamicBackgrounds();
-        initCountdown();
-        initMicroInteractions();
-        initWhatsAppButton();
-        initIntro();
-        
-        document.body.classList.add('loaded');
-        console.log('✅ Sistema optimizado cargado correctamente');
-        
-        measurePerformance();
-      }, 1000);
-    });
-    
-  } else {
-    // Carga normal para hardware bueno
-    initMobileMenu();
-    initSmartLazyLoad();
-    initSmartNotifications();
-    initProductModals();
-    
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        setupNoisePro();
-        initTsParticles();
-        initSmoothScroll();
-        initScrollEffects();
-        initScrollStorytellingPro();
-        initComponentParallax();
-        optimizeSpline();
-        initDynamicBackgrounds();
-        initCountdown();
-        initMicroInteractions();
-        initWhatsAppButton();
-        initIntro();
-        
-        document.body.classList.add('loaded');
-        console.log('✅ Sistema optimizado cargado correctamente');
-        
-        measurePerformance();
-      }, 500);
-    });
-  }
+      initScrollStorytellingPro();
+      initComponentParallax();
+      optimizeSpline();
+      initDynamicBackgrounds();
+      initCountdown();
+      initMicroInteractions();
+      initWhatsAppButton();
+      initIntro();
+      
+      document.body.classList.add('loaded');
+      console.log('✅ Sistema completamente cargado');
+    }, 500);
+  });
   
-  // Event listeners optimizados
-  const scrollThrottle = hardwareTier === 'mid_optimized' ? 120 : (hardwareTier === 'low' ? 150 : 50);
-  window.addEventListener('scroll', createThrottledListener('scroll', handleScroll, scrollThrottle), { passive: true });
-  window.addEventListener('resize', createThrottledListener('resize', updateHeader, 250), { passive: true });
+  // Event listeners
+  window.addEventListener('scroll', handleScroll, { passive: true });
+  window.addEventListener('resize', updateHeader, { passive: true });
   
   updateHeader();
 };
 
 // ===== EJECUCIÓN =====
-// Inicializar inmediatamente
 init();
 
-// Fallback en caso de que falle la carga
+// Fallback
 setTimeout(() => {
   if (!document.body.classList.contains('loaded')) {
     console.log('⚠️ Usando fallback de inicialización');
@@ -2537,37 +1300,17 @@ setTimeout(() => {
   }
 }, 3000);
 
-// ===== DEBUG HELPER MEJORADO =====
+// ===== DEBUG HELPER =====
 window.debugMerke = {
   reloadEffects: () => {
     document.body.classList.remove('loaded');
     setTimeout(init, 100);
   },
-  adjustNoiseIntensity: (intensity) => {
-    const canvas = document.getElementById('noiseCanvas');
-    if (canvas) {
-      canvas.style.opacity = intensity;
-      console.log('🎨 Intensidad del noise ajustada a:', intensity);
-    }
-  },
   getHardwareInfo: () => {
     return {
-      tier: hardwareTier,
       isMobile: config.isMobile(),
-      memory: navigator.deviceMemory,
-      cores: navigator.hardwareConcurrency,
       gpu: detectGPU(),
       userAgent: navigator.userAgent.substring(0, 80)
     };
-  },
-  togglePerformanceMode: () => {
-    if (hardwareTier === 'mid_optimized') {
-      hardwareTier = 'mid';
-      console.log('🔧 Cambiado a modo MID normal');
-    } else if (hardwareTier === 'mid') {
-      hardwareTier = 'mid_optimized';
-      console.log('🔧 Cambiado a modo MID optimizado');
-    }
-    window.debugMerke.reloadEffects();
   }
 };
