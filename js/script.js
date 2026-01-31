@@ -1,386 +1,476 @@
-// ===== CONFIGURACIÓN FIJA DE ALTA CALIDAD =====
+// ===== MERKE+ ULTRA-OPTIMIZADO CON TODAS LAS FUNCIONALIDADES =====
+// Sistema de detección automática de rendimiento y adaptación inteligente
+
+// ===== CONFIGURACIÓN BASE =====
 const config = {
-  effects: true, // TODOS LOS EFECTOS SIEMPRE ACTIVOS
+  effects: true,
   smoothScroll: true,
-  soundEnabled: false,
   parallaxEnabled: true,
   
   isMobile: () => {
     return window.innerWidth <= 768 || 
            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+};
+
+// ===== DETECCIÓN AUTOMÁTICA DE CAPACIDADES DEL DISPOSITIVO =====
+const deviceCapabilities = (() => {
+  const memory = navigator.deviceMemory || 4;
+  const cores = navigator.hardwareConcurrency || 4;
+  const isMobile = config.isMobile();
+  
+  // Calcular score de rendimiento (0-100)
+  let score = 0;
+  if (!isMobile) score += 40; // Desktop base
+  if (memory >= 8) score += 30;
+  else if (memory >= 4) score += 20;
+  else score += 10;
+  if (cores >= 8) score += 30;
+  else if (cores >= 4) score += 20;
+  else score += 10;
+  
+  const tier = score >= 70 ? 'high' : score >= 50 ? 'medium' : 'low';
+  
+  console.log(`📊 Dispositivo: ${tier} (${score}/100) | RAM: ${memory}GB | Cores: ${cores}`);
+  
+  return { tier, memory, cores, isMobile, score };
+})();
+
+// ===== CONFIGURACIÓN ADAPTATIVA POR TIER =====
+const performanceConfig = {
+  high: {
+    particles: 80,
+    particleFPS: 60,
+    noiseFPS: 20,
+    noiseRes: 0.5,
+    parallaxIntensity: 1.0,
+    splineFPS: 60,
+    splineQuality: 'high'
+  },
+  medium: {
+    particles: 50,
+    particleFPS: 30,
+    noiseFPS: 12,
+    noiseRes: 0.3,
+    parallaxIntensity: 0.7,
+    splineFPS: 30,
+    splineQuality: 'medium'
+  },
+  low: {
+    particles: 25,
+    particleFPS: 20,
+    noiseFPS: 8,
+    noiseRes: 0.2,
+    parallaxIntensity: 0.5,
+    splineFPS: 20,
+    splineQuality: 'low'
+  }
+};
+
+const perfCfg = performanceConfig[deviceCapabilities.tier];
+window.particleCount = perfCfg.particles;
+window.noiseIntensity = 0.15;
+
+console.log(`⚙️ Configuración: ${perfCfg.particles} partículas @ ${perfCfg.particleFPS}FPS`);
+
+// ===== CACHE DE ELEMENTOS DOM (UNA SOLA VEZ) =====
+const DOM = {
+  scrollElements: document.querySelectorAll('[data-scroll-effect]'),
+  header: document.querySelector('header'),
+  menuToggle: document.querySelector('.menu-toggle'),
+  navMenu: document.querySelector('.nav-menu'),
+  sections: document.querySelectorAll('section'),
+  noiseCanvas: document.getElementById('noiseCanvas'),
+  tsparticles: document.getElementById('tsparticles'),
+  splineViewer: document.querySelector('spline-viewer'),
+  splineContainer: document.querySelector('.spline-container')
+};
+
+// ===== UTILIDADES DE RENDIMIENTO =====
+const perfUtils = {
+  // Throttle para funciones frecuentes
+  throttle: (func, limit) => {
+    let inThrottle;
+    return function(...args) {
+      if (!inThrottle) {
+        func.apply(this, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    };
   },
   
-  scrollThreshold: 0.1,
-  scrollMargin: '50px'
+  // Debounce para resize, etc
+  debounce: (func, wait) => {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  },
+  
+  // RequestAnimationFrame con limpieza
+  raf: {
+    active: new Map(),
+    
+    start(id, callback) {
+      if (this.active.has(id)) return;
+      
+      const animate = (time) => {
+        if (!this.active.has(id)) return;
+        callback(time);
+        this.active.set(id, requestAnimationFrame(animate));
+      };
+      
+      this.active.set(id, requestAnimationFrame(animate));
+    },
+    
+    stop(id) {
+      const rafId = this.active.get(id);
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        this.active.delete(id);
+      }
+    }
+  }
 };
 
-// ===== VARIABLES GLOBALES FIJAS =====
-// ¡CONFIGURACIÓN DE ALTA CALIDAD PARA TODOS!
-window.particleCount = 120; // MÁXIMO DE PARTÍCULAS
-window.noiseIntensity = 0.25; // NOISE AL MÁXIMO
-window.animationQuality = 'high'; // CALIDAD MÁXIMA
-
-// ===== ELEMENTOS DEL DOM =====
-const scrollElements = document.querySelectorAll('[data-scroll-effect]');
-const header = document.querySelector('header');
-const menuToggle = document.querySelector('.menu-toggle');
-const navMenu = document.querySelector('.nav-menu');
-const sections = document.querySelectorAll('section');
-
-// ===== VARIABLES DE ESTADO =====
-let lastScrollY = window.scrollY;
-let ticking = false;
-
-console.log('🎯 CONFIGURACIÓN FIJA DE ALTA CALIDAD');
-console.log('✨ TODOS los efectos activados para todos los dispositivos');
-console.log(`🎯 Partículas: ${window.particleCount}`);
-console.log(`🎨 Intensidad noise: ${window.noiseIntensity}`);
-console.log(`📱 Dispositivo: ${config.isMobile() ? 'Mobile' : 'Desktop'}`);
-
-// ===== NOISE PRO - CALIDAD MÁXIMA =====
+// ===== NOISE CANVAS - OPTIMIZADO AL MÁXIMO =====
 const setupNoisePro = () => {
-  const canvas = document.getElementById('noiseCanvas');
-  if (!canvas) return;
-
-  // DETECCIÓN AVANZADA DE RENDIMIENTO
-  const getDevicePerformance = () => {
-    const isMobile = config.isMobile();
-    const isHighPerfMobile = /iPhone X|iPhone 1[1-5]|iPad Pro|Samsung S[2-9][0-9]|Pixel [3-9]/.test(navigator.userAgent);
-    const memory = navigator.deviceMemory || 4;
-    
-    if (!isMobile) return 'high';
-    if (isHighPerfMobile && memory >= 4) return 'medium';
-    return 'low';
+  if (!DOM.noiseCanvas) return;
+  
+  const ctx = DOM.noiseCanvas.getContext('2d', {
+    alpha: false,
+    desynchronized: true, // Async rendering
+    willReadFrequently: false
+  });
+  
+  const cfg = {
+    fps: perfCfg.noiseFPS,
+    res: perfCfg.noiseRes,
+    density: deviceCapabilities.tier === 'low' ? 0.01 : 0.02,
+    opacity: 120 // 0-255
   };
-
-  const performanceLevel = getDevicePerformance();
   
-  // DESACTIVAR COMPLETAMENTE EN DISPOSITIVOS MUY DÉBILES
-  if (performanceLevel === 'low') {
-    canvas.style.display = 'none';
-    console.log('🎨 Noise desactivado (dispositivo limitado)');
-    return;
-  }
-
-  const ctx = canvas.getContext('2d', { alpha: false });
-  
-  // CONFIGURACIÓN POR NIVEL DE RENDIMIENTO
-  const configs = {
-    high: {
-      scale: 1.0,
-      frameRate: 20,
-      density: 0.05,
-      opacity: 0.25,
-      blur: 0
-    },
-    medium: {
-      scale: 0.7,
-      frameRate: 15,
-      density: 0.03,
-      opacity: 0.18,
-      blur: 2
-    },
-    low: {
-      scale: 0.5,
-      frameRate: 10,
-      density: 0.02,
-      opacity: 0.12,
-      blur: 4
-    }
-  };
-
-  const cfg = configs[performanceLevel];
-  
-  let isVisible = true;
-  let isAnimating = false;
   let lastFrameTime = 0;
-  const frameInterval = 1000 / cfg.frameRate;
-  let animationFrameId = null;
+  const frameInterval = 1000 / cfg.fps;
+  let imageData, buffer32;
   
-  // BUFFER REUTILIZABLE
-  let noiseBuffer = null;
-  let buffer32 = null;
-
   const resize = () => {
-    const width = Math.floor(window.innerWidth * cfg.scale);
-    const height = Math.floor(window.innerHeight * cfg.scale);
+    const w = Math.floor(window.innerWidth * cfg.res);
+    const h = Math.floor(window.innerHeight * cfg.res);
     
-    if (canvas.width === width && canvas.height === height) return;
+    if (DOM.noiseCanvas.width === w && DOM.noiseCanvas.height === h) return;
     
-    canvas.width = width;
-    canvas.height = height;
-    canvas.style.width = window.innerWidth + 'px';
-    canvas.style.height = window.innerHeight + 'px';
+    DOM.noiseCanvas.width = w;
+    DOM.noiseCanvas.height = h;
+    DOM.noiseCanvas.style.width = '100%';
+    DOM.noiseCanvas.style.height = '100%';
     
-    // Crear nuevos buffers
-    noiseBuffer = ctx.createImageData(width, height);
-    buffer32 = new Uint32Array(noiseBuffer.data.buffer);
-    
-    console.log(`🎨 Noise canvas: ${width}x${height} (${cfg.scale*100}%)`);
+    imageData = ctx.createImageData(w, h);
+    buffer32 = new Uint32Array(imageData.data.buffer);
   };
-
+  
   resize();
   
-  // RESIZE DEBOUNCED
-  let resizeTimeout;
-  const debouncedResize = () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      resize();
-      generateNoiseFrame(performance.now());
-    }, 250);
+  const animate = (time) => {
+    if (time - lastFrameTime < frameInterval) return;
+    lastFrameTime = time;
+    
+    const t = time * 0.0005;
+    const pixelsToUpdate = Math.floor(buffer32.length * cfg.density);
+    
+    for (let i = 0; i < pixelsToUpdate; i++) {
+      const idx = Math.floor(Math.random() * buffer32.length);
+      const shade = 180 + Math.sin(t + idx * 0.0001) * 40;
+      buffer32[idx] = (cfg.opacity << 24) | (shade << 16) | (shade << 8) | shade;
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
   };
-
-  window.addEventListener('resize', debouncedResize, { passive: true });
-
-  // GENERACIÓN DE NOISE OPTIMIZADA
-  const generateNoiseFrame = (currentTime) => {
-    if (!isVisible || !isAnimating || currentTime - lastFrameTime < frameInterval) {
-      animationFrameId = requestAnimationFrame(generateNoiseFrame);
-      return;
-    }
-    
-    lastFrameTime = currentTime;
-    
-    // APLICAR OPACIDAD DINÁMICA
-    canvas.style.opacity = cfg.opacity.toString();
-    
-    // GENERAR PATRÓN DE NOISE
-    if (buffer32 && noiseBuffer) {
-      const len = buffer32.length;
-      const time = currentTime * 0.001;
-      
-      // Patrón más simple pero efectivo
-      for (let i = 0; i < len; i++) {
-        if (Math.random() < cfg.density) {
-          const shade = 200 + Math.sin(time + i * 0.0001) * 30;
-          const alpha = 180 + Math.sin(time * 2 + i * 0.00005) * 75;
-          buffer32[i] = (alpha << 24) | (shade << 16) | (shade << 8) | shade;
-        } else {
-          buffer32[i] = 0x00000000;
-        }
-      }
-      
-      ctx.putImageData(noiseBuffer, 0, 0);
-      
-      // APLICAR BLUR SI ES NECESARIO
-      if (cfg.blur > 0) {
-        ctx.filter = `blur(${cfg.blur}px)`;
-        ctx.drawImage(canvas, 0, 0);
-        ctx.filter = 'none';
-      }
-    }
-    
-    animationFrameId = requestAnimationFrame(generateNoiseFrame);
-  };
-
-  // CONTROL DE VISIBILIDAD
-  document.addEventListener('visibilitychange', () => {
-    isVisible = !document.hidden;
-    isAnimating = isVisible;
-    
-    if (isVisible && !animationFrameId) {
-      animationFrameId = requestAnimationFrame(generateNoiseFrame);
-    } else if (!isVisible && animationFrameId) {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = null;
-    }
-  });
-
-  // ACTIVACIÓN POR INTERACCIÓN
-  let interactionTimeout;
-  const startAnimation = () => {
-    if (!isAnimating) {
-      isAnimating = true;
-      if (!animationFrameId) {
-        animationFrameId = requestAnimationFrame(generateNoiseFrame);
-      }
-    }
-    
-    clearTimeout(interactionTimeout);
-    interactionTimeout = setTimeout(() => {
-      if (performanceLevel !== 'high') {
-        isAnimating = false;
-      }
-    }, 2000);
-  };
-
-  // LISTENERS OPTIMIZADOS
-  const events = ['mousemove', 'scroll', 'touchstart', 'click'];
-  events.forEach(event => {
-    window.addEventListener(event, startAnimation, { 
-      passive: true,
-      capture: true 
-    });
-  });
-
-  // INICIAR
-  isAnimating = true;
-  animationFrameId = requestAnimationFrame(generateNoiseFrame);
   
-  console.log(`🎨 Noise optimizado: ${cfg.frameRate}FPS, ${cfg.scale*100}% resolución`);
+  perfUtils.raf.start('noise', animate);
+  
+  // Pausar cuando no es visible
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      perfUtils.raf.stop('noise');
+    } else {
+      setTimeout(() => perfUtils.raf.start('noise', animate), 500);
+    }
+  });
+  
+  // Resize con debounce
+  window.addEventListener('resize', perfUtils.debounce(() => {
+    resize();
+  }, 250), { passive: true });
+  
+  console.log(`🎨 Noise: ${cfg.fps}FPS @ ${cfg.res*100}%`);
 };
 
-// ===== TSPARTICLES - EFECTOS COMPLETOS =====
+// ===== TSPARTICLES - CONFIGURACIÓN ÓPTIMA =====
 const initTsParticles = () => {
-  if (typeof tsParticles === 'undefined') {
-    console.error('tsParticles no cargado');
+  if (typeof tsParticles === 'undefined' || !DOM.tsparticles) {
+    console.warn('⚠️ tsParticles no disponible');
     return;
   }
-
-  // DETECCIÓN DE RENDIMIENTO DEL DISPOSITIVO
-  const getParticleSettings = () => {
-    const isMobile = config.isMobile();
-    const isLowEnd = /Android.*[0-4]\.[0-9]|iPhone OS [0-9]_|CPU.*OS 1[0-4]_/.test(navigator.userAgent);
-    const memory = navigator.deviceMemory || 4;
-    
-    if (!isMobile) {
-      // DESKTOP - ALTA CALIDAD
-      return {
-        count: 120,
-        fpsLimit: 60,
-        speed: 2,
-        opacity: 0.7,
-        links: true,
-        interactivity: true
-      };
-    } else if (isLowEnd || memory < 4) {
-      // MÓVIL DE BAJO RENDIMIENTO - MÍNIMO
-      return {
-        count: 30,
-        fpsLimit: 30,
-        speed: 0.5,
-        opacity: 0.3,
-        links: false,
-        interactivity: false
-      };
-    } else {
-      // MÓVIL MODERNO - BALANCEADO
-      return {
-        count: 60,
-        fpsLimit: 45,
-        speed: 1,
-        opacity: 0.5,
-        links: true,
-        interactivity: true
-      };
-    }
-  };
-
-  const settings = getParticleSettings();
   
-  const particlesConfig = {
+  const config = {
     autoPlay: true,
-    background: { 
-      color: { value: "transparent" }, 
-      opacity: 0 
-    },
-    fullScreen: { 
-      enable: false, 
-      zIndex: -2 
-    },
-    fpsLimit: settings.fpsLimit,
+    background: { color: { value: "transparent" }, opacity: 0 },
+    fullScreen: { enable: false, zIndex: -2 },
+    fpsLimit: perfCfg.particleFPS,
     pauseOnBlur: true,
     pauseOnOutsideViewport: true,
     smooth: false,
-    detectRetina: true,
+    detectRetina: deviceCapabilities.tier === 'high',
     
-    interactivity: {
-      detectsOn: "window",
-      events: {
-        onClick: { 
-          enable: settings.interactivity, 
-          mode: "push" 
-        },
-        onHover: { 
-          enable: settings.interactivity,
-          mode: "repulse",
-          parallax: { enable: false }
-        }
+    particles: {
+      color: { value: ["#FFD600", "#2ECC71", "#E74C3C"] },
+      move: {
+        enable: true,
+        speed: deviceCapabilities.tier === 'low' ? 0.3 : 0.8,
+        direction: "none",
+        outModes: { default: "out" },
+        straight: false
+      },
+      number: {
+        value: perfCfg.particles,
+        density: { enable: true, width: 800, height: 600 }
+      },
+      opacity: {
+        value: deviceCapabilities.tier === 'low' ? 0.2 : 0.4,
+        animation: { enable: false }
+      },
+      size: {
+        value: { min: 1, max: deviceCapabilities.tier === 'low' ? 6 : 10 },
+        animation: { enable: false }
+      },
+      shape: { type: "circle" },
+      links: {
+        enable: deviceCapabilities.tier === 'high',
+        distance: 80,
+        opacity: 0.1,
+        width: 1
       }
     },
     
-    particles: {
-      color: { 
-        value: ["#FFD600", "#2ECC71", "#E74C3C", "#0B2C4D"] 
+    interactivity: deviceCapabilities.tier === 'high' ? {
+      events: {
+        onHover: { enable: true, mode: "grab" },
+        onClick: { enable: false }
       },
-      move: {
-        enable: true,
-        speed: settings.speed,
-        direction: "none",
-        outModes: { default: "out" }
-      },
-      number: {
-        value: settings.count,
-        density: { 
-          enable: true, 
-          width: 1920, 
-          height: 1080 
-        }
-      },
-      opacity: {
-        value: settings.opacity,
-        animation: { 
-          enable: true, 
-          speed: 2, 
-          sync: false 
-        }
-      },
-      size: {
-        value: { min: 1, max: 20 },
-        animation: { 
-          enable: settings.interactivity, 
-          speed: 5 
-        }
-      },
-      shape: {
-        close: true,
-        fill: true,
-        type: "circle"
-      },
-      links: {
-        enable: settings.links,
-        distance: 100,
-        opacity: 0.2,
-        width: 1
+      modes: {
+        grab: { distance: 100, links: { opacity: 0.3 } }
       }
+    } : {
+      events: { onHover: { enable: false }, onClick: { enable: false } }
     }
   };
-
-  tsParticles.load("tsparticles", particlesConfig).then(container => {
-    console.log(`✨ tsParticles optimizado: ${settings.count} partículas @ ${settings.fpsLimit}FPS`);
-    
-    // PAUSA CUANDO NO ES VISIBLE
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        container.pause();
-      } else {
-        container.play();
-      }
-    });
-    
-    // REDUCIR INTENSIDAD CUANDO HAY SCROLL (móvil)
-    if (config.isMobile()) {
-      let scrollTimeout;
-      window.addEventListener('scroll', () => {
-        if (settings.count > 30) {
-          container.options.particles.number.value = 15;
-          container.refresh();
-          
-          clearTimeout(scrollTimeout);
-          scrollTimeout = setTimeout(() => {
-            container.options.particles.number.value = settings.count;
-            container.refresh();
-          }, 1000);
-        }
-      }, { passive: true });
-    }
-  }).catch(error => {
-    console.error('Error cargando tsParticles:', error);
-  });
+  
+  tsParticles.load("tsparticles", config)
+    .then(container => {
+      console.log(`✅ Partículas: ${perfCfg.particles} @ ${perfCfg.particleFPS}FPS`);
+      
+      document.addEventListener('visibilitychange', () => {
+        document.hidden ? container.pause() : container.play();
+      });
+    })
+    .catch(err => console.error('❌ Error partículas:', err));
 };
 
-// ===== SCROLL STORYTELLING PRO - COMPLETO =====
+// ===== SPLINE - CONFIGURACIÓN ADAPTATIVA CON SCROLL LOCK =====
+const optimizeSpline = () => {
+  if (!DOM.splineViewer || !DOM.splineContainer) return;
+  
+  const config = {
+    high: { mode: 'quality', quality: 'high', fps: '60', shadows: 'true' },
+    medium: { mode: 'performance', quality: 'medium', fps: '30', shadows: 'false' },
+    low: { mode: 'performance', quality: 'low', fps: '20', shadows: 'false' }
+  };
+  
+  const cfg = config[deviceCapabilities.tier];
+  
+  DOM.splineViewer.setAttribute('render-mode', cfg.mode);
+  DOM.splineViewer.setAttribute('quality', cfg.quality);
+  DOM.splineViewer.setAttribute('fps-cap', cfg.fps);
+  DOM.splineViewer.setAttribute('shadow-enabled', cfg.shadows);
+  DOM.splineViewer.setAttribute('reflections-enabled', cfg.shadows);
+  DOM.splineViewer.setAttribute('post-processing-enabled', cfg.shadows);
+  
+  // ===== SISTEMA DE BLOQUEO DE SCROLL MEJORADO =====
+  let isInteracting = false;
+  let interactionTimeout = null;
+  
+  // Bloquear scroll completamente
+  const lockScroll = () => {
+    if (isInteracting) return;
+    
+    isInteracting = true;
+    
+    // Bloquear scroll del body
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+    
+    // Guardar posición del scroll
+    window.lastScrollPosition = window.pageYOffset;
+    
+    DOM.splineContainer.classList.add('interacting');
+  };
+  
+  // Desbloquear scroll
+  const unlockScroll = () => {
+    if (!isInteracting) return;
+    
+    isInteracting = false;
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.height = '';
+    
+    // Restaurar posición del scroll
+    if (window.lastScrollPosition !== undefined) {
+      window.scrollTo(0, window.lastScrollPosition);
+    }
+    
+    DOM.splineContainer.classList.remove('interacting');
+  };
+  
+  // EVENTOS PARA DESKTOP
+  if (!deviceCapabilities.isMobile) {
+    // Comenzar interacción
+    DOM.splineViewer.addEventListener('mousedown', () => {
+      lockScroll();
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+    });
+    
+    // Terminar interacción con mouse up
+    DOM.splineViewer.addEventListener('mouseup', () => {
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+      interactionTimeout = setTimeout(() => {
+        if (!isInteracting) return;
+        unlockScroll();
+      }, 300);
+    });
+    
+    // Bloquear con rueda del mouse
+    DOM.splineViewer.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (!isInteracting) {
+        lockScroll();
+      }
+      
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+      interactionTimeout = setTimeout(() => {
+        unlockScroll();
+      }, 500);
+    }, { passive: false });
+    
+    // Mouse leave - desbloquear si sale
+    DOM.splineViewer.addEventListener('mouseleave', () => {
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+      unlockScroll();
+    });
+  }
+  
+  // EVENTOS PARA MÓVIL
+  if (deviceCapabilities.isMobile) {
+    DOM.splineViewer.style.touchAction = 'none';
+    
+    DOM.splineViewer.addEventListener('touchstart', (e) => {
+      // Si hay dos dedos (zoom) o ya estamos interactuando
+      if (e.touches.length >= 2 || isInteracting) {
+        lockScroll();
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    DOM.splineViewer.addEventListener('touchmove', (e) => {
+      // Si estamos interactuando, prevenir scroll
+      if (isInteracting) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      // Si detectamos dos dedos, bloquear definitivamente
+      if (e.touches.length >= 2 && !isInteracting) {
+        lockScroll();
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    DOM.splineViewer.addEventListener('touchend', () => {
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+      interactionTimeout = setTimeout(() => {
+        unlockScroll();
+      }, 500);
+    });
+  }
+  
+  // ESC para desbloquear manualmente
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isInteracting) {
+      unlockScroll();
+    }
+  });
+  
+  // Pausar cuando no es visible
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      DOM.splineViewer[entry.isIntersecting ? 'removeAttribute' : 'setAttribute']('paused', 'true');
+    });
+  }, { threshold: 0.1 });
+  
+  observer.observe(DOM.splineViewer);
+  
+  console.log(`🎮 Spline: ${cfg.quality} @ ${cfg.fps}FPS + Scroll Lock`);
+};
+// ===== PARALLAX - BATCHING OPTIMIZADO =====
+const initComponentParallax = () => {
+  if (!config.effects) return;
+  
+  const groups = {
+    high: Array.from(document.querySelectorAll('.hero-img, .hero-text h1, .section-title h2')),
+    medium: Array.from(document.querySelectorAll('.card, .offer-card')),
+    low: Array.from(document.querySelectorAll('[data-scroll-effect]'))
+  };
+  
+  let frame = 0;
+  const intensity = perfCfg.parallaxIntensity;
+  
+  const update = perfUtils.throttle(() => {
+    const scrollY = window.scrollY;
+    const winH = window.innerHeight;
+    const center = scrollY + winH / 2;
+    
+    const processGroup = (elements, mult) => {
+      elements.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const elCenter = rect.top + scrollY + rect.height / 2;
+        const dist = (elCenter - center) / winH;
+        const offset = dist * 50 * intensity * mult;
+        el.style.transform = `translate3d(0, ${offset}px, 0)`;
+      });
+    };
+    
+    if (frame % 1 === 0) processGroup(groups.high, 1.0);
+    if (frame % 2 === 0) processGroup(groups.medium, 0.7);
+    if (frame % 3 === 0) processGroup(groups.low, 0.5);
+    
+    frame++;
+  }, 16);
+  
+  window.addEventListener('scroll', update, { passive: true });
+  console.log('✅ Parallax optimizado');
+};
+
+// ===== SCROLL STORYTELLING PRO - COMPLETO CON SECCIÓN 3 =====
 const initScrollStorytellingPro = () => {
   const storySections = document.querySelectorAll('.story-section');
   const animatedTexts = document.querySelectorAll('.story-text-animated');
@@ -388,65 +478,67 @@ const initScrollStorytellingPro = () => {
   const storyIconsGrid = document.querySelector('.story-icons-grid');
   const iconItems = document.querySelectorAll('.story-icon-item');
   const scrollHint = document.querySelector('.scroll-hint');
-
-  if (!storySections.length || !scrollHint) return;
-
-  // Preparar textos animados
-  animatedTexts.forEach(textElement => {
-    const text = textElement.dataset.text || textElement.textContent;
-    const chars = text.split('');
+  
+  if (!storySections.length) return;
+  
+  // Preparar textos (una sola vez)
+  animatedTexts.forEach(textEl => {
+    const text = textEl.dataset.text || textEl.textContent;
+    const fragment = document.createDocumentFragment();
     
-    const charElements = chars.map((char, index) => {
+    text.split('').forEach((char, idx) => {
       const span = document.createElement('span');
       span.className = char === ' ' ? 'char space' : 'char';
       span.textContent = char === ' ' ? ' ' : char;
-      span.style.setProperty('--distance', index - (chars.length / 2));
-      span.style.setProperty('--index', index);
-      return span;
+      span.style.setProperty('--distance', idx - text.length / 2);
+      span.style.setProperty('--index', idx);
+      fragment.appendChild(span);
     });
-
-    textElement.innerHTML = '';
-    charElements.forEach(span => textElement.appendChild(span));
+    
+    textEl.innerHTML = '';
+    textEl.appendChild(fragment);
   });
-
-  const observerOptions = {
-    root: null,
-    rootMargin: '-100px 0px -100px 0px',
-    threshold: 0.1
-  };
-
-  const storyObserver = new IntersectionObserver((entries) => {
+  
+  // Observer con requestIdleCallback
+  const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       const section = entry.target;
+      const chars = section.querySelectorAll('.char');
       
       if (entry.isIntersecting) {
-        const chars = section.querySelectorAll('.char');
-        chars.forEach((char, index) => {
-          setTimeout(() => {
-            char.style.opacity = '1';
-            char.style.transform = 'translateX(0) rotateX(0)';
-          }, index * 50);
-        });
-
-        if (section.id === 'story-section-3') {
-          setTimeout(() => {
-            if (storyWithIcons) storyWithIcons.classList.add('active');
-            if (storyIconsGrid) storyIconsGrid.classList.add('active');
-            
-            iconItems.forEach((item, index) => {
-              setTimeout(() => {
-                item.classList.add('active');
-              }, index * 100);
-            });
-          }, 500);
-        }
+        const animate = () => {
+          chars.forEach((char, i) => {
+            setTimeout(() => {
+              char.style.opacity = '1';
+              char.style.transform = 'translateX(0) rotateX(0)';
+            }, i * 25);
+          });
+          
+          // ANIMACIÓN PARA SECCIÓN 3 (ICONOS)
+          if (section.id === 'story-section-3') {
+            setTimeout(() => {
+              if (storyWithIcons) storyWithIcons.classList.add('active');
+              if (storyIconsGrid) storyIconsGrid.classList.add('active');
+              
+              iconItems.forEach((item, index) => {
+                setTimeout(() => {
+                  item.classList.add('active');
+                }, index * 100);
+              });
+            }, 500);
+          }
+        };
+        
+        'requestIdleCallback' in window 
+          ? requestIdleCallback(animate) 
+          : animate();
       } else {
-        const chars = section.querySelectorAll('.char');
         chars.forEach(char => {
           char.style.opacity = '0';
           char.style.transform = 'translateX(calc(var(--distance) * 60px)) rotateX(calc(var(--distance) * 30deg))';
         });
-
+        
+        // RESET PARA SECCIÓN 3
         if (section.id === 'story-section-3') {
           if (storyWithIcons) storyWithIcons.classList.remove('active');
           if (storyIconsGrid) storyIconsGrid.classList.remove('active');
@@ -454,165 +546,109 @@ const initScrollStorytellingPro = () => {
         }
       }
     });
-  }, observerOptions);
-
-  storySections.forEach(section => storyObserver.observe(section));
-
-  const updateScrollHint = () => {
-    const heroSection = document.getElementById('hero');
-    if (!heroSection || !scrollHint) return;
+  }, { rootMargin: '-100px', threshold: 0.1 });
+  
+  storySections.forEach(s => observer.observe(s));
+  
+  // Scroll hint optimizado
+  if (scrollHint) {
+    scrollHint.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
     
-    const heroRect = heroSection.getBoundingClientRect();
-    const heroBottom = heroRect.bottom;
-    const heroTop = heroRect.top;
-    
-    if (heroBottom > 100 && heroTop < window.innerHeight - 100) {
+    setTimeout(() => {
       scrollHint.style.opacity = '1';
       scrollHint.style.transform = 'translateX(-50%) translateY(0)';
-      scrollHint.style.pointerEvents = 'auto';
-    } else {
-      scrollHint.style.opacity = '0';
-      scrollHint.style.transform = 'translateX(-50%) translateY(20px)';
-      scrollHint.style.pointerEvents = 'none';
-    }
-  };
-
-  scrollHint.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-  
-  setTimeout(() => {
-    scrollHint.style.opacity = '1';
-    scrollHint.style.transform = 'translateX(-50%) translateY(0)';
-  }, 3000);
-
-  let hideTimeout = setTimeout(() => {
-    if (window.scrollY < 50) {
-      scrollHint.style.opacity = '0';
-      scrollHint.style.transform = 'translateX(-50%) translateY(20px)';
-    }
-  }, 10000);
-
-  const resetHideTimeout = () => {
-    clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(() => {
+    }, 3000);
+    
+    let hideTimeout = setTimeout(() => {
       if (window.scrollY < 50) {
         scrollHint.style.opacity = '0';
         scrollHint.style.transform = 'translateX(-50%) translateY(20px)';
       }
     }, 10000);
-  };
-
-  ['scroll', 'mousemove', 'touchstart', 'click', 'keydown'].forEach(event => {
-    window.addEventListener(event, resetHideTimeout, { passive: true });
-  });
-
-  let scrollHintTimeout;
-  window.addEventListener('scroll', () => {
-    if (!scrollHintTimeout) {
-      scrollHintTimeout = setTimeout(() => {
-        updateScrollHint();
-        scrollHintTimeout = null;
-      }, 100);
-    }
-  }, { passive: true });
-
-  updateScrollHint();
-  console.log('🎬 Scroll Storytelling activado');
-};
-
-// ===== COUNTDOWN TIMER =====
-const initCountdown = () => {
-  const countdownElement = document.getElementById('countdown');
-  if (!countdownElement) return;
-  
-  let endTime = new Date();
-  endTime.setHours(endTime.getHours() + 24);
-  
-  const updateCountdown = () => {
-    const now = new Date();
-    const timeLeft = endTime - now;
     
-    if (timeLeft <= 0) {
-      countdownElement.textContent = '00:00:00';
-      endTime.setHours(endTime.getHours() + 24);
-      return;
-    }
+    const resetHideTimeout = () => {
+      clearTimeout(hideTimeout);
+      hideTimeout = setTimeout(() => {
+        if (window.scrollY < 50) {
+          scrollHint.style.opacity = '0';
+          scrollHint.style.transform = 'translateX(-50%) translateY(20px)';
+        }
+      }, 10000);
+    };
     
-    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-    
-    countdownElement.textContent = 
-      `${hours.toString().padStart(2, '0')}:` +
-      `${minutes.toString().padStart(2, '0')}:` +
-      `${seconds.toString().padStart(2, '0')}`;
-    
-    if (timeLeft < 10 * 60 * 1000) {
-      countdownElement.style.color = 'var(--red)';
-      countdownElement.style.animation = 'pulseBadge 1s infinite';
-    }
-  };
-  
-  updateCountdown();
-  setInterval(updateCountdown, 1000);
-  console.log('⏰ Countdown activado');
-};
-
-// ===== MICRO-INTERACCIONES =====
-const initMicroInteractions = () => {
-  const createRippleEffect = (event, element) => {
-    const ripple = document.createElement('span');
-    const rect = element.getBoundingClientRect();
-    
-    const size = Math.max(rect.width, rect.height);
-    const x = event.clientX - rect.left - size / 2;
-    const y = event.clientY - rect.top - size / 2;
-    
-    ripple.style.width = ripple.style.height = `${size}px`;
-    ripple.style.left = `${x}px`;
-    ripple.style.top = `${y}px`;
-    ripple.classList.add('ripple');
-    
-    element.appendChild(ripple);
-    
-    setTimeout(() => ripple.remove(), 600);
-  };
-
-  document.querySelectorAll('.hero-btn, .offer-btn, .contact-link, .card-link').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      createRippleEffect(e, btn);
-      btn.classList.add('vibrate');
-      setTimeout(() => btn.classList.remove('vibrate'), 300);
+    ['scroll', 'mousemove', 'touchstart', 'click', 'keydown'].forEach(event => {
+      window.addEventListener(event, resetHideTimeout, { passive: true });
     });
-  });
-  
-  if (config.isMobile()) {
-    document.querySelectorAll('.card, .offer-card, .contact-card').forEach(card => {
-      card.addEventListener('touchstart', () => {
-        card.style.transform = 'scale(0.98)';
-      }, { passive: true });
+    
+    const updateHint = perfUtils.throttle(() => {
+      const hero = document.getElementById('hero');
+      if (!hero) return;
       
-      card.addEventListener('touchend', () => {
-        card.style.transform = '';
-      }, { passive: true });
-    });
+      const rect = hero.getBoundingClientRect();
+      const visible = rect.bottom > 100 && rect.top < window.innerHeight - 100;
+      
+      scrollHint.style.opacity = visible ? '1' : '0';
+      scrollHint.style.transform = `translateX(-50%) translateY(${visible ? 0 : 20}px)`;
+      scrollHint.style.pointerEvents = visible ? 'auto' : 'none';
+    }, 100);
+    
+    window.addEventListener('scroll', updateHint, { passive: true });
+    updateHint();
   }
+  
+  console.log('🎬 Storytelling completo (con sección 3)');
 };
 
-// ===== MENÚ MÓVIL =====
-const initMobileMenu = () => {
-  if (!menuToggle || !navMenu) return;
+// ===== SCROLL EFFECTS - INTERSECTION OBSERVER =====
+const initScrollEffects = () => {
+  if (!config.effects || !DOM.scrollElements.length) return;
   
-  if (config.isMobile()) {
-    menuToggle.style.display = 'flex';
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const delay = parseInt(el.getAttribute('data-delay')) || 0;
+        
+        requestAnimationFrame(() => {
+          setTimeout(() => el.classList.add('active'), delay);
+        });
+      }
+    });
+  }, { rootMargin: '100px', threshold: 0.01 });
+  
+  DOM.scrollElements.forEach(el => observer.observe(el));
+  console.log(`✅ Scroll effects: ${DOM.scrollElements.length} elementos`);
+};
+
+// ===== HEADER - THROTTLED =====
+const updateHeader = perfUtils.throttle(() => {
+  if (!DOM.header) return;
+  
+  const scrollY = window.scrollY;
+  if (scrollY > 100) {
+    DOM.header.classList.add('scrolled');
+    DOM.header.style.backgroundColor = 'rgba(5, 27, 56, 0.98)';
+    DOM.header.style.backdropFilter = 'blur(15px)';
+  } else {
+    DOM.header.classList.remove('scrolled');
+    DOM.header.style.backgroundColor = 'rgba(11, 44, 77, 0.95)';
+    DOM.header.style.backdropFilter = 'blur(10px)';
   }
+}, 100);
+
+// ===== MENÚ MÓVIL COMPLETO =====
+const initMobileMenu = () => {
+  if (!DOM.menuToggle || !DOM.navMenu) return;
   
-  menuToggle.addEventListener('click', (e) => {
+  if (config.isMobile()) DOM.menuToggle.style.display = 'flex';
+  
+  DOM.menuToggle.addEventListener('click', (e) => {
     e.stopPropagation();
-    const isActive = !navMenu.classList.contains('active');
+    const isActive = !DOM.navMenu.classList.contains('active');
     
-    navMenu.classList.toggle('active');
-    menuToggle.classList.toggle('active');
-    menuToggle.setAttribute('aria-expanded', isActive);
+    DOM.navMenu.classList.toggle('active');
+    DOM.menuToggle.classList.toggle('active');
+    DOM.menuToggle.setAttribute('aria-expanded', isActive);
     
     if (isActive) {
       document.body.style.overflow = 'hidden';
@@ -623,39 +659,33 @@ const initMobileMenu = () => {
     }
   });
   
-  document.querySelectorAll('.nav-menu a').forEach(link => {
-    link.addEventListener('click', () => {
-      closeMobileMenu();
-    });
+  const closeMobileMenu = () => {
+    DOM.navMenu.classList.remove('active');
+    DOM.menuToggle.classList.remove('active');
+    DOM.menuToggle.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+  };
+  
+  DOM.navMenu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', closeMobileMenu);
   });
   
   document.addEventListener('click', (e) => {
-    if (!navMenu.contains(e.target) && !menuToggle.contains(e.target) && navMenu.classList.contains('active')) {
+    if (!DOM.navMenu.contains(e.target) && !DOM.menuToggle.contains(e.target) && DOM.navMenu.classList.contains('active')) {
       closeMobileMenu();
     }
   });
   
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+    if (e.key === 'Escape' && DOM.navMenu.classList.contains('active')) {
       closeMobileMenu();
     }
   });
 };
 
-const closeMobileMenu = () => {
-  if (!navMenu || !menuToggle) return;
-  
-  navMenu.classList.remove('active');
-  menuToggle.classList.remove('active');
-  menuToggle.setAttribute('aria-expanded', 'false');
-  document.body.style.overflow = '';
-  document.documentElement.style.overflow = '';
-};
-
-// ===== SCROLL SMOOTH =====
+// ===== SMOOTH SCROLL COMPLETO =====
 const initSmoothScroll = () => {
-  console.log('🔄 SmoothScroll activado');
-  
   const smoothConfig = {
     duration: 700,
     easing: (t) => {
@@ -664,8 +694,6 @@ const initSmoothScroll = () => {
         : 1 - Math.pow(-2 * t + 2, 4) / 2;
     },
     offset: 80,
-    minDistance: 50,
-    maxDistance: 3000,
     fps: 60,
   };
 
@@ -684,14 +712,7 @@ const initSmoothScroll = () => {
     const absoluteDistance = Math.abs(distance);
     
     let duration = customDuration || smoothConfig.duration;
-    
-    if (absoluteDistance < 500) {
-      duration = Math.max(400, absoluteDistance * 0.6);
-    } else if (absoluteDistance > 2000) {
-      duration = Math.min(1200, absoluteDistance * 0.4);
-    } else {
-      duration = absoluteDistance * 0.5;
-    }
+    duration = Math.max(400, Math.min(1200, absoluteDistance * 0.5));
 
     let startTime = null;
     lastTime = 0;
@@ -719,13 +740,6 @@ const initSmoothScroll = () => {
       } else {
         window.scrollTo({ top: targetPosition, behavior: 'instant' });
         rafId = null;
-        
-        requestAnimationFrame(() => {
-          const currentPos = window.pageYOffset;
-          if (Math.abs(currentPos - targetPosition) > 1) {
-            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
-          }
-        });
       }
     };
 
@@ -742,11 +756,13 @@ const initSmoothScroll = () => {
 
       e.preventDefault();
       
-      if (navMenu && navMenu.classList.contains('active')) {
-        closeMobileMenu();
+      if (DOM.navMenu && DOM.navMenu.classList.contains('active')) {
+        DOM.navMenu.classList.remove('active');
+        DOM.menuToggle.classList.remove('active');
+        document.body.style.overflow = '';
       }
 
-      const headerHeight = header ? header.offsetHeight : 0;
+      const headerHeight = DOM.header ? DOM.header.offsetHeight : 0;
       const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
       const offsetPosition = targetPosition - headerHeight - 20;
       
@@ -758,346 +774,27 @@ const initSmoothScroll = () => {
     });
   });
 
-  if ('scrollBehavior' in document.documentElement.style) {
-    document.documentElement.style.scrollBehavior = 'smooth';
-  }
-
-  console.log('✅ SmoothScroll listo');
-};
-
-// ===== SCROLL EFFECTS =====
-const initScrollEffects = () => {
-  if (!config.effects || scrollElements.length === 0) return;
-  
-  const observerOptions = {
-    root: null,
-    rootMargin: '100px 0px 100px 0px',
-    threshold: 0.01
-  };
-  
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const element = entry.target;
-          const delay = parseInt(element.getAttribute('data-delay')) || 0;
-          
-          requestAnimationFrame(() => {
-            setTimeout(() => {
-              element.classList.add('active');
-            }, delay);
-          });
-        }
-      });
-    },
-    observerOptions
-  );
-  
-  const batchSize = 10;
-  for (let i = 0; i < scrollElements.length; i += batchSize) {
-    const batch = Array.from(scrollElements).slice(i, i + batchSize);
-    
-    requestIdleCallback(() => {
-      batch.forEach(el => observer.observe(el));
-    }, { timeout: 1000 });
-  }
-  
-  console.log(`✅ Scroll effects: ${scrollElements.length} elementos`);
-};
-
-// ===== HEADER EFFECT =====
-const updateHeader = () => {
-  if (!header) return;
-  
-  const scrollY = window.scrollY;
-  
-  if (scrollY > 100) {
-    header.classList.add('scrolled');
-    header.style.backgroundColor = 'rgba(5, 27, 56, 0.98)';
-    header.style.backdropFilter = 'blur(15px)';
-  } else {
-    header.classList.remove('scrolled');
-    header.style.backgroundColor = 'rgba(11, 44, 77, 0.95)';
-    header.style.backdropFilter = 'blur(10px)';
-  }
-};
-
-// ===== SCROLL HANDLER =====
-const handleScroll = () => {
-  if (!ticking) {
-    ticking = true;
-    requestAnimationFrame(() => {
-      updateHeader();
-      ticking = false;
-    });
-  }
-};
-
-// ===== WHATSAPP BUTTON =====
-const initWhatsAppButton = () => {
-  const whatsappBtn = document.querySelector('.whatsapp-float');
-  if (!whatsappBtn) return;
-  
-  setTimeout(() => {
-    whatsappBtn.style.opacity = '1';
-    whatsappBtn.style.transform = 'translateY(0) scale(1)';
-    whatsappBtn.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-  }, 2000);
-  
-  if (config.effects) {
-    setInterval(() => {
-      if (!document.hidden) {
-        whatsappBtn.classList.toggle('pulse');
-      }
-    }, 3000);
-  }
-};
-
-// ===== INTRO REMOVAL =====
-const initIntro = () => {
-  const intro = document.getElementById('intro');
-  if (!intro) return;
-  
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      intro.style.opacity = '0';
-      setTimeout(() => {
-        intro.style.display = 'none';
-      }, 500);
-    }, 3000);
-  });
-};
-
-// ===== PARALLAX - EFECTOS COMPLETOS =====
-const initComponentParallax = () => {
-  if (!config.effects) {
-    console.log('⚠️ Efectos desactivados (reduced-motion)');
-    return;
-  }
-  
-  console.log('🌀 Parallax optimizado para rendimiento');
-  
-  const isLowPerformance = () => {
-    const isMobile = config.isMobile();
-    const isSlowCPU = /Android.*[0-4]\.[0-9]|iPhone OS [0-9]_/.test(navigator.userAgent);
-    return isMobile && isSlowCPU;
-  };
-
-  // LISTAS DE ELEMENTOS SEPARADAS POR PRIORIDAD
-  const highPriorityElements = document.querySelectorAll(`
-    .hero-img, .hero-text h1, .section-title h2,
-    .story-text-animated, .story-text-animated-final
-  `);
-  
-  const mediumPriorityElements = document.querySelectorAll(`
-    .card, .offer-card, .story-icon-item,
-    .about-image img, .brand-item
-  `);
-  
-  const lowPriorityElements = document.querySelectorAll(`
-    .reveal[data-speed], [data-scroll-effect],
-    .feature, .info-card, .contact-card
-  `);
-
-  // CONFIGURACIÓN POR PRIORIDAD
-  const parallaxConfig = {
-    high: {
-      intensity: isLowPerformance() ? 0.3 : 0.5,
-      updateRate: isLowPerformance() ? 2 : 1 // frames entre updates
-    },
-    medium: {
-      intensity: isLowPerformance() ? 0.15 : 0.3,
-      updateRate: isLowPerformance() ? 3 : 2
-    },
-    low: {
-      intensity: isLowPerformance() ? 0.05 : 0.15,
-      updateRate: isLowPerformance() ? 4 : 3
-    }
-  };
-
-  let frameCount = 0;
-  
-  const updateParallax = () => {
-    const scrollY = window.scrollY;
-    const windowHeight = window.innerHeight;
-    const windowCenter = scrollY + (windowHeight / 2);
-    
-    // ACTUALIZAR POR PRIORIDAD
-    if (frameCount % parallaxConfig.high.updateRate === 0) {
-      updateElementsParallax(highPriorityElements, parallaxConfig.high.intensity, scrollY, windowCenter, windowHeight);
-    }
-    
-    if (frameCount % parallaxConfig.medium.updateRate === 0) {
-      updateElementsParallax(mediumPriorityElements, parallaxConfig.medium.intensity, scrollY, windowCenter, windowHeight);
-    }
-    
-    if (frameCount % parallaxConfig.low.updateRate === 0) {
-      updateElementsParallax(lowPriorityElements, parallaxConfig.low.intensity, scrollY, windowCenter, windowHeight);
-    }
-    
-    frameCount++;
-  };
-  
-  const updateElementsParallax = (elements, intensity, scrollY, windowCenter, windowHeight) => {
-    elements.forEach(element => {
-      const rect = element.getBoundingClientRect();
-      const elementTop = rect.top + scrollY;
-      const elementCenter = elementTop + (rect.height / 2);
-      
-      const distanceFromCenter = elementCenter - windowCenter;
-      const normalizedDistance = distanceFromCenter / windowHeight;
-      
-      // CALCULAR TRANSFORM
-      const translateY = normalizedDistance * 100 * intensity * 0.7;
-      const opacity = 1 - Math.abs(normalizedDistance) * 0.3;
-      
-      // APLICAR CON TRANSFORM3D PARA GPU ACCELERATION
-      element.style.transform = `translate3d(0, ${translateY}px, 0)`;
-      element.style.willChange = 'transform';
-      
-      // OPACITY SOLO PARA ALTA PRIORIDAD
-      if (Array.from(highPriorityElements).includes(element)) {
-        element.style.opacity = opacity.toString();
-      }
-    });
-  };
-  
-  // MOUSE PARALLAX SOLO EN DESKTOP Y MÓVILES POTENTES
-  if (!isLowPerformance() && !config.isMobile()) {
-    const mouseParallaxElements = document.querySelectorAll(`
-      .card, .offer-card, .contact-card,
-      .brand-item, .feature, .info-card,
-      .story-icon-item, .hero-btn
-    `);
-    
-    mouseParallaxElements.forEach(element => {
-      element.addEventListener('mousemove', (e) => {
-        const rect = element.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        
-        const moveX = (x - centerX) / centerX;
-        const moveY = (y - centerY) / centerY;
-        
-        const intensity = 0.15;
-        const rotateY = moveX * 8;
-        const rotateX = -moveY * 5;
-        const translateZ = 25;
-        const translateX = moveX * intensity * 20;
-        const translateY = moveY * intensity * 20;
-        
-        element.style.transform = `
-          translate3d(${translateX}px, ${translateY}px, ${translateZ}px)
-          rotateY(${rotateY}deg)
-          rotateX(${rotateX}deg)
-        `;
-        element.style.transition = 'transform 0.1s ease-out';
-      });
-      
-      element.addEventListener('mouseleave', () => {
-        element.style.transform = '';
-        element.style.transition = 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
-      });
-    });
-  }
-  
-  // THROTTLED SCROLL HANDLER
-  let scrollTicking = false;
-  const handleScrollParallax = () => {
-    if (!scrollTicking) {
-      requestAnimationFrame(() => {
-        updateParallax();
-        scrollTicking = false;
-      });
-      scrollTicking = true;
-    }
-  };
-  
-  // INICIALIZAR
-  updateParallax();
-  window.addEventListener('scroll', handleScrollParallax, { passive: true });
-  
-  // DEBOUNCED RESIZE
-  let resizeTimeout;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      updateParallax();
-    }, 250);
-  }, { passive: true });
-  
-  console.log('✅ Parallax optimizado por prioridades');
-};
-
-// ===== FONDOS DINÁMICOS - EFECTOS COMPLETOS =====
-const initDynamicBackgrounds = () => {
-  const sections = document.querySelectorAll('.parallax-section');
-  
-  sections.forEach((section) => {
-    const background = section.querySelector('.section-background');
-    
-    if (!background) return;
-    
-    // Añadir capas extras
-    const layer3 = document.createElement('div');
-    layer3.className = 'gradient-layer-3';
-    background.appendChild(layer3);
-    
-    const layer4 = document.createElement('div');
-    layer4.className = 'gradient-layer-4';
-    background.appendChild(layer4);
-    
-    // Efecto de interacción en desktop
-    if (!config.isMobile()) {
-      section.addEventListener('mousemove', (e) => {
-        const rect = section.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        
-        const layers = background.querySelectorAll('.gradient-layer, .gradient-layer-2');
-        layers.forEach(layer => {
-          layer.style.transform = `translate(${(x - 50) * 0.1}%, ${(y - 50) * 0.1}%)`;
-        });
-      });
-      
-      section.addEventListener('mouseleave', () => {
-        const layers = background.querySelectorAll('.gradient-layer, .gradient-layer-2');
-        layers.forEach(layer => {
-          layer.style.transform = '';
-        });
-      });
-    }
-  });
-  
-  console.log('🎨 Fondos dinámicos activados');
+  console.log('✅ SmoothScroll completo');
 };
 
 // ===== SISTEMA DE NOTIFICACIONES INTELIGENTE COMPLETO =====
 const initSmartNotifications = () => {
-  console.log('🔔 Inicializando sistema de notificaciones...');
+  let container = document.querySelector('.notification-container');
   
-  // Verificar si ya existe un contenedor
-  let notificationContainer = document.querySelector('.notification-container');
-  
-  if (!notificationContainer) {
-    notificationContainer = document.createElement('div');
-    notificationContainer.className = `notification-container ${config.isMobile() ? 'mobile' : 'desktop'}`;
-    document.body.appendChild(notificationContainer);
-    console.log('✅ Contenedor de notificaciones creado');
+  if (!container) {
+    container = document.createElement('div');
+    container.className = `notification-container ${config.isMobile() ? 'mobile' : 'desktop'}`;
+    document.body.appendChild(container);
   }
   
   let activeNotifications = new Set();
   let notificationTimeouts = new Map();
 
-  // Función para mostrar notificación
   const showNotification = (message, type = 'info', options = {}) => {
-    // Si no hay mensaje, no mostrar
     if (!message || message.trim() === '') return null;
     
-    console.log(`🔔 Mostrando: "${message.substring(0, 30)}${message.length > 30 ? '...' : ''}"`);
+    const notificationId = options.id || `notification-${Date.now()}`;
+    const duration = options.duration || (config.isMobile() ? 8000 : 10000);
     
     // Remover notificación existente con el mismo ID
     if (options.id) {
@@ -1108,18 +805,6 @@ const initSmartNotifications = () => {
       }
     }
 
-    const notificationId = options.id || `notification-${Date.now()}`;
-    const duration = options.duration || (config.isMobile() ? 8000 : 10000);
-    
-    // Crear elemento de notificación
-    const notification = document.createElement('div');
-    notification.className = `notification ${type} ${config.isMobile() ? 'mobile-notification' : 'desktop-notification'}`;
-    notification.id = notificationId;
-    notification.setAttribute('role', 'alert');
-    notification.setAttribute('aria-live', 'polite');
-    notification.style.zIndex = '10002';
-
-    // Icono según tipo
     const icons = {
       info: 'ℹ️',
       success: '✅',
@@ -1130,7 +815,13 @@ const initSmartNotifications = () => {
     
     const icon = icons[type] || icons.info;
 
-    // Contenido HTML
+    const notification = document.createElement('div');
+    notification.className = `notification ${type} ${config.isMobile() ? 'mobile-notification' : 'desktop-notification'}`;
+    notification.id = notificationId;
+    notification.setAttribute('role', 'alert');
+    notification.setAttribute('aria-live', 'polite');
+    notification.style.zIndex = '10002';
+
     notification.innerHTML = `
       <div class="notification-content">
         <span class="notification-icon">${icon}</span>
@@ -1142,43 +833,33 @@ const initSmartNotifications = () => {
       <div class="notification-progress"></div>
     `;
 
-    // Añadir al DOM
-    notificationContainer.appendChild(notification);
+    container.appendChild(notification);
     activeNotifications.add(notificationId);
 
-    // Animación de entrada (con setTimeout para asegurar que el DOM esté listo)
     setTimeout(() => {
       notification.classList.add('show');
-      console.log(`✅ Notificación ${notificationId} visible`);
     }, 10);
 
-    // Configurar barra de progreso
     const progressBar = notification.querySelector('.notification-progress');
     if (progressBar) {
       progressBar.style.animationDuration = `${duration}ms`;
       progressBar.style.animationPlayState = 'running';
     }
 
-    // Timeout para auto-eliminar
     const timeout = setTimeout(() => {
-      console.log(`⏰ Auto-dismiss: ${notificationId}`);
       removeNotification(notificationId);
     }, duration);
 
     notificationTimeouts.set(notificationId, timeout);
 
-    // Botón de cerrar
     const closeBtn = notification.querySelector('.notification-close');
     closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      console.log(`❌ Cerrada manualmente: ${notificationId}`);
       removeNotification(notificationId);
     });
 
-    // Clic en la notificación para cerrar
     notification.addEventListener('click', (e) => {
       if (e.target === notification) {
-        console.log(`👆 Clic en notificación: ${notificationId}`);
         removeNotification(notificationId);
       }
     });
@@ -1186,548 +867,72 @@ const initSmartNotifications = () => {
     return notificationId;
   };
 
-  // Función para remover notificación
   const removeNotification = (id) => {
-    console.log(`🗑️ Eliminando: ${id}`);
-    
     const notification = document.getElementById(id);
-    if (!notification) {
-      console.warn(`⚠️ Notificación ${id} no encontrada`);
-      return;
-    }
+    if (!notification) return;
 
-    // Limpiar timeout
     if (notificationTimeouts.has(id)) {
       clearTimeout(notificationTimeouts.get(id));
       notificationTimeouts.delete(id);
     }
 
-    // Animación de salida
     notification.classList.remove('show');
     notification.classList.add('hide');
 
-    // Eliminar después de la animación
     setTimeout(() => {
       if (notification.parentNode) {
         notification.parentNode.removeChild(notification);
       }
       activeNotifications.delete(id);
-      console.log(`✅ Completamente eliminada: ${id}`);
     }, 300);
   };
 
-  const NOTIFICATION_SETTINGS = {
-    welcome: {
-      type: 'always', // 'always', 'once-per-session', 'once-per-day', 'once-per-hour'
-      delay: 3500,
-      duration: 10000
-    },
-    spline: {
-      type: 'once-per-session',
-      delay: 0,
-      duration: 6000
-    }
-  };
-  
-  // Verificar si debe mostrarse según el tipo
-  const shouldShowNotification = (notificationType) => {
-    const settings = NOTIFICATION_SETTINGS[notificationType];
-    if (!settings) return true;
-    
-    const storageKey = `merke_${notificationType}_shown`;
-    
-    switch(settings.type) {
-      case 'always':
-        return true;
-        
-      case 'once-per-session':
-        return !sessionStorage.getItem(storageKey);
-        
-      case 'once-per-day':
-        const lastShown = localStorage.getItem(storageKey);
-        if (!lastShown) return true;
-        
-        const lastDate = new Date(parseInt(lastShown));
-        const now = new Date();
-        return lastDate.getDate() !== now.getDate() || 
-               lastDate.getMonth() !== now.getMonth() || 
-               lastDate.getFullYear() !== now.getFullYear();
-        
-      case 'once-per-hour':
-        const lastShownHour = localStorage.getItem(storageKey);
-        if (!lastShownHour) return true;
-        
-        const lastHour = new Date(parseInt(lastShownHour));
-        const nowHour = new Date();
-        return (nowHour.getTime() - lastHour.getTime()) > (60 * 60 * 1000);
-        
-      default:
-        return true;
-    }
-  };
-  
-  // Marcar como mostrada
-  const markAsShown = (notificationType) => {
-    const settings = NOTIFICATION_SETTINGS[notificationType];
-    if (!settings) return;
-    
-    const storageKey = `merke_${notificationType}_shown`;
-    
-    if (settings.type === 'once-per-session') {
-      sessionStorage.setItem(storageKey, 'true');
-    } else if (settings.type === 'once-per-day' || settings.type === 'once-per-hour') {
-      localStorage.setItem(storageKey, Date.now().toString());
-    }
-  };
-  
   // ===== NOTIFICACIÓN DE BIENVENIDA AUTOMÁTICA =====
-  const showWelcomeNotification = () => {
-    if (!shouldShowNotification('welcome')) {
-      console.log('⚠️ Bienvenida ya mostrada según configuración');
-      return;
-    }
-    
-    console.log('👋 Mostrando notificación de bienvenida automática');
-    
-    setTimeout(() => {
-      showNotification(
-        '¡Bienvenido a Merke+ de la sabana!',
-        'info',
-        {
-          id: 'welcome-notification',
-          duration: NOTIFICATION_SETTINGS.welcome.duration
-        }
-      );
-      
-      markAsShown('welcome');
-    }, NOTIFICATION_SETTINGS.welcome.delay);
-  };
+  setTimeout(() => {
+    showNotification(
+      '¡Bienvenido a Merke+ de la sabana!',
+      'info',
+      { id: 'welcome-notification', duration: 10000 }
+    );
+  }, 3500);
 
   // ===== NOTIFICACIONES PARA SPLINE =====
-  const setupSplineNotifications = () => {
-    const splineViewer = document.querySelector('spline-viewer');
-    if (!splineViewer) {
-      console.error('❌ Spline viewer no encontrado');
-      return;
-    }
-
+  setTimeout(() => {
+    if (!DOM.splineViewer) return;
+    
     let lastInteractionTime = 0;
-    const INTERACTION_COOLDOWN = 10000; // 10 segundos
+    const INTERACTION_COOLDOWN = 10000;
 
     const showSplineNotification = () => {
       const now = Date.now();
-      
-      // Cooldown para evitar notificaciones repetitivas
-      if (now - lastInteractionTime < INTERACTION_COOLDOWN) {
-        console.log('⏳ Cooldown activo, omitiendo notificación Spline');
-        return;
-      }
+      if (now - lastInteractionTime < INTERACTION_COOLDOWN) return;
 
       const message = config.isMobile() 
         ? 'Modo interacción: Dos dedos para zoom, un dedo para rotar'
         : 'Modo interacción: Usa la rueda del mouse para zoom';
 
-      console.log('🎮 Mostrando notificación de interacción Spline');
-      
       showNotification(message, 'interaction', {
         id: 'spline-interaction',
-        duration: 6000 // 6 segundos
+        duration: 6000
       });
 
       lastInteractionTime = now;
     };
 
     // Añadir listeners con delay para asegurar que Spline esté listo
-    setTimeout(() => {
-      console.log('🎯 Añadiendo listeners a Spline');
-      
-      // Desktop
-      splineViewer.addEventListener('mousedown', showSplineNotification);
-      splineViewer.addEventListener('wheel', showSplineNotification);
-      
-      // Móvil
-      splineViewer.addEventListener('touchstart', showSplineNotification);
-      
-      console.log('✅ Listeners para Spline configurados');
-    }, 1500);
-  };
-
-  // ===== INICIALIZACIÓN =====
-  
-  // 1. Mostrar bienvenida automáticamente
-  showWelcomeNotification();
-  
-  // 2. Configurar notificaciones para Spline
-  setTimeout(() => {
-    setupSplineNotifications();
+    DOM.splineViewer.addEventListener('mousedown', showSplineNotification);
+    DOM.splineViewer.addEventListener('wheel', showSplineNotification);
+    DOM.splineViewer.addEventListener('touchstart', showSplineNotification);
+    
+    console.log('✅ Notificaciones Spline configuradas');
   }, 2000);
-  
-  // 3. Exponer funciones para debugging
-  window.debugNotifications = {
-    show: (message, type = 'info', duration = 10000) => {
-      return showNotification(message, type, { 
-        id: `debug-${Date.now()}`,
-        duration: duration 
-      });
-    },
-    remove: (id) => removeNotification(id),
-    list: () => Array.from(activeNotifications),
-    testWelcome: () => {
-      showNotification(
-        '[TEST] ¡Bienvenido a Merke+! Esta es una prueba',
-        'info',
-        { id: 'test-welcome', duration: 5000 }
-      );
-    },
-    testSpline: () => {
-      const message = config.isMobile() 
-        ? '[TEST] Interacción Spline: Dos dedos zoom'
-        : '[TEST] Interacción Spline: Rueda mouse zoom';
-      showNotification(message, 'interaction', { 
-        id: 'test-spline', 
-        duration: 5000 
-      });
-    },
-    clearAll: () => {
-      activeNotifications.forEach(id => removeNotification(id));
-    }
-  };
 
-  console.log('✅ Sistema de notificaciones inicializado correctamente');
-  console.log('📱 Dispositivo:', config.isMobile() ? 'Móvil' : 'Desktop');
-  console.log('💾 Sesión:', sessionStorage.getItem('merke_welcome_shown') ? 'Bienvenida mostrada' : 'Bienvenida pendiente');
+  console.log('✅ Sistema de notificaciones completo');
 };
 
-// ===== SISTEMA DE BLOQUEO DE SCROLL PARA SPLINE COMPLETO =====
-const initSplineScrollLock = () => {
-  const splineViewer = document.querySelector('spline-viewer');
-  const splineContainer = document.querySelector('.spline-container');
-  
-  if (!splineViewer || !splineContainer) return;
-  
-  // Variables de estado
-  let isInteracting = false;
-  let interactionTimeout = null;
-  let isMobile = config.isMobile();
-  let touchStartY = 0;
-  let isPinching = false;
-  let initialTouchDistance = 0;
-  
-  // Función mejorada para bloquear scroll
-  const lockScroll = () => {
-    if (isInteracting) return;
-    
-    isInteracting = true;
-    
-    // Añadir clase al body
-    document.body.classList.add('scroll-locked');
-    
-    // Guardar posición actual del scroll
-    window.scrollLockPosition = window.pageYOffset;
-    
-    // Añadir clase al contenedor Spline
-    splineContainer.classList.add('interacting');
-    
-    console.log('🔒 Scroll bloqueado para interacción');
-  };
-  
-  // Función mejorada para desbloquear scroll
-  const unlockScroll = () => {
-    if (!isInteracting) return;
-    
-    isInteracting = false;
-    
-    // Remover clase del body
-    document.body.classList.remove('scroll-locked');
-    
-    // Remover clase del contenedor Spline
-    splineContainer.classList.remove('interacting');
-    
-    console.log('🔓 Scroll desbloqueado');
-  };
-  
-  // Detectar interacción en desktop
-  const handleDesktopInteraction = () => {
-    // Mouse down - comenzar interacción
-    splineViewer.addEventListener('mousedown', () => {
-      lockScroll();
-      
-      // Resetear timeout si ya existe
-      if (interactionTimeout) {
-        clearTimeout(interactionTimeout);
-      }
-    });
-    
-    // Mouse up - terminar después de delay corto
-    splineViewer.addEventListener('mouseup', () => {
-      if (interactionTimeout) clearTimeout(interactionTimeout);
-      interactionTimeout = setTimeout(() => {
-        if (!splineViewer.matches(':active')) {
-          unlockScroll();
-        }
-      }, 300);
-    });
-    
-    // Mouse leave - terminar inmediatamente
-    splineViewer.addEventListener('mouseleave', () => {
-      if (interactionTimeout) clearTimeout(interactionTimeout);
-      unlockScroll();
-    });
-    
-    // Wheel - mantener bloqueado durante
-    splineViewer.addEventListener('wheel', (e) => {
-      e.stopPropagation();
-      
-      if (!isInteracting) {
-        lockScroll();
-      }
-      
-      // Resetear timeout
-      if (interactionTimeout) clearTimeout(interactionTimeout);
-      interactionTimeout = setTimeout(() => {
-        unlockScroll();
-      }, 500);
-    }, { passive: false });
-  };
-  
-  // Detectar interacción en móvil
-  const handleMobileInteraction = () => {
-    splineViewer.style.touchAction = 'none';
-    
-    splineViewer.addEventListener('touchstart', (e) => {
-      // Guardar posición inicial
-      touchStartY = e.touches[0].clientY;
-      
-      // Detectar pinch (zoom)
-      if (e.touches.length === 2) {
-        isPinching = true;
-        initialTouchDistance = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        lockScroll();
-      }
-    }, { passive: true });
-    
-    splineViewer.addEventListener('touchmove', (e) => {
-      // Prevenir scroll de página cuando hay dos dedos o cuando ya estamos interactuando
-      if (isPinching || isInteracting) {
-        e.preventDefault();
-        
-        // Si detectamos dos dedos, bloquear definitivamente
-        if (e.touches.length === 2 && !isInteracting) {
-          lockScroll();
-        }
-      }
-    }, { passive: false });
-    
-    splineViewer.addEventListener('touchend', () => {
-      isPinching = false;
-      
-      // Pequeño delay antes de desbloquear
-      if (interactionTimeout) clearTimeout(interactionTimeout);
-      interactionTimeout = setTimeout(() => {
-        if (!isPinching) {
-          unlockScroll();
-        }
-      }, 500);
-    }, { passive: true });
-  };
-  
-  // Prevenir scroll accidental cuando el cursor está sobre Spline
-  splineViewer.addEventListener('mouseenter', () => {
-    splineViewer.style.pointerEvents = 'auto';
-  });
-  
-  splineViewer.addEventListener('mouseleave', () => {
-    if (interactionTimeout) clearTimeout(interactionTimeout);
-    interactionTimeout = setTimeout(() => {
-      if (!splineViewer.matches(':active')) {
-        unlockScroll();
-      }
-    }, 200);
-  });
-  
-  // Escape key para desbloquear manualmente
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isInteracting) {
-      unlockScroll();
-    }
-  });
-  
-  // Inicializar según dispositivo
-  if (isMobile) {
-    handleMobileInteraction();
-  } else {
-    handleDesktopInteraction();
-  }
-  
-  console.log(`🎮 Sistema de bloqueo de scroll mejorado: ${isMobile ? 'móvil' : 'desktop'}`);
-};
-
-// ===== OPTIMIZACIÓN SPLINE COMPLETA CON SCROLL LOCK =====
-const optimizeSpline = () => {
-  const splineViewer = document.querySelector('spline-viewer');
-  if (!splineViewer) return;
-  
-  console.log('🎮 Optimizando Spline para mejor rendimiento...');
-  
-  // DETECCIÓN AVANZADA DE DISPOSITIVO
-  const isLowPerformanceDevice = () => {
-    const userAgent = navigator.userAgent;
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-    const isOldDevice = /CPU.*OS 1[0-4]_|iPhone OS 1[0-4]_/.test(userAgent);
-    const memory = navigator.deviceMemory || 4;
-    const cores = navigator.hardwareConcurrency || 4;
-    
-    return isMobile && (isOldDevice || memory < 4 || cores < 4);
-  };
-
-  // CONFIGURACIÓN INTELIGENTE POR DISPOSITIVO
-  if (isLowPerformanceDevice()) {
-    console.log('📱 Dispositivo de rendimiento limitado detectado - Optimizando Spline');
-    
-    // MODO BAJO CONSUMO PARA DISPOSITIVOS DÉBILES
-    splineViewer.setAttribute('render-mode', 'performance');
-    splineViewer.setAttribute('quality', 'low');
-    splineViewer.setAttribute('fps-cap', '30');
-    splineViewer.setAttribute('shadow-enabled', 'false');
-    splineViewer.setAttribute('reflections-enabled', 'false');
-    splineViewer.setAttribute('post-processing-enabled', 'false');
-    
-    // Reducir calidad de texturas
-    setTimeout(() => {
-      if (splineViewer.shadowRoot) {
-        const canvas = splineViewer.shadowRoot.querySelector('canvas');
-        if (canvas) {
-          canvas.style.imageRendering = 'pixelated';
-          canvas.style.willChange = 'transform';
-        }
-      }
-    }, 1000);
-    
-  } else if (config.isMobile()) {
-    console.log('📱 Móvil moderno - Configuración balanceada');
-    
-    // MODO BALANCEADO PARA MÓVILES MODERNOS
-    splineViewer.setAttribute('render-mode', 'balanced');
-    splineViewer.setAttribute('quality', 'medium');
-    splineViewer.setAttribute('fps-cap', '45');
-    splineViewer.setAttribute('shadow-enabled', 'true');
-    splineViewer.setAttribute('reflections-enabled', 'false');
-    splineViewer.setAttribute('post-processing-enabled', 'true');
-    
-  } else {
-    console.log('💻 Desktop - Configuración de alta calidad');
-    
-    // ALTA CALIDAD PARA DESKTOP
-    splineViewer.setAttribute('render-mode', 'quality');
-    splineViewer.setAttribute('quality', 'high');
-    splineViewer.setAttribute('fps-cap', '60');
-    splineViewer.setAttribute('shadow-enabled', 'true');
-    splineViewer.setAttribute('reflections-enabled', 'true');
-    splineViewer.setAttribute('post-processing-enabled', 'true');
-  }
-  
-  // OPTIMIZACIONES UNIVERSALES
-  splineViewer.setAttribute('interaction-enabled', 'true');
-  splineViewer.setAttribute('loading', 'eager');
-  
-  // Añadir atributos para mejor control táctil
-  if (config.isMobile()) {
-    splineViewer.setAttribute('touch-action', 'none');
-    splineViewer.style.touchAction = 'none';
-    splineViewer.style.webkitTapHighlightColor = 'transparent';
-  }
-  
-  // PAUSA INTELIGENTE CUANDO NO ES VISIBLE
-  let visibilityObserver;
-  try {
-    visibilityObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) {
-          console.log('⏸️ Pausando Spline (no visible)');
-          splineViewer.setAttribute('paused', 'true');
-          
-          // Liberar recursos cuando está oculto
-          if (config.isMobile()) {
-            setTimeout(() => {
-              if (!entry.isIntersecting && splineViewer.shadowRoot) {
-                const canvas = splineViewer.shadowRoot.querySelector('canvas');
-                if (canvas) {
-                  canvas.style.opacity = '0.5';
-                }
-              }
-            }, 1000);
-          }
-          
-        } else {
-          console.log('▶️ Reanudando Spline (visible)');
-          splineViewer.removeAttribute('paused');
-          
-          // Restaurar recursos
-          if (splineViewer.shadowRoot) {
-            const canvas = splineViewer.shadowRoot.querySelector('canvas');
-            if (canvas) {
-              canvas.style.opacity = '1';
-            }
-          }
-        }
-      });
-    }, { 
-      threshold: 0.01,
-      rootMargin: '50px'
-    });
-    
-    visibilityObserver.observe(splineViewer);
-  } catch (e) {
-    console.warn('⚠️ IntersectionObserver no soportado:', e);
-  }
-  
-  // SISTEMA DE THROTTLING PARA INTERACCIONES
-  let lastInteractionTime = 0;
-  const interactionThrottle = 100; // 100ms mínimo entre actualizaciones
-  
-  const throttledInteraction = (callback) => {
-    const now = Date.now();
-    if (now - lastInteractionTime > interactionThrottle) {
-      callback();
-      lastInteractionTime = now;
-    }
-  };
-  
-  // EVENT LISTENERS OPTIMIZADOS
-  const addOptimizedListener = (element, event, handler) => {
-    element.addEventListener(event, (e) => {
-      e.stopPropagation();
-      throttledInteraction(() => handler(e));
-    }, { passive: true });
-  };
-  
-  // Inicializar sistema de bloqueo de scroll mejorado
-  initSplineScrollLock();
-  
-  // LIMPIAR RECURSOS AL SALIR
-  window.addEventListener('beforeunload', () => {
-    if (visibilityObserver) {
-      visibilityObserver.disconnect();
-    }
-    splineViewer.setAttribute('paused', 'true');
-  });
-  
-  // DEBUG INFO
-  console.log('✅ Spline optimizado:');
-  console.log('   - Render mode:', splineViewer.getAttribute('render-mode'));
-  console.log('   - Quality:', splineViewer.getAttribute('quality'));
-  console.log('   - FPS Cap:', splineViewer.getAttribute('fps-cap'));
-  console.log('   - Mobile:', config.isMobile());
-};
-
-// ===== VENTANAS DE PRODUCTOS =====
+// ===== VENTANAS DE PRODUCTOS CON CARRUSEL COMPLETO =====
 const initProductModals = () => {
-  console.log('🛒 Ventanas de productos activadas');
-  
-  const productDatabase = {
+  const products = {
     'abarrotes': {
       title: 'Abarrotes Esenciales',
       category: 'Abarrotes',
@@ -1735,7 +940,7 @@ const initProductModals = () => {
       price: 'Desde $5.000',
       images: [
         'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w-800&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&auto=format&fit=crop',
         'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop'
       ],
       features: [
@@ -1806,7 +1011,6 @@ const initProductModals = () => {
     }
   };
 
-  // Elementos DOM
   const modalOverlay = document.getElementById('productModalOverlay');
   const modalClose = document.getElementById('modalClose');
   const modalCloseBtn = document.getElementById('modalCloseBtn');
@@ -1820,7 +1024,8 @@ const initProductModals = () => {
   const nextSlideBtn = document.getElementById('nextSlide');
   const galleryIndicators = document.getElementById('galleryIndicators');
 
-  // Variables de estado
+  if (!modalOverlay) return;
+
   let currentProduct = null;
   let currentSlideIndex = 0;
   let slides = [];
@@ -1867,7 +1072,7 @@ const initProductModals = () => {
   };
 
   const showModal = (productKey) => {
-    const product = productDatabase[productKey];
+    const product = products[productKey];
     if (!product) return;
     
     currentProduct = product;
@@ -1908,8 +1113,6 @@ const initProductModals = () => {
     modalOverlay.classList.add('active');
     document.body.style.overflow = 'hidden';
     document.body.classList.add('modal-open');
-    
-    console.log(`🛒 Mostrando producto: ${product.title}`);
   };
 
   const hideModal = () => {
@@ -1921,8 +1124,6 @@ const initProductModals = () => {
       slides = [];
       indicators = [];
     }, 300);
-    
-    console.log('🛒 Modal cerrada');
   };
 
   const prevSlide = () => {
@@ -1933,20 +1134,11 @@ const initProductModals = () => {
     goToSlide(currentSlideIndex + 1);
   };
 
+  const keys = ['abarrotes', 'frutas-y-verduras', 'lacteos', 'bebidas'];
   document.querySelectorAll('.card-link').forEach((link, index) => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      
-      let productKey = '';
-      switch(index) {
-        case 0: productKey = 'abarrotes'; break;
-        case 1: productKey = 'frutas-y-verduras'; break;
-        case 2: productKey = 'lacteos'; break;
-        case 3: productKey = 'bebidas'; break;
-        default: productKey = 'abarrotes';
-      }
-      
-      showModal(productKey);
+      showModal(keys[index]);
     });
   });
 
@@ -1986,12 +1178,8 @@ const initProductModals = () => {
 
   gallery.addEventListener('touchend', (e) => {
     touchEndX = e.changedTouches[0].screenX;
-    handleSwipe();
-  }, { passive: true });
-
-  const handleSwipe = () => {
-    const swipeThreshold = 50;
     const diff = touchStartX - touchEndX;
+    const swipeThreshold = 50;
     
     if (Math.abs(diff) > swipeThreshold) {
       if (diff > 0) {
@@ -2000,49 +1188,141 @@ const initProductModals = () => {
         prevSlide();
       }
     }
-  };
+  }, { passive: true });
 
-  console.log('✅ Sistema de productos listo');
+  console.log('✅ Modales de productos con carrusel listos');
 };
-
-
 
 // ===== LAZY LOADING =====
 const initSmartLazyLoad = () => {
-  const lazyElements = document.querySelectorAll('[loading="lazy"], img[data-src], iframe[data-src]');
-  
-  const lazyObserver = new IntersectionObserver((entries) => {
+  const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        const element = entry.target;
-        if (element.dataset.src) {
-          element.src = element.dataset.src;
-          element.removeAttribute('data-src');
+        const el = entry.target;
+        if (el.dataset.src) {
+          el.src = el.dataset.src;
+          el.removeAttribute('data-src');
         }
-        lazyObserver.unobserve(element);
+        observer.unobserve(el);
       }
     });
-  }, {
-    rootMargin: '200px 0px',
-    threshold: 0.01
-  });
+  }, { rootMargin: '200px', threshold: 0.01 });
   
-  lazyElements.forEach(el => lazyObserver.observe(el));
-  console.log(`🔄 Lazy loading: ${lazyElements.length} elementos`);
+  document.querySelectorAll('[loading="lazy"], img[data-src]').forEach(el => observer.observe(el));
+  console.log('✅ Lazy loading activado');
 };
 
-
-// ===== INICIALIZACIÓN PRINCIPAL =====
-const init = () => {
-  console.log('🚀 Iniciando Merke+ con TODOS los efectos activados');
+// ===== FUNCIONES SIMPLES =====
+const initCountdown = () => {
+  const el = document.getElementById('countdown');
+  if (!el) return;
   
-  // Inicializar todo inmediatamente
+  let end = new Date();
+  end.setHours(end.getHours() + 24);
+  
+  setInterval(() => {
+    const diff = end - new Date();
+    if (diff <= 0) {
+      el.textContent = '00:00:00';
+      end.setHours(end.getHours() + 24);
+      return;
+    }
+    
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    
+    el.textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    
+    if (diff < 10 * 60 * 1000) {
+      el.style.color = 'var(--red)';
+      el.style.animation = 'pulseBadge 1s infinite';
+    }
+  }, 1000);
+};
+
+const initMicroInteractions = () => {
+  const createRippleEffect = (event, element) => {
+    const ripple = document.createElement('span');
+    const rect = element.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = event.clientX - rect.left - size / 2;
+    const y = event.clientY - rect.top - size / 2;
+    
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    ripple.classList.add('ripple');
+    
+    element.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  };
+
+  document.querySelectorAll('.hero-btn, .offer-btn, .contact-link, .card-link').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      createRippleEffect(e, btn);
+      btn.classList.add('vibrate');
+      setTimeout(() => btn.classList.remove('vibrate'), 300);
+    });
+  });
+  
+  if (config.isMobile()) {
+    document.querySelectorAll('.card, .offer-card, .contact-card').forEach(card => {
+      card.addEventListener('touchstart', () => {
+        card.style.transform = 'scale(0.98)';
+      }, { passive: true });
+      
+      card.addEventListener('touchend', () => {
+        card.style.transform = '';
+      }, { passive: true });
+    });
+  }
+};
+
+const initWhatsAppButton = () => {
+  const btn = document.querySelector('.whatsapp-float');
+  if (!btn) return;
+  
+  setTimeout(() => {
+    btn.style.opacity = '1';
+    btn.style.transform = 'translateY(0) scale(1)';
+    btn.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+  }, 2000);
+  
+  if (config.effects) {
+    setInterval(() => {
+      if (!document.hidden) btn.classList.toggle('pulse');
+    }, 3000);
+  }
+};
+
+const initIntro = () => {
+  const intro = document.getElementById('intro');
+  if (!intro) return;
+  
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      intro.style.opacity = '0';
+      setTimeout(() => intro.style.display = 'none', 500);
+    }, 3000);
+  });
+};
+
+// ===== INICIALIZACIÓN =====
+const init = () => {
+  console.log(`🚀 Iniciando Merke+ OPTIMIZADO - ${deviceCapabilities.tier.toUpperCase()}`);
+  
+  // Inmediato
   initMobileMenu();
   initSmartLazyLoad();
-  initSmartNotifications();
-  initProductModals();
   
-  // Inicializar efectos visuales
+  // Con delay mínimo
+  setTimeout(() => {
+    initSmartNotifications();
+    initProductModals();
+  }, 100);
+  
+  // Después del load
   window.addEventListener('load', () => {
     setTimeout(() => {
       setupNoisePro();
@@ -2052,47 +1332,29 @@ const init = () => {
       initScrollStorytellingPro();
       initComponentParallax();
       optimizeSpline();
-      initDynamicBackgrounds();
       initCountdown();
       initMicroInteractions();
       initWhatsAppButton();
       initIntro();
       
-      
       document.body.classList.add('loaded');
-      console.log('✅ Sistema completamente cargado');
-    }, 500);
+      console.log(`✅ Carga completa: ${performance.now().toFixed(0)}ms`);
+    }, 200);
   });
   
   // Event listeners
-  window.addEventListener('scroll', handleScroll, { passive: true });
+  window.addEventListener('scroll', updateHeader, { passive: true });
   window.addEventListener('resize', updateHeader, { passive: true });
   
   updateHeader();
 };
 
-// ===== EJECUCIÓN =====
+// EJECUTAR
 init();
 
-// Fallback
-setTimeout(() => {
-  if (!document.body.classList.contains('loaded')) {
-    console.log('⚠️ Reintentando carga...');
-    init();
-  }
-}, 2000);
-
-// ===== DEBUG HELPER =====
+// Debug
 window.debugMerke = {
-  reloadEffects: () => {
-    document.location.reload();
-  },
-  getConfig: () => {
-    return {
-      particleCount: window.particleCount,
-      noiseIntensity: window.noiseIntensity,
-      isMobile: config.isMobile(),
-      allEffects: true
-    };
-  }
+  device: deviceCapabilities,
+  config: perfCfg,
+  reload: () => location.reload()
 };

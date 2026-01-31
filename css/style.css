@@ -44,6 +44,11 @@ body {
   pointer-events: none;
   opacity: 0.25; /* Muy sutil pero presente - ajustable */
   mix-blend-mode: overlay;
+  image-rendering: optimizeSpeed;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: optimize-contrast;
+  -ms-interpolation-mode: nearest-neighbor;
 }
 
 /* ===== TSPARTICLES CONTAINER ===== */
@@ -1318,7 +1323,6 @@ footer {
 
 /* ===== SCROLL EFFECTS ===== */
 [data-scroll-effect] {
-  will-change: transform, opacity;
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
               opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -1865,7 +1869,6 @@ footer {
 
 .story-text-animated .char {
   display: inline-block;
-  will-change: transform, opacity;
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
               opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
   opacity: 0;
@@ -2114,24 +2117,18 @@ footer {
 
 
 /* ===== EFECTOS PARALLAX MEJORADOS ===== */
-.card, .offer-card, .contact-card,
-.brand-item, .feature, .info-card,
-.story-icon-item {
-  transition: 
-    transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
-    box-shadow 0.5s cubic-bezier(0.23, 1, 0.32, 1),
-    opacity 0.5s ease,
-    border-color 0.3s ease;
-  will-change: transform, opacity, box-shadow;
-  transform-style: preserve-3d;
+.parallax-element,
+.spline-container,
+.particle-container {
+  transform: translateZ(0);
   backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 /* Hero image con parallax potente */
 .hero-img {
   transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1),
               opacity 1s ease;
-  will-change: transform, opacity;
 }
 
 /* Títulos con efecto 3D */
@@ -2192,23 +2189,18 @@ footer {
 
 /* ===== OPTIMIZACIONES ESPECÍFICAS PARA MÓVIL ===== */
 @media (max-width: 768px) {
-  /* Mantén efectos pero optimizados */
-  .card, .offer-card, .contact-card,
-  .brand-item, .feature, .info-card,
-  .story-icon-item {
-    transform-style: preserve-3d;
+  .parallax-element,
+  .spline-container,
+  .particle-container {
+    transform: translateZ(0);
     backface-visibility: hidden;
-    will-change: transform;
-    transition: 
-      transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-      opacity 0.4s ease,
-      box-shadow 0.4s ease !important;
+    perspective: 1000px;
   }
+
   
   /* Efectos más sutiles pero visibles */
   .hero-img {
     transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1) !important;
-    will-change: transform;
   }
   
   /* Efecto táctil mejorado */
@@ -2254,7 +2246,6 @@ footer {
   /* Reduce complejidad de animaciones */
   .story-icons-grid {
     transform: translateZ(0);
-    will-change: transform, opacity;
   }
   
   /* Mejor rendimiento para gradientes animados */
@@ -3100,3 +3091,53 @@ body.scroll-locked {
     animation: none !important;
   }
 }
+
+/* Fuerza el uso de GPU en elementos pesados */
+#noiseCanvas, 
+.spline-container, 
+.story-section,
+.char {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* Optimiza el renderizado de imágenes y canvas */
+canvas {
+    image-rendering: optimizeSpeed;
+    pointer-events: none; /* Evita cálculos de colisión innecesarios */
+}
+
+/* Si el Spline viewer es muy pesado, bajamos su prioridad de renderizado */
+spline-viewer {
+    content-visibility: auto;
+}
+
+.scroll-container {
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  /* ❌ NO usar will-change aquí */
+}
+
+.hero-img, 
+.spline-container,
+.story-text-animated .char {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.parallax-element {
+  transform-style: preserve-3d;
+  /* ❌ NO usar will-change aquí */
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  -o-transform: translateZ(0);
+}
+
+
