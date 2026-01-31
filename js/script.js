@@ -14,7 +14,7 @@ const config = {
   scrollMargin: '50px'
 };
 
-// ===== DETECCIÓN DE GPU MEJORADA (PERO RESPETANDO TU CÓDIGO ORIGINAL) =====
+// ===== DETECCIÓN DE GPU MEJORADA =====
 const detectGPU = () => {
   try {
     const canvas = document.createElement('canvas');
@@ -26,112 +26,383 @@ const detectGPU = () => {
     if (!debugInfo) return 'unknown';
     
     const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || '';
-    const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) || '';
     
     console.log(`🔍 GPU detectada: ${renderer}`);
-    console.log(`🏢 Fabricante: ${vendor}`);
     
-    // Detectar GPUs gaming de NVIDIA/AMD
-    if (renderer.includes('NVIDIA') || renderer.includes('GeForce') || renderer.includes('RTX') || renderer.includes('GTX')) {
+    // Clasificación detallada de GPUs
+    if (renderer.includes('Adreno (TM) 618')) {
+      return 'adreno_618'; // Motorola One Fusion+
+    } else if (renderer.includes('Adreno')) {
+      // Adreno series más específica
+      if (renderer.includes('Adreno 7')) return 'adreno_high';
+      if (renderer.includes('Adreno 6')) return 'adreno_mid';
+      if (renderer.includes('Adreno 5')) return 'adreno_low';
+      return 'adreno_mid';
+    } else if (renderer.includes('Mali')) {
+      if (renderer.includes('Mali-G7') || renderer.includes('Mali-G7')) return 'mali_high';
+      if (renderer.includes('Mali-G5')) return 'mali_mid';
+      return 'mali_low';
+    } else if (renderer.includes('PowerVR')) {
+      return 'powervr_low';
+    } else if (renderer.includes('NVIDIA') || renderer.includes('GeForce') || renderer.includes('RTX')) {
       return 'nvidia_gaming';
-    } else if (renderer.includes('AMD') || renderer.includes('Radeon') || renderer.includes('RX')) {
+    } else if (renderer.includes('AMD') || renderer.includes('Radeon')) {
       return 'amd_gaming';
-    } else if (renderer.includes('Intel') && (renderer.includes('Iris') || renderer.includes('UHD') || renderer.includes('HD'))) {
+    } else if (renderer.includes('Intel')) {
+      if (renderer.includes('Iris') || renderer.includes('UHD')) return 'intel_high';
       return 'intel_integrated';
-    } else if (renderer.includes('Apple') || renderer.includes('Metal')) {
+    } else if (renderer.includes('Apple')) {
+      if (renderer.includes('Apple M')) return 'apple_silicon';
       return 'apple';
-    } else if (renderer.includes('Adreno') || renderer.includes('Mali') || renderer.includes('PowerVR')) {
-      return 'mobile';
     }
     
     return 'unknown';
   } catch (e) {
-    console.error('❌ Error detectando GPU:', e);
-    return 'error';
+    return 'unknown';
   }
 };
 
-// ===== DETECCIÓN DE HARDWARE MEJORADA PERO RESPETANDO TU LÓGICA ORIGINAL =====
-const detectHardwareTier = () => {
+// ===== DETECCIÓN DE RAM REAL (NO SOLO deviceMemory) =====
+const detectRealMemory = () => {
+  const userAgent = navigator.userAgent;
   const isMobile = config.isMobile();
   
-  // Obtener información del navegador (RESPETANDO TU LÓGICA)
-  const userAgent = navigator.userAgent || '';
-  const platform = navigator.platform || '';
-  const memory = navigator.deviceMemory || 4; // GB
-  const cores = navigator.hardwareConcurrency || 4;
-  const gpu = detectGPU();
+  // 1. Intentar con deviceMemory primero (si está disponible)
+  if (navigator.deviceMemory && navigator.deviceMemory !== 4) {
+    console.log(`📊 RAM detectada (deviceMemory): ${navigator.deviceMemory}GB`);
+    return navigator.deviceMemory;
+  }
   
-  console.log(`📊 Detección hardware:`);
-  console.log(`   - RAM: ${memory}GB (Tu equipo tiene 40GB)`);
-  console.log(`   - Núcleos: ${cores}`);
-  console.log(`   - GPU: ${gpu}`);
-  console.log(`   - Móvil: ${isMobile}`);
-  
-  // ===== DETECCIÓN MEJORADA PERO CON TU LÓGICA COMO BASE =====
-  
-  // 1. Primero verificar si es PC Gaming (como tu ASUS TUF)
-  const isGamingPC = () => {
-    // TU PC CON 40GB RAM DEBE SER DETECTADA COMO HIGH
-    if (memory >= 16) { // Reducido de 8 a 16 para que tu PC con 40GB sea detectada
-      console.log('💻 PC Gaming detectado (alta RAM)');
-      return true;
+  // 2. Detección por User Agent específico
+  if (isMobile) {
+    // Android
+    if (/Android/.test(userAgent)) {
+      // Motorola One Fusion+ específico
+      if (userAgent.includes('XT2067') || userAgent.includes('motorola one fusion+')) {
+        console.log('📱 Motorola One Fusion+ detectado: 4GB RAM');
+        return 4;
+      }
+      
+      // Samsung Galaxy S/Note series (gama alta)
+      if (userAgent.includes('SM-G9') || userAgent.includes('SM-N9') || userAgent.includes('SM-F7')) {
+        console.log('📱 Samsung flagship detectado: 8GB+ RAM');
+        return 8;
+      }
+      
+      // Samsung Galaxy A series (gama media)
+      if (userAgent.includes('SM-A')) {
+        if (userAgent.includes('SM-A5') || userAgent.includes('SM-A7')) {
+          console.log('📱 Samsung A series gama media: 4-6GB RAM');
+          return 6;
+        }
+        return 4;
+      }
+      
+      // Google Pixel
+      if (userAgent.includes('Pixel')) {
+        const pixelMatch = userAgent.match(/Pixel (\d+)/);
+        if (pixelMatch) {
+          const pixelNum = parseInt(pixelMatch[1]);
+          if (pixelNum >= 6) return 8;
+          if (pixelNum >= 4) return 6;
+          return 4;
+        }
+        return 6;
+      }
+      
+      // OnePlus
+      if (userAgent.includes('OnePlus') || userAgent.includes('ONEPLUS')) {
+        if (userAgent.includes('10') || userAgent.includes('11') || userAgent.includes('12')) return 12;
+        if (userAgent.includes('8') || userAgent.includes('9')) return 8;
+        if (userAgent.includes('6') || userAgent.includes('7')) return 6;
+        return 4;
+      }
+      
+      // Xiaomi/Redmi/Poco
+      if (userAgent.includes('Redmi') || userAgent.includes('Xiaomi') || userAgent.includes('POCO')) {
+        if (userAgent.includes('Note 1') || userAgent.includes('12') || userAgent.includes('13')) return 8;
+        if (userAgent.includes('Note 1') || userAgent.includes('11')) return 6;
+        return 4;
+      }
+      
+      // Por defecto para Android
+      console.log('📱 Android estándar: asumiendo 4GB RAM');
+      return 4;
     }
     
-    // Detectar por GPU gaming
-    if (gpu === 'nvidia_gaming' || gpu === 'amd_gaming') {
-      console.log('🎮 GPU Gaming detectada');
-      return true;
+    // iOS/iPadOS
+    if (/iPhone|iPad|iPod/.test(userAgent)) {
+      // iPhone 15/14/13 Pro
+      if (userAgent.includes('iPhone15,') || userAgent.includes('iPhone14,') || userAgent.includes('iPhone13,')) {
+        if (userAgent.includes('Pro')) return 6;
+        return 4;
+      }
+      
+      // iPhone 12/11 Pro
+      if (userAgent.includes('iPhone12,') || userAgent.includes('iPhone11,')) {
+        if (userAgent.includes('Pro')) return 6;
+        return 4;
+      }
+      
+      // iPhone X/XS/XR
+      if (userAgent.includes('iPhone10,') || userAgent.includes('iPhone11,')) {
+        return 4;
+      }
+      
+      // iPhone 8 y anteriores
+      if (userAgent.includes('iPhone9,') || userAgent.includes('iPhone8,')) {
+        return 3;
+      }
+      
+      // iPad
+      if (/iPad/.test(userAgent)) {
+        if (userAgent.includes('iPad13,') || userAgent.includes('iPad14,')) return 8; // iPad Pro M1/M2
+        if (userAgent.includes('iPad12,')) return 6; // iPad Air
+        return 4;
+      }
+      
+      // Por defecto para iOS
+      console.log('📱 iOS estándar: asumiendo 4GB RAM');
+      return 4;
     }
-    
-    // Detectar por características de hardware (manteniendo tu lógica)
-    if (memory >= 8 && cores >= 4) {
-      console.log('💻 Hardware de gama alta detectado');
-      return true;
-    }
-    
-    return false;
-  };
-  
-  // 2. Mantener tu lógica original para dispositivos móviles
-  if (isMobile && memory < 4) {
-    console.log('📱 Nivel: LOW (Dispositivo básico)');
-    return 'low'; // Dispositivos básicos como Motorola One Fusion+
-  } else if (isMobile && memory >= 4) {
-    console.log('📱 Nivel: MID (Dispositivo móvil bueno)');
-    return 'mid'; // Dispositivos móviles buenos
-  } else if (!isMobile && isGamingPC()) {
-    console.log('💻 Nivel: HIGH (PC Gaming como ASUS TUF)');
-    return 'high'; // PCs gaming como ASUS TUF (¡INCLUYENDO EL TUYO CON 40GB RAM!)
   } else {
-    console.log('💻 Nivel: MID (PC estándar)');
+    // PC/Desktop
+    // Detectar por sistema operativo y user agent
+    if (/Windows NT/.test(userAgent)) {
+      // Windows - asumir mejor hardware
+      console.log('💻 Windows detectado: asumiendo 8GB+ RAM');
+      return 8;
+    }
+    
+    if (/Mac OS X/.test(userAgent)) {
+      // Mac - asumir buen hardware
+      console.log('🍎 macOS detectado: asumiendo 8GB+ RAM');
+      return 8;
+    }
+    
+    if (/Linux/.test(userAgent)) {
+      // Linux - asumir buen hardware (usuarios técnicos)
+      console.log('🐧 Linux detectado: asumiendo 8GB+ RAM');
+      return 8;
+    }
+  }
+  
+  // Por defecto conservador
+  console.log('⚠️ No se pudo detectar RAM específica, usando valor por defecto: 4GB');
+  return 4;
+};
+
+// ===== DETECCIÓN DE NÚCLEOS REALES =====
+const detectRealCores = () => {
+  // 1. Intentar con hardwareConcurrency primero
+  if (navigator.hardwareConcurrency && navigator.hardwareConcurrency !== 4) {
+    console.log(`🔢 Núcleos detectados (hardwareConcurrency): ${navigator.hardwareConcurrency}`);
+    return navigator.hardwareConcurrency;
+  }
+  
+  const userAgent = navigator.userAgent;
+  const isMobile = config.isMobile();
+  
+  // 2. Detección por User Agent específico
+  if (isMobile) {
+    // Android
+    if (/Android/.test(userAgent)) {
+      // Procesadores de gama alta (Snapdragon 8 series, Dimensity 9000+)
+      if (userAgent.includes('SM85') || userAgent.includes('SM84') || userAgent.includes('SM83')) {
+        console.log('📱 Procesador Snapdragon 8 series: 8 núcleos');
+        return 8;
+      }
+      
+      // Motorola One Fusion+ (Snapdragon 730G)
+      if (userAgent.includes('XT2067') || userAgent.includes('motorola one fusion+')) {
+        console.log('📱 Motorola One Fusion+ (SD 730G): 8 núcleos');
+        return 8;
+      }
+      
+      // Procesadores de gama media (Snapdragon 7, 6 series)
+      if (userAgent.includes('SM73') || userAgent.includes('SM63')) {
+        console.log('📱 Procesador Snapdragon 7/6 series: 8 núcleos');
+        return 8;
+      }
+      
+      // MediaTek Dimensity
+      if (userAgent.includes('MT') && (userAgent.includes('68') || userAgent.includes('81') || userAgent.includes('92'))) {
+        console.log('📱 MediaTek Dimensity: 8 núcleos');
+        return 8;
+      }
+      
+      // Por defecto para Android moderno
+      console.log('📱 Android moderno: asumiendo 8 núcleos');
+      return 8;
+    }
+    
+    // iOS
+    if (/iPhone|iPad|iPod/.test(userAgent)) {
+      // iPhone 15/14/13 (A16/A15 bionic)
+      if (userAgent.includes('iPhone15,') || userAgent.includes('iPhone14,') || userAgent.includes('iPhone13,')) {
+        console.log('📱 iPhone 13/14/15: 6 núcleos CPU');
+        return 6;
+      }
+      
+      // iPhone 12/11 (A14/A13 bionic)
+      if (userAgent.includes('iPhone12,') || userAgent.includes('iPhone11,')) {
+        console.log('📱 iPhone 11/12: 6 núcleos CPU');
+        return 6;
+      }
+      
+      // iPhone X/XS/XR (A12 bionic)
+      if (userAgent.includes('iPhone10,')) {
+        console.log('📱 iPhone X/XS/XR: 6 núcleos CPU');
+        return 6;
+      }
+      
+      // iPad con M1/M2
+      if (/iPad/.test(userAgent) && (userAgent.includes('iPad13,') || userAgent.includes('iPad14,'))) {
+        console.log('📱 iPad Pro M1/M2: 8+ núcleos CPU');
+        return 8;
+      }
+      
+      // Por defecto para iOS
+      console.log('📱 iOS estándar: asumiendo 6 núcleos');
+      return 6;
+    }
+  } else {
+    // PC/Desktop
+    if (/Windows NT/.test(userAgent)) {
+      const winVersion = userAgent.match(/Windows NT (\d+\.\d+)/);
+      if (winVersion) {
+        const version = parseFloat(winVersion[1]);
+        // Windows 10/11 - asumir hardware más moderno
+        if (version >= 10) {
+          console.log('💻 Windows 10/11: asumiendo 4+ núcleos');
+          return 4;
+        }
+      }
+    }
+    
+    // Por defecto para PC
+    console.log('💻 PC estándar: asumiendo 4 núcleos');
+    return 4;
+  }
+  
+  // Por defecto conservador
+  console.log('⚠️ No se pudo detectar núcleos específicos, usando valor por defecto: 4');
+  return 4;
+};
+
+// ===== DETECCIÓN DE HARDWARE COMPLETA =====
+const detectHardwareTier = () => {
+  const isMobile = config.isMobile();
+  const memory = detectRealMemory(); // ¡USANDO DETECCIÓN REAL!
+  const cores = detectRealCores();   // ¡USANDO DETECCIÓN REAL!
+  const gpu = detectGPU();
+  const userAgent = navigator.userAgent;
+  
+  console.log(`📊 DETECCIÓN HARDWARE COMPLETA:`);
+  console.log(`   - RAM REAL: ${memory}GB`);
+  console.log(`   - NÚCLEOS REALES: ${cores}`);
+  console.log(`   - GPU: ${gpu}`);
+  console.log(`   - MÓVIL: ${isMobile}`);
+  console.log(`   - USER AGENT: ${userAgent.substring(0, 80)}...`);
+  
+  // ===== DETECCIÓN ESPECÍFICA PARA TU MOTOROLA ONE FUSION+ =====
+  if (isMobile) {
+    // 1. Motorola One Fusion+ específico
+    if (userAgent.includes('XT2067') || userAgent.includes('motorola one fusion+') || 
+        (gpu === 'adreno_618' && memory === 4 && cores === 8)) {
+      console.log('🎯 MOTOROLA ONE FUSION+ DETECTADO EXACTAMENTE');
+      console.log('⚡ Configuración especial: 4GB RAM, 8 núcleos, Adreno 618');
+      return 'mid_optimized';
+    }
+    
+    // 2. Dispositivos de gama baja (basados en GPU y RAM)
+    if (memory < 3 || gpu === 'powervr_low' || gpu === 'mali_low' || gpu === 'adreno_low') {
+      console.log('📱 Nivel: LOW (Dispositivo básico)');
+      return 'low';
+    }
+    
+    // 3. Dispositivos de gama media
+    if ((memory >= 3 && memory <= 6) || 
+        gpu === 'adreno_mid' || gpu === 'mali_mid' || 
+        (cores >= 4 && cores <= 6)) {
+      console.log('📱 Nivel: MID (Dispositivo gama media)');
+      return 'mid';
+    }
+    
+    // 4. Dispositivos de gama alta
+    if (memory > 6 || gpu === 'adreno_high' || gpu === 'mali_high' || 
+        gpu === 'apple_silicon' || cores >= 8) {
+      console.log('📱 Nivel: HIGH (Dispositivo gama alta)');
+      return 'high';
+    }
+    
+    // Por defecto para móviles
+    console.log('📱 Nivel: MID (Móvil estándar)');
     return 'mid';
+    
+  } else {
+    // ===== PC/DESKTOP =====
+    
+    // 1. PC Gaming de alta gama (como tu ASUS TUF con 40GB RAM)
+    if (memory >= 16 || gpu === 'nvidia_gaming' || gpu === 'amd_gaming') {
+      console.log('💻 Nivel: HIGH (PC Gaming/Gama alta)');
+      return 'high';
+    }
+    
+    // 2. PC estándar
+    if (memory >= 8 && cores >= 4) {
+      console.log('💻 Nivel: MID (PC estándar)');
+      return 'mid';
+    }
+    
+    // 3. PC básico/antiguo
+    console.log('💻 Nivel: LOW (PC básico/antiguo)');
+    return 'low';
   }
 };
 
 // Variables globales de optimización
 let hardwareTier = detectHardwareTier();
 
-// Configurar según nivel de hardware (RESPETANDO TU CONFIGURACIÓN ORIGINAL)
+// ===== CONFIGURACIÓN OPTIMIZADA =====
 const setupHardwareOptimizations = () => {
   console.log(`🖥️ Nivel de hardware detectado: ${hardwareTier}`);
+  console.log(`🎯 Configurando optimizaciones específicas...`);
   
   if (hardwareTier === 'low') {
-    window.particleCount = 30; // Manteniendo tu valor original
-    window.noiseIntensity = 0.1; // Manteniendo tu valor original
+    window.particleCount = 20;
+    window.noiseIntensity = 0.08;
     window.animationQuality = 'low';
-    // Mantener efectos pero optimizados (TU CONFIGURACIÓN)
     config.effects = true;
     config.parallaxEnabled = true;
     config.smoothScroll = true;
+    
+    console.log('⚙️ Configurado para dispositivos básicos');
+    
+  } else if (hardwareTier === 'mid_optimized') {
+    window.particleCount = 35;
+    window.noiseIntensity = 0.15;
+    window.animationQuality = 'medium_optimized';
+    config.effects = true;
+    config.parallaxEnabled = true;
+    config.smoothScroll = true;
+    
+    console.log('⚙️ Configuración ESPECIAL para Motorola One Fusion+');
+    console.log('✨ Efectos optimizados para fluidez máxima');
+    
   } else if (hardwareTier === 'mid') {
-    window.particleCount = 60; // Manteniendo tu valor original
-    window.noiseIntensity = 0.2; // Manteniendo tu valor original
+    window.particleCount = 50;
+    window.noiseIntensity = 0.18;
     window.animationQuality = 'medium';
+    
+    console.log('⚙️ Configurado para gama media');
+    
   } else { // high
-    window.particleCount = 120; // Manteniendo tu valor original
-    window.noiseIntensity = 0.25; // Manteniendo tu valor original
+    window.particleCount = 120;
+    window.noiseIntensity = 0.25;
     window.animationQuality = 'high';
+    
+    console.log('⚙️ Configurado para gama alta');
   }
   
   console.log(`🎯 Partículas: ${window.particleCount}`);
@@ -149,33 +420,82 @@ const sections = document.querySelectorAll('section');
 let lastScrollY = window.scrollY;
 let ticking = false;
 
-// ===== NOISE PRO CANVAS OPTIMIZADO (TU VERSIÓN RESTAURADA) =====
+// ===== NOISE PRO OPTIMIZADO PARA FLUIDEZ =====
 const setupNoisePro = () => {
   const canvas = document.getElementById('noiseCanvas');
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
-  const scale = hardwareTier === 'low' ? 0.5 : 1.0; // Reducir calidad en hardware bajo
   
+  // AJUSTES ESPECÍFICOS PARA FLUIDEZ
+  let scale, frameRate, density, opacity;
+  
+  if (hardwareTier === 'low') {
+    scale = 0.3; // Más reducido
+    frameRate = 8; // Más FPS bajo
+    density = 0.015;
+    opacity = 0.08;
+  } else if (hardwareTier === 'mid_optimized') {
+    scale = 0.4; // Optimizado para Motorola
+    frameRate = 12; // Balanceado
+    density = 0.025;
+    opacity = 0.12;
+  } else if (hardwareTier === 'mid') {
+    scale = 0.5;
+    frameRate = 15;
+    density = 0.035;
+    opacity = 0.15;
+  } else { // high
+    scale = 1.0;
+    frameRate = 20;
+    density = 0.05;
+    opacity = 0.25;
+  }
+
   let isVisible = true;
   let lastFrameTime = 0;
-  const frameInterval = hardwareTier === 'low' ? 1000 / 10 : 1000 / 20; // 10-20 FPS
+  const frameInterval = 1000 / frameRate;
 
   const resize = () => {
-    canvas.width = window.innerWidth * scale;
-    canvas.height = window.innerHeight * scale;
+    canvas.width = Math.floor(window.innerWidth * scale);
+    canvas.height = Math.floor(window.innerHeight * scale);
     canvas.style.width = window.innerWidth + 'px';
     canvas.style.height = window.innerHeight + 'px';
   };
 
   resize();
   
-  // Throttle de resize
+  // Throttle de resize optimizado
   let resizeTimeout;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(resize, 250);
+    resizeTimeout = setTimeout(resize, 300);
   }, { passive: true });
+
+  // PRE-GENERAR PATRONES PARA MÁS FLUIDEZ
+  let noisePatterns = [];
+  if (hardwareTier === 'low' || hardwareTier === 'mid_optimized') {
+    // Pre-generar 4 patrones para rotar (más fluido que generar en tiempo real)
+    for (let p = 0; p < 4; p++) {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 200;
+      tempCanvas.height = 200;
+      const tempCtx = tempCanvas.getContext('2d');
+      const imageData = tempCtx.createImageData(200, 200);
+      const buffer32 = new Uint32Array(imageData.data.buffer);
+      
+      for (let i = 0; i < buffer32.length; i++) {
+        if (Math.random() < density) {
+          const shade = 200 + (Math.random() * 55);
+          buffer32[i] = (255 << 24) | (shade << 16) | (shade << 8) | shade;
+        } else {
+          buffer32[i] = 0xff000000;
+        }
+      }
+      tempCtx.putImageData(imageData, 0, 0);
+      noisePatterns.push(tempCanvas);
+    }
+  }
 
   const generateNoise = (currentTime) => {
     if (!isVisible || currentTime - lastFrameTime < frameInterval) {
@@ -184,30 +504,34 @@ const setupNoisePro = () => {
     }
     
     lastFrameTime = currentTime;
-    
-    // Reducir densidad en hardware bajo
-    const density = hardwareTier === 'low' ? 0.02 : 0.05;
-    const opacity = hardwareTier === 'low' ? 0.15 : 0.25;
     canvas.style.opacity = opacity;
     
-    const imageData = ctx.createImageData(canvas.width, canvas.height);
-    const buffer32 = new Uint32Array(imageData.data.buffer);
-    const len = buffer32.length;
+    // USAR PATRONES PRE-GENERADOS PARA MÁS FLUIDEZ
+    if ((hardwareTier === 'low' || hardwareTier === 'mid_optimized') && noisePatterns.length > 0) {
+      const patternIndex = Math.floor((currentTime / 500) % noisePatterns.length); // Cambiar cada 500ms
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(noisePatterns[patternIndex], 0, 0, canvas.width, canvas.height);
+    } else {
+      // Método original para hardware mejor
+      const imageData = ctx.createImageData(canvas.width, canvas.height);
+      const buffer32 = new Uint32Array(imageData.data.buffer);
+      const len = buffer32.length;
 
-    for (let i = 0; i < len; i++) {
-      if (Math.random() < density) {
-        const shade = 200 + (Math.random() * 55);
-        buffer32[i] = (255 << 24) | (shade << 16) | (shade << 8) | shade;
-      } else {
-        buffer32[i] = 0xff000000;
+      for (let i = 0; i < len; i++) {
+        if (Math.random() < density) {
+          const shade = 200 + (Math.random() * 55);
+          buffer32[i] = (255 << 24) | (shade << 16) | (shade << 8) | shade;
+        } else {
+          buffer32[i] = 0xff000000;
+        }
       }
-    }
 
-    ctx.putImageData(imageData, 0, 0);
+      ctx.putImageData(imageData, 0, 0);
+    }
+    
     requestAnimationFrame(generateNoise);
   };
 
-  // Pausar cuando la página no es visible
   document.addEventListener('visibilitychange', () => {
     isVisible = !document.hidden;
     if (isVisible) {
@@ -216,10 +540,10 @@ const setupNoisePro = () => {
   });
 
   generateNoise(0);
-  console.log(`🎨 Noise optimizado: ${hardwareTier === 'low' ? '10 FPS' : '20 FPS'}`);
+  console.log(`🎨 Noise optimizado: ${frameRate} FPS (${hardwareTier})`);
 };
 
-// ===== TSPARTICLES CONFIGURATION OPTIMIZADA (TU VERSIÓN RESTAURADA) =====
+// ===== TSPARTICLES OPTIMIZADO PARA FLUIDEZ =====
 const initTsParticles = () => {
   if (typeof tsParticles === 'undefined') {
     console.error('tsParticles no cargado');
@@ -227,13 +551,43 @@ const initTsParticles = () => {
   }
 
   const isMobile = config.isMobile();
-  const particleCount = window.particleCount || (isMobile ? 30 : 80);
+  let particleCount = window.particleCount || (isMobile ? 30 : 80);
+  
+  // AJUSTES ESPECÍFICOS PARA FLUIDEZ
+  let fpsLimit, speed, opacityValue, maxSize, linksEnabled;
+  
+  if (hardwareTier === 'low') {
+    fpsLimit = 20;
+    speed = 0.3;
+    opacityValue = 0.3;
+    maxSize = 10;
+    linksEnabled = false;
+  } else if (hardwareTier === 'mid_optimized') {
+    fpsLimit = 25; // Más bajo para fluidez
+    speed = 0.8; // Más lento
+    opacityValue = 0.5;
+    maxSize = 15;
+    linksEnabled = true; // Pero mantener links
+    particleCount = Math.min(particleCount, 35); // Limitar partículas
+  } else if (hardwareTier === 'mid') {
+    fpsLimit = 30;
+    speed = 1.2;
+    opacityValue = 0.6;
+    maxSize = 20;
+    linksEnabled = true;
+  } else { // high
+    fpsLimit = 60;
+    speed = 2;
+    opacityValue = 0.7;
+    maxSize = 30;
+    linksEnabled = true;
+  }
   
   const particlesConfig = {
     autoPlay: true,
     background: { color: { value: "transparent" }, opacity: 0 },
     fullScreen: { enable: false, zIndex: -2 },
-    fpsLimit: hardwareTier === 'low' ? 30 : 60, // FPS según hardware
+    fpsLimit: fpsLimit, // FPS ajustado para fluidez
     interactivity: {
       detectsOn: "window",
       events: {
@@ -249,7 +603,7 @@ const initTsParticles = () => {
       color: { value: ["#FFD600", "#2ECC71", "#E74C3C", "#0B2C4D"] },
       move: {
         enable: true,
-        speed: hardwareTier === 'low' ? 0.5 : 2,
+        speed: speed, // Velocidad ajustada
         direction: "none",
         outModes: { default: "out" }
       },
@@ -258,12 +612,16 @@ const initTsParticles = () => {
         density: { enable: true, width: 1920, height: 1080 }
       },
       opacity: {
-        value: hardwareTier === 'low' ? 0.4 : 0.7,
-        animation: { enable: hardwareTier !== 'low', speed: 2, sync: false }
+        value: opacityValue,
+        animation: { 
+          enable: hardwareTier !== 'low' && hardwareTier !== 'mid_optimized', // Desactivar animación de opacidad en optimizado
+          speed: 2, 
+          sync: false 
+        }
       },
       size: {
-        value: { min: 1, max: hardwareTier === 'low' ? 15 : 30 },
-        animation: { enable: hardwareTier !== 'low', speed: 5 }
+        value: { min: 1, max: maxSize },
+        animation: { enable: hardwareTier === 'high', speed: 5 } // Solo animación en high
       },
       shape: {
         close: true,
@@ -272,10 +630,10 @@ const initTsParticles = () => {
         type: "circle"
       },
       links: {
-        enable: hardwareTier !== 'low',
-        distance: 150,
-        opacity: 0.4,
-        width: 1
+        enable: linksEnabled,
+        distance: 120, // Reducido para mejor performance
+        opacity: hardwareTier === 'mid_optimized' ? 0.2 : 0.4, // Más transparente en optimizado
+        width: hardwareTier === 'mid_optimized' ? 0.5 : 1
       }
     },
     pauseOnBlur: true,
@@ -285,7 +643,7 @@ const initTsParticles = () => {
   };
 
   tsParticles.load("tsparticles", particlesConfig).then(container => {
-    console.log(`✨ tsParticles: ${particleCount} partículas (${hardwareTier})`);
+    console.log(`✨ tsParticles: ${particleCount} partículas (${hardwareTier}) - ${fpsLimit} FPS`);
     
     // Pausar cuando no es visible
     document.addEventListener('visibilitychange', () => {
@@ -298,7 +656,7 @@ const initTsParticles = () => {
   });
 };
 
-// ===== SCROLL STORYTELLING PRO (TU VERSIÓN COMPLETA RESTAURADA) =====
+// ===== SCROLL STORYTELLING PRO OPTIMIZADO =====
 const initScrollStorytellingPro = () => {
   const storySections = document.querySelectorAll('.story-section');
   const animatedTexts = document.querySelectorAll('.story-text-animated');
@@ -309,29 +667,49 @@ const initScrollStorytellingPro = () => {
 
   if (!storySections.length || !scrollHint) return;
 
-  // Preparar textos animados
+  // PREPARAR TEXTOS ANIMADOS CON OPTIMIZACIÓN
   animatedTexts.forEach(textElement => {
     const text = textElement.dataset.text || textElement.textContent;
-    const chars = text.split('');
     
-    const charElements = chars.map((char, index) => {
-      const span = document.createElement('span');
-      span.className = char === ' ' ? 'char space' : 'char';
-      span.textContent = char === ' ' ? ' ' : char;
-      span.style.setProperty('--distance', index - (chars.length / 2));
-      span.style.setProperty('--index', index);
-      return span;
-    });
+    // OPTIMIZACIÓN: Usar palabras en lugar de caracteres para dispositivos móviles
+    if (hardwareTier === 'low' || hardwareTier === 'mid_optimized') {
+      const words = text.split(' ');
+      
+      textElement.innerHTML = '';
+      words.forEach((word, wordIndex) => {
+        const wordSpan = document.createElement('span');
+        wordSpan.className = 'word-animated';
+        wordSpan.style.display = 'inline-block';
+        wordSpan.style.marginRight = '0.3em';
+        wordSpan.style.opacity = '0';
+        wordSpan.style.transform = 'translateY(20px)';
+        wordSpan.textContent = word + (wordIndex < words.length - 1 ? ' ' : '');
+        wordSpan.style.setProperty('--index', wordIndex);
+        textElement.appendChild(wordSpan);
+      });
+    } else {
+      // Método original para dispositivos buenos
+      const chars = text.split('');
+      
+      const charElements = chars.map((char, index) => {
+        const span = document.createElement('span');
+        span.className = char === ' ' ? 'char space' : 'char';
+        span.textContent = char === ' ' ? ' ' : char;
+        span.style.setProperty('--distance', index - (chars.length / 2));
+        span.style.setProperty('--index', index);
+        return span;
+      });
 
-    textElement.innerHTML = '';
-    charElements.forEach(span => textElement.appendChild(span));
+      textElement.innerHTML = '';
+      charElements.forEach(span => textElement.appendChild(span));
+    }
   });
 
-  // Configurar Intersection Observer
+  // CONFIGURAR OBSERVER CON MÁRGENES AJUSTADOS
   const observerOptions = {
     root: null,
-    rootMargin: '-100px 0px -100px 0px',
-    threshold: 0.1
+    rootMargin: hardwareTier === 'mid_optimized' ? '-80px 0px -80px 0px' : '-100px 0px -100px 0px',
+    threshold: hardwareTier === 'mid_optimized' ? 0.15 : 0.1
   };
 
   const storyObserver = new IntersectionObserver((entries) => {
@@ -339,14 +717,25 @@ const initScrollStorytellingPro = () => {
       const section = entry.target;
       
       if (entry.isIntersecting) {
-        // Animar caracteres del texto
-        const chars = section.querySelectorAll('.char');
-        chars.forEach((char, index) => {
-          setTimeout(() => {
-            char.style.opacity = '1';
-            char.style.transform = 'translateX(0) rotateX(0)';
-          }, index * 50);
-        });
+        // ANIMAR CON RETARDOS OPTIMIZADOS
+        if (hardwareTier === 'low' || hardwareTier === 'mid_optimized') {
+          const words = section.querySelectorAll('.word-animated');
+          words.forEach((word, index) => {
+            setTimeout(() => {
+              word.style.opacity = '1';
+              word.style.transform = 'translateY(0)';
+              word.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            }, index * 120); // Retardo mayor para más fluidez
+          });
+        } else {
+          const chars = section.querySelectorAll('.char');
+          chars.forEach((char, index) => {
+            setTimeout(() => {
+              char.style.opacity = '1';
+              char.style.transform = 'translateX(0) rotateX(0)';
+            }, index * 50);
+          });
+        }
 
         // Animar íconos si es la sección 3
         if (section.id === 'story-section-3') {
@@ -357,17 +746,25 @@ const initScrollStorytellingPro = () => {
             iconItems.forEach((item, index) => {
               setTimeout(() => {
                 item.classList.add('active');
-              }, index * 100);
+              }, index * 150); // Retardo mayor
             });
           }, 500);
         }
       } else {
-        // Resetear animaciones
-        const chars = section.querySelectorAll('.char');
-        chars.forEach(char => {
-          char.style.opacity = '0';
-          char.style.transform = 'translateX(calc(var(--distance) * 60px)) rotateX(calc(var(--distance) * 30deg))';
-        });
+        // Resetear animaciones (solo opacidad para mejor performance)
+        if (hardwareTier === 'low' || hardwareTier === 'mid_optimized') {
+          const words = section.querySelectorAll('.word-animated');
+          words.forEach(word => {
+            word.style.opacity = '0';
+            word.style.transform = 'translateY(20px)';
+          });
+        } else {
+          const chars = section.querySelectorAll('.char');
+          chars.forEach(char => {
+            char.style.opacity = '0';
+            char.style.transform = 'translateX(calc(var(--distance) * 60px)) rotateX(calc(var(--distance) * 30deg))';
+          });
+        }
 
         if (section.id === 'story-section-3') {
           if (storyWithIcons) storyWithIcons.classList.remove('active');
@@ -380,7 +777,7 @@ const initScrollStorytellingPro = () => {
 
   storySections.forEach(section => storyObserver.observe(section));
 
-  // Control del scroll hint
+  // CONTROL DEL SCROLL HINT OPTIMIZADO
   const updateScrollHint = () => {
     const heroSection = document.getElementById('hero');
     if (!heroSection || !scrollHint) return;
@@ -430,21 +827,29 @@ const initScrollStorytellingPro = () => {
     window.addEventListener(event, resetHideTimeout, { passive: true });
   });
 
+  // THROTTLE DEL SCROLL PARA MEJOR PERFORMANCE
   let scrollHintTimeout;
+  let lastScrollTime = 0;
+  const scrollThrottle = hardwareTier === 'mid_optimized' ? 150 : 100;
+  
   window.addEventListener('scroll', () => {
-    if (!scrollHintTimeout) {
-      scrollHintTimeout = setTimeout(() => {
-        updateScrollHint();
-        scrollHintTimeout = null;
-      }, 100);
+    const now = Date.now();
+    if (now - lastScrollTime > scrollThrottle) {
+      lastScrollTime = now;
+      if (!scrollHintTimeout) {
+        scrollHintTimeout = setTimeout(() => {
+          updateScrollHint();
+          scrollHintTimeout = null;
+        }, 50);
+      }
     }
   }, { passive: true });
 
   updateScrollHint();
-  console.log('🎬 Scroll Storytelling Pro inicializado');
+  console.log(`🎬 Scroll Storytelling optimizado para: ${hardwareTier}`);
 };
 
-// ===== COUNTDOWN TIMER (TU VERSIÓN RESTAURADA) =====
+// ===== COUNTDOWN TIMER (SIN CAMBIOS - YA ES EFICIENTE) =====
 const initCountdown = () => {
   const countdownElement = document.getElementById('countdown');
   if (!countdownElement) return;
@@ -482,9 +887,14 @@ const initCountdown = () => {
   console.log('⏰ Countdown inicializado');
 };
 
-// ===== MICRO-INTERACCIONES (TU VERSIÓN RESTAURADA) =====
+// ===== MICRO-INTERACCIONES OPTIMIZADAS =====
 const initMicroInteractions = () => {
   const createRippleEffect = (event, element) => {
+    // OPTIMIZACIÓN: Limitar ripples en dispositivos móviles
+    if (hardwareTier === 'low' && element.classList.contains('ripple-active')) {
+      return;
+    }
+    
     const ripple = document.createElement('span');
     const rect = element.getBoundingClientRect();
     
@@ -499,6 +909,12 @@ const initMicroInteractions = () => {
     
     element.appendChild(ripple);
     
+    // Marcar elemento como activo para evitar ripples múltiples
+    if (hardwareTier === 'low') {
+      element.classList.add('ripple-active');
+      setTimeout(() => element.classList.remove('ripple-active'), 300);
+    }
+    
     setTimeout(() => ripple.remove(), 600);
   };
 
@@ -512,18 +928,23 @@ const initMicroInteractions = () => {
   
   if (config.isMobile()) {
     document.querySelectorAll('.card, .offer-card, .contact-card').forEach(card => {
+      // OPTIMIZACIÓN: Usar transform 2D en lugar de 3D para móviles
       card.addEventListener('touchstart', () => {
         card.style.transform = 'scale(0.98)';
+        card.style.transition = 'transform 0.2s ease';
       }, { passive: true });
       
       card.addEventListener('touchend', () => {
         card.style.transform = '';
       }, { passive: true });
+      
+      // Evitar hover en móviles
+      card.style.willChange = 'transform';
     });
   }
 };
 
-// ===== MENÚ MÓVIL (TU VERSIÓN RESTAURADA) =====
+// ===== MENÚ MÓVIL (SIN CAMBIOS NECESARIOS) =====
 const initMobileMenu = () => {
   if (!menuToggle || !navMenu) return;
   
@@ -577,13 +998,20 @@ const closeMobileMenu = () => {
   document.documentElement.style.overflow = '';
 };
 
-// ===== SCROLL SMOOTH MEJORADO (TU VERSIÓN RESTAURADA) =====
+// ===== SCROLL SMOOTH OPTIMIZADO =====
 const initSmoothScroll = () => {
-  console.log('🔄 Inicializando SmoothScroll...');
+  console.log('🔄 Inicializando SmoothScroll optimizado...');
   
+  // AJUSTAR CONFIGURACIÓN SEGÚN HARDWARE
   const smoothConfig = {
-    duration: 700,
+    duration: hardwareTier === 'mid_optimized' ? 800 : 700, // Más lento pero más suave
     easing: (t) => {
+      // Easing más suave para dispositivos móviles
+      if (hardwareTier === 'mid_optimized' || hardwareTier === 'low') {
+        return t < 0.5 
+          ? 4 * t * t * t
+          : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
       return t < 0.5 
         ? 8 * t * t * t * t
         : 1 - Math.pow(-2 * t + 2, 4) / 2;
@@ -591,7 +1019,7 @@ const initSmoothScroll = () => {
     offset: 80,
     minDistance: 50,
     maxDistance: 3000,
-    fps: 60,
+    fps: hardwareTier === 'mid_optimized' ? 50 : 60, // FPS reducido para fluidez
   };
 
   let rafId = null;
@@ -610,12 +1038,13 @@ const initSmoothScroll = () => {
     
     let duration = customDuration || smoothConfig.duration;
     
-    if (absoluteDistance < 500) {
-      duration = Math.max(400, absoluteDistance * 0.6);
+    // OPTIMIZACIÓN: Scroll más rápido en distancias cortas
+    if (absoluteDistance < 300) {
+      duration = Math.max(300, absoluteDistance * 0.8);
     } else if (absoluteDistance > 2000) {
-      duration = Math.min(1200, absoluteDistance * 0.4);
+      duration = Math.min(1000, absoluteDistance * 0.3);
     } else {
-      duration = absoluteDistance * 0.5;
+      duration = absoluteDistance * 0.4;
     }
 
     let startTime = null;
@@ -644,13 +1073,6 @@ const initSmoothScroll = () => {
       } else {
         window.scrollTo({ top: targetPosition, behavior: 'instant' });
         rafId = null;
-        
-        requestAnimationFrame(() => {
-          const currentPos = window.pageYOffset;
-          if (Math.abs(currentPos - targetPosition) > 1) {
-            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
-          }
-        });
       }
     };
 
@@ -687,17 +1109,17 @@ const initSmoothScroll = () => {
     document.documentElement.style.scrollBehavior = 'smooth';
   }
 
-  console.log('✅ SmoothScroll inicializado');
+  console.log(`✅ SmoothScroll optimizado para: ${hardwareTier}`);
 };
 
-// ===== SCROLL EFFECTS (TU VERSIÓN RESTAURADA) =====
+// ===== SCROLL EFFECTS OPTIMIZADOS =====
 const initScrollEffects = () => {
   if (!config.effects || scrollElements.length === 0) return;
   
   const observerOptions = {
     root: null,
-    rootMargin: '100px 0px 100px 0px',
-    threshold: 0.01
+    rootMargin: hardwareTier === 'mid_optimized' ? '80px 0px 80px 0px' : '100px 0px 100px 0px',
+    threshold: hardwareTier === 'mid_optimized' ? 0.05 : 0.01
   };
   
   const observer = new IntersectionObserver(
@@ -707,30 +1129,38 @@ const initScrollEffects = () => {
           const element = entry.target;
           const delay = parseInt(element.getAttribute('data-delay')) || 0;
           
-          requestAnimationFrame(() => {
+          // USAR setTimeout EN LUGAR DE requestAnimationFrame PARA MÓVILES
+          if (hardwareTier === 'mid_optimized' || hardwareTier === 'low') {
             setTimeout(() => {
               element.classList.add('active');
             }, delay);
-          });
+          } else {
+            requestAnimationFrame(() => {
+              setTimeout(() => {
+                element.classList.add('active');
+              }, delay);
+            });
+          }
         }
       });
     },
     observerOptions
   );
   
-  const batchSize = 10;
+  // OBSERVAR ELEMENTOS EN BATCHES PARA MEJOR PERFORMANCE
+  const batchSize = hardwareTier === 'mid_optimized' ? 5 : 10;
   for (let i = 0; i < scrollElements.length; i += batchSize) {
     const batch = Array.from(scrollElements).slice(i, i + batchSize);
     
-    requestIdleCallback(() => {
+    setTimeout(() => {
       batch.forEach(el => observer.observe(el));
-    }, { timeout: 1000 });
+    }, i * 20); // Espaciar la observación
   }
   
-  console.log(`✅ Scroll effects optimizados: ${scrollElements.length} elementos`);
+  console.log(`✅ Scroll effects optimizados: ${scrollElements.length} elementos (${hardwareTier})`);
 };
 
-// ===== HEADER EFFECT (TU VERSIÓN RESTAURADA) =====
+// ===== HEADER EFFECT OPTIMIZADO =====
 const updateHeader = () => {
   if (!header) return;
   
@@ -738,27 +1168,47 @@ const updateHeader = () => {
   
   if (scrollY > 100) {
     header.classList.add('scrolled');
-    header.style.backgroundColor = 'rgba(5, 27, 56, 0.98)';
-    header.style.backdropFilter = 'blur(15px)';
+    // OPTIMIZACIÓN: Usar backgroundColor en lugar de backdropFilter cuando sea posible
+    if (hardwareTier === 'mid_optimized') {
+      header.style.backgroundColor = 'rgba(5, 27, 56, 0.98)';
+      header.style.backdropFilter = 'blur(8px)'; // Reducido
+    } else {
+      header.style.backgroundColor = 'rgba(5, 27, 56, 0.98)';
+      header.style.backdropFilter = 'blur(15px)';
+    }
   } else {
     header.classList.remove('scrolled');
-    header.style.backgroundColor = 'rgba(11, 44, 77, 0.95)';
-    header.style.backdropFilter = 'blur(10px)';
+    if (hardwareTier === 'mid_optimized') {
+      header.style.backgroundColor = 'rgba(11, 44, 77, 0.95)';
+      header.style.backdropFilter = 'blur(5px)'; // Reducido
+    } else {
+      header.style.backgroundColor = 'rgba(11, 44, 77, 0.95)';
+      header.style.backdropFilter = 'blur(10px)';
+    }
   }
 };
 
-// ===== SCROLL HANDLER =====
+// ===== SCROLL HANDLER OPTIMIZADO =====
 const handleScroll = () => {
   if (!ticking) {
     ticking = true;
-    requestAnimationFrame(() => {
-      updateHeader();
-      ticking = false;
-    });
+    
+    // USAR setTimeout EN LUGAR DE requestAnimationFrame PARA MÓVILES
+    if (hardwareTier === 'mid_optimized' || hardwareTier === 'low') {
+      setTimeout(() => {
+        updateHeader();
+        ticking = false;
+      }, 16); // ~60fps
+    } else {
+      requestAnimationFrame(() => {
+        updateHeader();
+        ticking = false;
+      });
+    }
   }
 };
 
-// ===== WHATSAPP BUTTON (TU VERSIÓN RESTAURADA) =====
+// ===== WHATSAPP BUTTON OPTIMIZADO =====
 const initWhatsAppButton = () => {
   const whatsappBtn = document.querySelector('.whatsapp-float');
   if (!whatsappBtn) return;
@@ -770,15 +1220,18 @@ const initWhatsAppButton = () => {
   }, 2000);
   
   if (config.effects) {
+    // OPTIMIZACIÓN: Pulso menos frecuente en móviles
+    const pulseInterval = hardwareTier === 'mid_optimized' ? 5000 : 3000;
+    
     setInterval(() => {
       if (!document.hidden) {
         whatsappBtn.classList.toggle('pulse');
       }
-    }, 3000);
+    }, pulseInterval);
   }
 };
 
-// ===== INTRO REMOVAL (TU VERSIÓN RESTAURADA) =====
+// ===== INTRO REMOVAL (SIN CAMBIOS) =====
 const initIntro = () => {
   const intro = document.getElementById('intro');
   if (!intro) return;
@@ -793,14 +1246,14 @@ const initIntro = () => {
   });
 };
 
-// ===== PARALLAX OPTIMIZADO (TU VERSIÓN COMPLETA RESTAURADA) =====
+// ===== PARALLAX OPTIMIZADO PARA FLUIDEZ =====
 const initComponentParallax = () => {
   if (!config.effects) {
     console.log('⚠️ Efectos desactivados (reduced-motion)');
     return;
   }
   
-  console.log('🌀 Inicializando Parallax Optimizado...');
+  console.log(`🌀 Inicializando Parallax Optimizado para: ${hardwareTier}`);
   
   const mouseParallaxElements = document.querySelectorAll(`
     .card, .offer-card, .contact-card,
@@ -813,18 +1266,25 @@ const initComponentParallax = () => {
     const windowHeight = window.innerHeight;
     const windowCenter = scrollY + (windowHeight / 2);
     
-    const allParallaxElements = document.querySelectorAll(`
-      .reveal[data-speed],
-      [data-scroll-effect],
-      .hero-img, .about-image, .section-title,
-      .card, .offer-card, .contact-card,
-      .brand-item, .feature, .info-card,
-      .hero-text h1, .hero-text p,
-      .section-subtitle, .about-content,
-      .about-content p, .hero-text,
-      .hero-buttons, .about-features,
-      .story-icon-item, .story-text-animated
-    `);
+    // SELECCIONAR MENOS ELEMENTOS EN MÓVILES
+    const parallaxSelector = hardwareTier === 'mid_optimized' ? 
+      `.reveal[data-speed],
+       [data-scroll-effect],
+       .hero-img, .about-image,
+       .card, .offer-card,
+       .hero-text h1, .section-title` :
+      `.reveal[data-speed],
+       [data-scroll-effect],
+       .hero-img, .about-image, .section-title,
+       .card, .offer-card, .contact-card,
+       .brand-item, .feature, .info-card,
+       .hero-text h1, .hero-text p,
+       .section-subtitle, .about-content,
+       .about-content p, .hero-text,
+       .hero-buttons, .about-features,
+       .story-icon-item, .story-text-animated`;
+    
+    const allParallaxElements = document.querySelectorAll(parallaxSelector);
     
     allParallaxElements.forEach(element => {
       const rect = element.getBoundingClientRect();
@@ -835,20 +1295,39 @@ const initComponentParallax = () => {
       const normalizedDistance = distanceFromCenter / windowHeight;
       
       const speed = parseFloat(element.getAttribute('data-speed')) || 0.1;
-      const mobileMultiplier = hardwareTier === 'low' ? 0.3 : 0.7;
+      
+      // AJUSTAR MULTIPLICADOR SEGÚN HARDWARE
+      let mobileMultiplier;
+      if (hardwareTier === 'low') {
+        mobileMultiplier = 0.2;
+      } else if (hardwareTier === 'mid_optimized') {
+        mobileMultiplier = 0.4; // Reducido para más fluidez
+      } else if (hardwareTier === 'mid') {
+        mobileMultiplier = 0.6;
+      } else {
+        mobileMultiplier = 0.7;
+      }
       
       if (element.hasAttribute('data-speed')) {
-        const translateY = normalizedDistance * 100 * speed * mobileMultiplier;
-        const opacity = 1 - Math.abs(normalizedDistance) * 0.3;
+        const translateY = normalizedDistance * 80 * speed * mobileMultiplier; // Reducido de 100
+        const opacity = 1 - Math.abs(normalizedDistance) * 0.2; // Menos cambio de opacidad
         
-        element.style.transform = `translate3d(0, ${translateY}px, 0)`;
-        element.style.opacity = opacity;
+        // USAR transform 2D EN LUGAR DE 3D PARA MÓVILES
+        if (hardwareTier === 'mid_optimized' || hardwareTier === 'low') {
+          element.style.transform = `translateY(${translateY}px)`;
+        } else {
+          element.style.transform = `translate3d(0, ${translateY}px, 0)`;
+        }
+        
+        if (hardwareTier !== 'low') {
+          element.style.opacity = opacity;
+        }
       }
     });
   };
   
-  // Mouse parallax solo en desktop y hardware bueno
-  if (!config.isMobile() && hardwareTier !== 'low') {
+  // MOUSE PARALLAX SOLO EN DESKTOP Y HARDWARE BUENO
+  if (!config.isMobile() && hardwareTier !== 'low' && hardwareTier !== 'mid_optimized') {
     mouseParallaxElements.forEach(element => {
       element.addEventListener('mousemove', (e) => {
         const rect = element.getBoundingClientRect();
@@ -885,14 +1364,29 @@ const initComponentParallax = () => {
     });
   }
   
+  // THROTTLE DEL SCROLL PARALLAX
   let scrollTicking = false;
+  let lastParallaxUpdate = 0;
+  const parallaxThrottle = hardwareTier === 'mid_optimized' ? 50 : 33; // ~20fps vs ~30fps
+  
   const handleScrollParallax = () => {
-    if (!scrollTicking) {
-      requestAnimationFrame(() => {
-        updateScrollParallax();
-        scrollTicking = false;
-      });
+    const now = Date.now();
+    
+    if (!scrollTicking && now - lastParallaxUpdate > parallaxThrottle) {
       scrollTicking = true;
+      lastParallaxUpdate = now;
+      
+      if (hardwareTier === 'mid_optimized' || hardwareTier === 'low') {
+        setTimeout(() => {
+          updateScrollParallax();
+          scrollTicking = false;
+        }, 0);
+      } else {
+        requestAnimationFrame(() => {
+          updateScrollParallax();
+          scrollTicking = false;
+        });
+      }
     }
   };
   
@@ -900,12 +1394,18 @@ const initComponentParallax = () => {
   window.addEventListener('scroll', handleScrollParallax, { passive: true });
   window.addEventListener('resize', handleScrollParallax, { passive: true });
   
-  console.log(`✅ Parallax optimizado para nivel: ${hardwareTier}`);
+  console.log(`✅ Parallax optimizado para: ${hardwareTier} (${Math.floor(1000/parallaxThrottle)} FPS)`);
 };
 
-// ===== SISTEMA DE FONDOS DINÁMICOS (TU VERSIÓN RESTAURADA) =====
+// ===== SISTEMA DE FONDOS DINÁMICOS OPTIMIZADO =====
 const initDynamicBackgrounds = () => {
   const sections = document.querySelectorAll('.parallax-section');
+  
+  // SOLO APLICAR EN HARDWARE SUFICIENTE
+  if (hardwareTier === 'low') {
+    console.log('🎨 Fondos dinámicos desactivados para low tier');
+    return;
+  }
   
   sections.forEach((section) => {
     const background = section.querySelector('.section-background');
@@ -913,7 +1413,7 @@ const initDynamicBackgrounds = () => {
     if (!background) return;
     
     // Solo añadir capas extras en hardware bueno
-    if (hardwareTier !== 'low') {
+    if (hardwareTier === 'high') {
       const layer3 = document.createElement('div');
       layer3.className = 'gradient-layer-3';
       background.appendChild(layer3);
@@ -923,8 +1423,8 @@ const initDynamicBackgrounds = () => {
       background.appendChild(layer4);
     }
     
-    // Efecto de interacción solo en desktop
-    if (!config.isMobile() && hardwareTier !== 'low') {
+    // Efecto de interacción solo en desktop y hardware bueno
+    if (!config.isMobile() && hardwareTier === 'high') {
       section.addEventListener('mousemove', (e) => {
         const rect = section.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -945,12 +1445,12 @@ const initDynamicBackgrounds = () => {
     }
   });
   
-  console.log('🎨 Fondos dinámicos inicializados');
+  console.log('🎨 Fondos dinámicos inicializados (optimizados)');
 };
 
-// ===== SISTEMA DE NOTIFICACIONES INTELIGENTE (TU VERSIÓN RESTAURADA) =====
+// ===== SISTEMA DE NOTIFICACIONES INTELIGENTE OPTIMIZADO =====
 const initSmartNotifications = () => {
-  console.log('🔔 Inicializando sistema de notificaciones...');
+  console.log('🔔 Inicializando sistema de notificaciones optimizado...');
   
   // Verificar si ya existe un contenedor
   let notificationContainer = document.querySelector('.notification-container');
@@ -982,7 +1482,10 @@ const initSmartNotifications = () => {
     }
 
     const notificationId = options.id || `notification-${Date.now()}`;
-    const duration = options.duration || (config.isMobile() ? 8000 : 10000);
+    
+    // DURACIÓN REDUCIDA EN MÓVILES PARA MEJOR EXPERIENCIA
+    const baseDuration = config.isMobile() ? 6000 : 10000;
+    const duration = hardwareTier === 'mid_optimized' ? 5000 : baseDuration;
     
     // Crear elemento de notificación
     const notification = document.createElement('div');
@@ -1003,7 +1506,7 @@ const initSmartNotifications = () => {
     
     const icon = icons[type] || icons.info;
 
-    // Contenido HTML
+    // Contenido HTML optimizado
     notification.innerHTML = `
       <div class="notification-content">
         <span class="notification-icon">${icon}</span>
@@ -1019,17 +1522,19 @@ const initSmartNotifications = () => {
     notificationContainer.appendChild(notification);
     activeNotifications.add(notificationId);
 
-    // Animación de entrada (con setTimeout para asegurar que el DOM esté listo)
+    // Animación de entrada
     setTimeout(() => {
       notification.classList.add('show');
       console.log(`✅ Notificación ${notificationId} visible`);
     }, 10);
 
-    // Configurar barra de progreso
-    const progressBar = notification.querySelector('.notification-progress');
-    if (progressBar) {
-      progressBar.style.animationDuration = `${duration}ms`;
-      progressBar.style.animationPlayState = 'running';
+    // Configurar barra de progreso (solo en dispositivos buenos)
+    if (hardwareTier !== 'low') {
+      const progressBar = notification.querySelector('.notification-progress');
+      if (progressBar) {
+        progressBar.style.animationDuration = `${duration}ms`;
+        progressBar.style.animationPlayState = 'running';
+      }
     }
 
     // Timeout para auto-eliminar
@@ -1092,13 +1597,13 @@ const initSmartNotifications = () => {
   const NOTIFICATION_SETTINGS = {
     welcome: {
       type: 'always',
-      delay: 3500,
-      duration: 10000
+      delay: hardwareTier === 'mid_optimized' ? 4000 : 3500, // Delay mayor para que cargue primero
+      duration: hardwareTier === 'mid_optimized' ? 7000 : 10000
     },
     spline: {
       type: 'once-per-session',
       delay: 0,
-      duration: 6000
+      duration: 5000 // Reducido
     }
   };
   
@@ -1185,7 +1690,7 @@ const initSmartNotifications = () => {
     }
 
     let lastInteractionTime = 0;
-    const INTERACTION_COOLDOWN = 10000; // 10 segundos
+    const INTERACTION_COOLDOWN = hardwareTier === 'mid_optimized' ? 15000 : 10000; // Mayor cooldown
 
     const showSplineNotification = () => {
       const now = Date.now();
@@ -1204,7 +1709,7 @@ const initSmartNotifications = () => {
       
       showNotification(message, 'interaction', {
         id: 'spline-interaction',
-        duration: 6000
+        duration: 5000
       });
 
       lastInteractionTime = now;
@@ -1218,22 +1723,30 @@ const initSmartNotifications = () => {
       splineViewer.addEventListener('mousedown', showSplineNotification);
       splineViewer.addEventListener('wheel', showSplineNotification);
       
-      // Móvil
-      splineViewer.addEventListener('touchstart', showSplineNotification);
+      // Móvil - solo un listener para mejor performance
+      if (config.isMobile()) {
+        splineViewer.addEventListener('touchstart', (e) => {
+          if (e.touches.length === 2) { // Solo para zoom con dos dedos
+            showSplineNotification();
+          }
+        }, { passive: true });
+      }
       
       console.log('✅ Listeners para Spline configurados');
-    }, 1500);
+    }, 2000); // Delay mayor
   };
 
   // ===== INICIALIZACIÓN =====
   
   // 1. Mostrar bienvenida automáticamente
-  showWelcomeNotification();
+  setTimeout(() => {
+    showWelcomeNotification();
+  }, 1000);
   
-  // 2. Configurar notificaciones para Spline
+  // 2. Configurar notificaciones para Spline (con mayor delay)
   setTimeout(() => {
     setupSplineNotifications();
-  }, 2000);
+  }, 3000);
   
   // 3. Exponer funciones para debugging
   window.debugNotifications = {
@@ -1266,10 +1779,10 @@ const initSmartNotifications = () => {
     }
   };
 
-  console.log('✅ Sistema de notificaciones inicializado correctamente');
+  console.log(`✅ Sistema de notificaciones optimizado para: ${hardwareTier}`);
 };
 
-// ===== SISTEMA DE BLOQUEO DE SCROLL PARA SPLINE (TU VERSIÓN RESTAURADA) =====
+// ===== SISTEMA DE BLOQUEO DE SCROLL PARA SPLINE OPTIMIZADO =====
 const initSplineScrollLock = () => {
   const splineViewer = document.querySelector('spline-viewer');
   const splineContainer = document.querySelector('.spline-container');
@@ -1361,15 +1874,22 @@ const initSplineScrollLock = () => {
     }, { passive: false });
   };
   
-  // Detectar interacción en móvil
+  // Detectar interacción en móvil OPTIMIZADO
   const handleMobileInteraction = () => {
     splineViewer.style.touchAction = 'none';
     
+    let lastTouchTime = 0;
+    const TOUCH_THROTTLE = 100; // Throttle para touches
+    
     splineViewer.addEventListener('touchstart', (e) => {
+      const now = Date.now();
+      if (now - lastTouchTime < TOUCH_THROTTLE) return;
+      lastTouchTime = now;
+      
       // Guardar posición inicial
       touchStartY = e.touches[0].clientY;
       
-      // Detectar pinch (zoom)
+      // Detectar pinch (zoom) - solo bloquear para zoom
       if (e.touches.length === 2) {
         isPinching = true;
         initialTouchDistance = Math.hypot(
@@ -1381,27 +1901,24 @@ const initSplineScrollLock = () => {
     }, { passive: true });
     
     splineViewer.addEventListener('touchmove', (e) => {
-      // Prevenir scroll de página cuando hay dos dedos o cuando ya estamos interactuando
-      if (isPinching || isInteracting) {
+      // Prevenir scroll de página solo cuando hay dos dedos
+      if (isPinching) {
         e.preventDefault();
-        
-        // Si detectamos dos dedos, bloquear definitivamente
-        if (e.touches.length === 2 && !isInteracting) {
-          lockScroll();
-        }
       }
     }, { passive: false });
     
     splineViewer.addEventListener('touchend', () => {
       isPinching = false;
       
-      // Pequeño delay antes de desbloquear
+      // Desbloquear más rápido en móviles optimizados
+      const unlockDelay = hardwareTier === 'mid_optimized' ? 300 : 500;
+      
       if (interactionTimeout) clearTimeout(interactionTimeout);
       interactionTimeout = setTimeout(() => {
         if (!isPinching) {
           unlockScroll();
         }
-      }, 500);
+      }, unlockDelay);
     }, { passive: true });
   };
   
@@ -1433,20 +1950,36 @@ const initSplineScrollLock = () => {
     handleDesktopInteraction();
   }
   
-  console.log(`🎮 Sistema de bloqueo de scroll mejorado: ${isMobile ? 'móvil' : 'desktop'}`);
+  console.log(`🎮 Sistema de bloqueo de scroll optimizado: ${isMobile ? 'móvil' : 'desktop'}`);
 };
 
-// ===== OPTIMIZACIÓN SPLINE (ACTUALIZADA CON SCROLL LOCK - TU VERSIÓN) =====
+// ===== OPTIMIZACIÓN SPLINE MEJORADA =====
 const optimizeSpline = () => {
   const splineViewer = document.querySelector('spline-viewer');
   if (!splineViewer) return;
   
   const isMobile = config.isMobile();
   
-  // Configurar atributos dinámicamente
-  splineViewer.setAttribute('render-mode', hardwareTier === 'low' ? 'performance' : 'quality');
+  // CONFIGURACIÓN ESPECÍFICA SEGÚN HARDWARE
+  let renderMode, quality;
+  
+  if (hardwareTier === 'low') {
+    renderMode = 'performance';
+    quality = 'low';
+  } else if (hardwareTier === 'mid_optimized') {
+    renderMode = 'balanced'; // Balance entre calidad y performance
+    quality = 'medium';
+  } else if (hardwareTier === 'mid') {
+    renderMode = 'quality';
+    quality = 'medium';
+  } else { // high
+    renderMode = 'quality';
+    quality = 'high';
+  }
+  
+  splineViewer.setAttribute('render-mode', renderMode);
   splineViewer.setAttribute('interaction-enabled', 'true');
-  splineViewer.setAttribute('quality', hardwareTier === 'low' ? 'low' : 'high');
+  splineViewer.setAttribute('quality', quality);
   
   // Añadir atributos para mejor control táctil
   if (isMobile) {
@@ -1470,10 +2003,10 @@ const optimizeSpline = () => {
   // Inicializar sistema de bloqueo de scroll
   initSplineScrollLock();
   
-  console.log(`🎮 Spline optimizado: modo ${hardwareTier === 'low' ? 'performance' : 'calidad'} + scroll lock`);
+  console.log(`🎮 Spline optimizado: modo ${renderMode}, calidad ${quality}`);
 };
 
-// ===== THROTTLING INTELIGENTE (TU VERSIÓN RESTAURADA) =====
+// ===== THROTTLING MEJORADO =====
 const createThrottledListener = (event, callback, interval = 100) => {
   let lastCall = 0;
   let timeout;
@@ -1495,9 +2028,12 @@ const createThrottledListener = (event, callback, interval = 100) => {
   };
 };
 
-// ===== LAZY LOADING INTELIGENTE (TU VERSIÓN RESTAURADA) =====
+// ===== LAZY LOADING INTELIGENTE OPTIMIZADO =====
 const initSmartLazyLoad = () => {
   const lazyElements = document.querySelectorAll('[loading="lazy"], img[data-src], iframe[data-src]');
+  
+  // MÁRGENES AJUSTADOS SEGÚN HARDWARE
+  const rootMargin = hardwareTier === 'mid_optimized' ? '150px 0px' : '200px 0px';
   
   const lazyObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -1505,49 +2041,57 @@ const initSmartLazyLoad = () => {
         const element = entry.target;
         
         if (element.dataset.src) {
-          element.src = element.dataset.src;
-          element.removeAttribute('data-src');
+          // Cargar con un pequeño delay para no saturar
+          setTimeout(() => {
+            element.src = element.dataset.src;
+            element.removeAttribute('data-src');
+          }, hardwareTier === 'mid_optimized' ? 100 : 50);
         }
         
         lazyObserver.unobserve(element);
       }
     });
   }, {
-    rootMargin: hardwareTier === 'low' ? '100px 0px' : '200px 0px',
+    rootMargin: rootMargin,
     threshold: 0.01
   });
   
   lazyElements.forEach(el => lazyObserver.observe(el));
-  console.log(`🔄 Lazy loading: ${lazyElements.length} elementos`);
+  console.log(`🔄 Lazy loading optimizado: ${lazyElements.length} elementos`);
 };
 
-// ===== AJUSTES DINÁMICOS DE PERFORMANCE (TU VERSIÓN RESTAURADA) =====
+// ===== AJUSTES DINÁMICOS DE PERFORMANCE MEJORADOS =====
 const adjustEffectsForPerformance = () => {
   const particlesContainer = tsParticles.domItem(0);
   if (particlesContainer) {
-    particlesContainer.options.particles.number.value = Math.floor(
-      particlesContainer.options.particles.number.value * 0.7
-    );
-    particlesContainer.refresh();
-    console.log(`🔄 Partículas reducidas a: ${particlesContainer.options.particles.number.value}`);
+    // REDUCCIÓN GRADUAL EN LUGAR DE BRUSCA
+    const currentCount = particlesContainer.options.particles.number.value;
+    const newCount = Math.max(10, Math.floor(currentCount * 0.8));
+    
+    if (newCount < currentCount) {
+      particlesContainer.options.particles.number.value = newCount;
+      particlesContainer.refresh();
+      console.log(`🔄 Partículas reducidas gradualmente a: ${newCount}`);
+    }
   }
   
   const noiseCanvas = document.getElementById('noiseCanvas');
   if (noiseCanvas) {
     const currentOpacity = parseFloat(noiseCanvas.style.opacity || 0.25);
-    noiseCanvas.style.opacity = Math.max(0.05, currentOpacity * 0.7);
+    noiseCanvas.style.opacity = Math.max(0.05, currentOpacity * 0.8);
   }
 };
 
-// ===== MEDICIÓN DE PERFORMANCE (TU VERSIÓN RESTAURADA) =====
+// ===== MEDICIÓN DE PERFORMANCE MEJORADA =====
 const measurePerformance = () => {
-  if ('PerformanceObserver' in window) {
+  if ('PerformanceObserver' in window && hardwareTier !== 'high') {
     const observer = new PerformanceObserver((list) => {
       list.getEntries().forEach((entry) => {
         console.log(`📊 Performance: ${entry.name} - ${entry.duration.toFixed(2)}ms`);
         
-        if (entry.duration > 50 && hardwareTier === 'low') {
-          console.log('⚠️ Performance baja, ajustando efectos...');
+        // AJUSTAR EFECTOS SI HAY PROBLEMAS DE PERFORMANCE
+        if (entry.duration > (hardwareTier === 'mid_optimized' ? 40 : 50)) {
+          console.log('⚠️ Performance baja detectada, ajustando efectos...');
           adjustEffectsForPerformance();
         }
       });
@@ -1557,9 +2101,9 @@ const measurePerformance = () => {
   }
 };
 
-// ===== VENTANAS DE PRODUCTOS (TU VERSIÓN COMPLETA RESTAURADA) =====
+// ===== VENTANAS DE PRODUCTOS OPTIMIZADAS =====
 const initProductModals = () => {
-  console.log('🛒 Inicializando ventanas de productos...');
+  console.log('🛒 Inicializando ventanas de productos optimizadas...');
   
   // Base de datos simple de productos
   const productDatabase = {
@@ -1570,7 +2114,7 @@ const initProductModals = () => {
       price: 'Desde $5.000',
       images: [
         'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w-800&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&auto=format&fit=crop',
         'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop'
       ],
       features: [
@@ -1661,7 +2205,7 @@ const initProductModals = () => {
   let slides = [];
   let indicators = [];
 
-  // Función para crear un slide
+  // Función para crear un slide OPTIMIZADA
   const createSlide = (imageUrl, index) => {
     const slide = document.createElement('div');
     slide.className = `gallery-slide ${index === 0 ? 'active' : ''}`;
@@ -1672,6 +2216,12 @@ const initProductModals = () => {
     img.alt = currentProduct.title;
     img.className = 'gallery-image';
     img.loading = 'lazy';
+    
+    // OPTIMIZACIÓN: Pre-cargar siguiente imagen
+    if (index === 0 && currentProduct.images.length > 1) {
+      const nextImg = new Image();
+      nextImg.src = currentProduct.images[1];
+    }
     
     slide.appendChild(img);
     return slide;
@@ -1705,9 +2255,18 @@ const initProductModals = () => {
     indicators[index].classList.add('active');
     
     currentSlideIndex = index;
+    
+    // Pre-cargar siguiente imagen
+    const nextIndex = (index + 1) % slides.length;
+    if (slides[nextIndex]) {
+      const nextImg = slides[nextIndex].querySelector('img');
+      if (nextImg && nextImg.src.includes('data:image')) {
+        nextImg.src = currentProduct.images[nextIndex];
+      }
+    }
   };
 
-  // Función para mostrar la modal
+  // Función para mostrar la modal OPTIMIZADA
   const showModal = (productKey) => {
     const product = productDatabase[productKey];
     if (!product) return;
@@ -1734,9 +2293,9 @@ const initProductModals = () => {
     slides = [];
     indicators = [];
     
-    // Crear slides
+    // Crear slides (solo cargar primera imagen inmediatamente)
     product.images.forEach((image, index) => {
-      const slide = createSlide(image, index);
+      const slide = createSlide(index === 0 ? image : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', index);
       gallery.appendChild(slide);
       slides.push(slide);
     });
@@ -1758,20 +2317,17 @@ const initProductModals = () => {
     document.body.style.overflow = 'hidden';
     document.body.classList.add('modal-open');
     
-    // Forzar reflow para animación
-    modalOverlay.offsetHeight;
+    // Cargar demás imágenes en background
+    setTimeout(() => {
+      for (let i = 1; i < product.images.length; i++) {
+        const img = slides[i].querySelector('img');
+        if (img) {
+          img.src = product.images[i];
+        }
+      }
+    }, 300);
     
     console.log(`🛒 Mostrando producto: ${product.title}`);
-    
-    // Ajustar para móvil
-    if (config.isMobile()) {
-      setTimeout(() => {
-        const infoContainer = document.querySelector('.product-info');
-        if (infoContainer) {
-          infoContainer.scrollTop = 0;
-        }
-      }, 100);
-    }
   };
 
   // Función para ocultar la modal
@@ -1780,7 +2336,7 @@ const initProductModals = () => {
     document.body.style.overflow = '';
     document.body.classList.remove('modal-open');
     
-    // Resetear galería
+    // Limpiar slides para liberar memoria
     setTimeout(() => {
       slides = [];
       indicators = [];
@@ -1848,75 +2404,122 @@ const initProductModals = () => {
     }
   });
 
-  // Navegación táctil para móvil
+  // Navegación táctil para móvil OPTIMIZADA
   let touchStartX = 0;
   let touchEndX = 0;
+  let lastSwipeTime = 0;
+  const SWIPE_THROTTLE = 300;
 
   gallery.addEventListener('touchstart', (e) => {
     touchStartX = e.changedTouches[0].screenX;
   }, { passive: true });
 
   gallery.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastSwipeTime < SWIPE_THROTTLE) return;
+    lastSwipeTime = now;
+    
     touchEndX = e.changedTouches[0].screenX;
     handleSwipe();
   }, { passive: true });
 
   const handleSwipe = () => {
-    const swipeThreshold = 50;
+    const swipeThreshold = hardwareTier === 'mid_optimized' ? 60 : 50;
     const diff = touchStartX - touchEndX;
     
     if (Math.abs(diff) > swipeThreshold) {
       if (diff > 0) {
-        // Swipe izquierda - siguiente slide
         nextSlide();
       } else {
-        // Swipe derecha - slide anterior
         prevSlide();
       }
     }
   };
 
-  console.log('✅ Sistema de ventanas de productos inicializado');
+  console.log('✅ Sistema de ventanas de productos optimizado');
 };
 
-// ===== INICIALIZACIÓN PRINCIPAL (TU VERSIÓN RESTAURADA) =====
+// ===== INICIALIZACIÓN PRINCIPAL OPTIMIZADA =====
 const init = () => {
-  console.log(`🚀 Iniciando Merke+ - Hardware: ${hardwareTier}`);
+  console.log(`🚀 Iniciando Merke+ optimizado - Hardware: ${hardwareTier}`);
   
   // Configurar optimizaciones de hardware
   setupHardwareOptimizations();
   
-  // Inicializar sistemas básicos inmediatamente
-  initMobileMenu();
-  initSmartLazyLoad();
-  initSmartNotifications();
-  initProductModals();
-  
-  // Inicializar efectos después de que todo cargue
-  window.addEventListener('load', () => {
+  // CARGAR POR ETAPAS PARA MEJOR FLUIDEZ
+  if (hardwareTier === 'mid_optimized' || hardwareTier === 'low') {
+    console.log('⚡ Carga por etapas para mejor fluidez');
+    
+    // Etapa 1: Inmediato (crítico)
+    initMobileMenu();
+    initSmartLazyLoad();
+    
+    // Etapa 2: Con pequeño delay
     setTimeout(() => {
+      initProductModals();
       setupNoisePro();
+    }, 300);
+    
+    // Etapa 3: Con mayor delay
+    setTimeout(() => {
       initTsParticles();
       initSmoothScroll();
       initScrollEffects();
-      initScrollStorytellingPro();
-      initComponentParallax();
-      optimizeSpline();
-      initDynamicBackgrounds();
-      initCountdown();
-      initMicroInteractions();
-      initWhatsAppButton();
-      initIntro();
-      
-      document.body.classList.add('loaded');
-      console.log('✅ Sistema optimizado cargado correctamente');
-      
-      measurePerformance();
-    }, 500);
-  });
+      initSmartNotifications();
+    }, 800);
+    
+    // Etapa 4: Después de que todo esté listo
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        initScrollStorytellingPro();
+        initComponentParallax();
+        optimizeSpline();
+        initDynamicBackgrounds();
+        initCountdown();
+        initMicroInteractions();
+        initWhatsAppButton();
+        initIntro();
+        
+        document.body.classList.add('loaded');
+        console.log('✅ Sistema optimizado cargado correctamente');
+        
+        measurePerformance();
+      }, 1000);
+    });
+    
+  } else {
+    // Carga normal para hardware bueno
+    initMobileMenu();
+    initSmartLazyLoad();
+    initSmartNotifications();
+    initProductModals();
+    
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        setupNoisePro();
+        initTsParticles();
+        initSmoothScroll();
+        initScrollEffects();
+        initScrollStorytellingPro();
+        initComponentParallax();
+        optimizeSpline();
+        initDynamicBackgrounds();
+        initCountdown();
+        initMicroInteractions();
+        initWhatsAppButton();
+        initIntro();
+        
+        document.body.classList.add('loaded');
+        console.log('✅ Sistema optimizado cargado correctamente');
+        
+        measurePerformance();
+      }, 500);
+    });
+  }
   
   // Event listeners optimizados
-  window.addEventListener('scroll', createThrottledListener('scroll', handleScroll, hardwareTier === 'low' ? 100 : 50), { passive: true });
+  const scrollThrottle = hardwareTier === 'mid_optimized' ? 120 : (hardwareTier === 'low' ? 150 : 50);
+  window.addEventListener('scroll', createThrottledListener('scroll', handleScroll, scrollThrottle), { passive: true });
   window.addEventListener('resize', createThrottledListener('resize', updateHeader, 250), { passive: true });
   
   updateHeader();
@@ -1932,9 +2535,9 @@ setTimeout(() => {
     console.log('⚠️ Usando fallback de inicialización');
     init();
   }
-}, 2000);
+}, 3000);
 
-// ===== DEBUG HELPER (TU VERSIÓN RESTAURADA) =====
+// ===== DEBUG HELPER MEJORADO =====
 window.debugMerke = {
   reloadEffects: () => {
     document.body.classList.remove('loaded');
@@ -1953,7 +2556,18 @@ window.debugMerke = {
       isMobile: config.isMobile(),
       memory: navigator.deviceMemory,
       cores: navigator.hardwareConcurrency,
-      gpu: detectGPU()
+      gpu: detectGPU(),
+      userAgent: navigator.userAgent.substring(0, 80)
     };
+  },
+  togglePerformanceMode: () => {
+    if (hardwareTier === 'mid_optimized') {
+      hardwareTier = 'mid';
+      console.log('🔧 Cambiado a modo MID normal');
+    } else if (hardwareTier === 'mid') {
+      hardwareTier = 'mid_optimized';
+      console.log('🔧 Cambiado a modo MID optimizado');
+    }
+    window.debugMerke.reloadEffects();
   }
 };
