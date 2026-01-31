@@ -1,6 +1,6 @@
 // ===== CONFIGURACIÓN FIJA DE ALTA CALIDAD =====
 const config = {
-  effects: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  effects: true, // TODOS LOS EFECTOS SIEMPRE ACTIVOS
   smoothScroll: true,
   soundEnabled: false,
   parallaxEnabled: true,
@@ -14,38 +14,11 @@ const config = {
   scrollMargin: '50px'
 };
 
-// ===== DETECCIÓN SIMPLIFICADA (SOLO PARA LOG) =====
-const detectGPU = () => {
-  try {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (!gl) return 'unknown';
-    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-    if (!debugInfo) return 'unknown';
-    return gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || 'unknown';
-  } catch (e) {
-    return 'unknown';
-  }
-};
-
-// ===== CONFIGURACIÓN FIJA DE EFECTOS (TODOS ACTIVOS) =====
-const setupFixedEffects = () => {
-  console.log('🎯 CONFIGURACIÓN FIJA DE ALTA CALIDAD');
-  console.log('✨ TODOS los efectos activados para todos los dispositivos');
-  
-  // Configuración fija para máxima calidad
-  window.particleCount = 60; // Más partículas que antes
-  window.noiseIntensity = 0.18;
-  window.animationQuality = 'high';
-  config.effects = true;
-  config.parallaxEnabled = true;
-  config.smoothScroll = true;
-  
-  console.log(`🎯 Partículas: ${window.particleCount}`);
-  console.log(`🎨 Intensidad noise: ${window.noiseIntensity}`);
-  console.log(`📱 Dispositivo: ${config.isMobile() ? 'Móvil' : 'Desktop'}`);
-  console.log(`🎮 GPU: ${detectGPU()}`);
-};
+// ===== VARIABLES GLOBALES FIJAS =====
+// ¡CONFIGURACIÓN DE ALTA CALIDAD PARA TODOS!
+window.particleCount = 120; // MÁXIMO DE PARTÍCULAS
+window.noiseIntensity = 0.25; // NOISE AL MÁXIMO
+window.animationQuality = 'high'; // CALIDAD MÁXIMA
 
 // ===== ELEMENTOS DEL DOM =====
 const scrollElements = document.querySelectorAll('[data-scroll-effect]');
@@ -58,40 +31,61 @@ const sections = document.querySelectorAll('section');
 let lastScrollY = window.scrollY;
 let ticking = false;
 
-// ===== NOISE PRO OPTIMIZADO PERO COMPLETO =====
+console.log('🎯 CONFIGURACIÓN FIJA DE ALTA CALIDAD');
+console.log('✨ TODOS los efectos activados para todos los dispositivos');
+console.log(`🎯 Partículas: ${window.particleCount}`);
+console.log(`🎨 Intensidad noise: ${window.noiseIntensity}`);
+console.log(`📱 Dispositivo: ${config.isMobile() ? 'Mobile' : 'Desktop'}`);
+
+// ===== NOISE PRO - CALIDAD MÁXIMA =====
 const setupNoisePro = () => {
   const canvas = document.getElementById('noiseCanvas');
   if (!canvas) return;
 
+  // VERIFICAR SI EL DISPOSITIVO PUEDE MANEJARLO
+  const isLowPerformanceDevice = () => {
+    return window.innerWidth <= 768 || 
+           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
+  // DESACTIVAR COMPLETAMENTE EN DISPOSITIVOS DE BAJO RENDIMIENTO
+  if (isLowPerformanceDevice()) {
+    canvas.style.display = 'none';
+    console.log('🎨 Noise desactivado en dispositivo móvil/limitado');
+    return;
+  }
+
   const ctx = canvas.getContext('2d');
   
-  // CONFIGURACIÓN FIJA DE ALTA CALIDAD
-  const scale = 0.6; // Más detalle
-  const frameRate = 20; // FPS altos
-  const density = 0.035;
-  const opacity = 0.15;
+  // OPTIMIZACIONES:
+  const scale = 0.5; // Reducir resolución a la mitad
+  const frameRate = 10; // Reducir FPS (de 20 a 10)
+  const density = 0.03; // Reducir densidad (de 0.05 a 0.03)
+  const opacity = 0.15; // Reducir opacidad (de 0.25 a 0.15)
 
   let isVisible = true;
+  let isAnimating = false;
   let lastFrameTime = 0;
   const frameInterval = 1000 / frameRate;
 
   const resize = () => {
-    canvas.width = Math.floor(window.innerWidth * scale);
-    canvas.height = Math.floor(window.innerHeight * scale);
+    canvas.width = window.innerWidth * scale;
+    canvas.height = window.innerHeight * scale;
     canvas.style.width = window.innerWidth + 'px';
     canvas.style.height = window.innerHeight + 'px';
   };
 
   resize();
   
+  // Usar debounce para resize
   let resizeTimeout;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(resize, 300);
+    resizeTimeout = setTimeout(resize, 500);
   }, { passive: true });
 
   const generateNoise = (currentTime) => {
-    if (!isVisible || currentTime - lastFrameTime < frameInterval) {
+    if (!isVisible || currentTime - lastFrameTime < frameInterval || !isAnimating) {
       requestAnimationFrame(generateNoise);
       return;
     }
@@ -99,14 +93,15 @@ const setupNoisePro = () => {
     lastFrameTime = currentTime;
     canvas.style.opacity = opacity;
     
-    // Método de alta calidad
+    // Crear un buffer más pequeño
     const imageData = ctx.createImageData(canvas.width, canvas.height);
     const buffer32 = new Uint32Array(imageData.data.buffer);
     const len = buffer32.length;
 
-    for (let i = 0; i < len; i++) {
+    // Usar un patrón más simple
+    for (let i = 0; i < len; i += 2) { // Saltar píxeles
       if (Math.random() < density) {
-        const shade = 200 + (Math.random() * 55);
+        const shade = 220 + (Math.random() * 35);
         buffer32[i] = (255 << 24) | (shade << 16) | (shade << 8) | shade;
       } else {
         buffer32[i] = 0xff000000;
@@ -117,37 +112,49 @@ const setupNoisePro = () => {
     requestAnimationFrame(generateNoise);
   };
 
+  // PAUSAR CUANDO NO ES VISIBLE
   document.addEventListener('visibilitychange', () => {
     isVisible = !document.hidden;
+    isAnimating = isVisible;
+    
     if (isVisible) {
       requestAnimationFrame(generateNoise);
     }
   });
 
+  // SOLO ANIMAR CUANDO HAY INTERACCIÓN
+  let interactionTimeout;
+  const startAnimation = () => {
+    isAnimating = true;
+    clearTimeout(interactionTimeout);
+    interactionTimeout = setTimeout(() => {
+      isAnimating = false;
+    }, 2000); // Parar después de 2 segundos sin interacción
+  };
+
+  ['mousemove', 'scroll', 'click', 'touchstart'].forEach(event => {
+    window.addEventListener(event, startAnimation, { passive: true });
+  });
+
+  // Iniciar
+  isAnimating = true;
   generateNoise(0);
-  console.log(`🎨 Noise Pro activado: ${frameRate} FPS`);
+  console.log('🎨 Noise optimizado: 10 FPS, 50% resolución');
 };
 
-// ===== TSPARTICLES OPTIMIZADO PERO COMPLETO =====
+// ===== TSPARTICLES - EFECTOS COMPLETOS =====
 const initTsParticles = () => {
   if (typeof tsParticles === 'undefined') {
     console.error('tsParticles no cargado');
     return;
   }
 
-  // CONFIGURACIÓN FIJA DE ALTA CALIDAD
-  const particleCount = window.particleCount || 60;
-  const fpsLimit = 45; // FPS altos pero estables
-  const speed = 1.5;
-  const opacityValue = 0.6;
-  const maxSize = 25;
-  const linksEnabled = true;
-  
+  // CONFIGURACIÓN DE ALTA CALIDAD
   const particlesConfig = {
     autoPlay: true,
     background: { color: { value: "transparent" }, opacity: 0 },
     fullScreen: { enable: false, zIndex: -2 },
-    fpsLimit: fpsLimit,
+    fpsLimit: 60, // FPS MÁXIMO
     interactivity: {
       detectsOn: "window",
       events: {
@@ -163,24 +170,20 @@ const initTsParticles = () => {
       color: { value: ["#FFD600", "#2ECC71", "#E74C3C", "#0B2C4D"] },
       move: {
         enable: true,
-        speed: speed,
+        speed: 2, // VELOCIDAD ALTA
         direction: "none",
         outModes: { default: "out" }
       },
       number: {
-        value: particleCount,
+        value: window.particleCount,
         density: { enable: true, width: 1920, height: 1080 }
       },
       opacity: {
-        value: opacityValue,
-        animation: { 
-          enable: true,
-          speed: 2, 
-          sync: false 
-        }
+        value: 0.7,
+        animation: { enable: true, speed: 2, sync: false }
       },
       size: {
-        value: { min: 2, max: maxSize },
+        value: { min: 1, max: 30 },
         animation: { enable: true, speed: 5 }
       },
       shape: {
@@ -190,10 +193,10 @@ const initTsParticles = () => {
         type: "circle"
       },
       links: {
-        enable: linksEnabled,
+        enable: true,
         distance: 150,
         opacity: 0.4,
-        width: 1.2
+        width: 1
       }
     },
     pauseOnBlur: true,
@@ -203,7 +206,7 @@ const initTsParticles = () => {
   };
 
   tsParticles.load("tsparticles", particlesConfig).then(container => {
-    console.log(`✨ tsParticles activado: ${particleCount} partículas - ${fpsLimit} FPS`);
+    console.log(`✨ tsParticles activado: ${window.particleCount} partículas - 60 FPS`);
     
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
@@ -215,7 +218,7 @@ const initTsParticles = () => {
   });
 };
 
-// ===== SCROLL STORYTELLING PRO COMPLETO =====
+// ===== SCROLL STORYTELLING PRO - COMPLETO =====
 const initScrollStorytellingPro = () => {
   const storySections = document.querySelectorAll('.story-section');
   const animatedTexts = document.querySelectorAll('.story-text-animated');
@@ -226,7 +229,7 @@ const initScrollStorytellingPro = () => {
 
   if (!storySections.length || !scrollHint) return;
 
-  // Textos animados con caracteres individuales (máxima calidad)
+  // Preparar textos animados
   animatedTexts.forEach(textElement => {
     const text = textElement.dataset.text || textElement.textContent;
     const chars = text.split('');
@@ -246,8 +249,8 @@ const initScrollStorytellingPro = () => {
 
   const observerOptions = {
     root: null,
-    rootMargin: '-80px 0px -80px 0px',
-    threshold: 0.15
+    rootMargin: '-100px 0px -100px 0px',
+    threshold: 0.1
   };
 
   const storyObserver = new IntersectionObserver((entries) => {
@@ -255,17 +258,14 @@ const initScrollStorytellingPro = () => {
       const section = entry.target;
       
       if (entry.isIntersecting) {
-        // Animar caracteres
         const chars = section.querySelectorAll('.char');
         chars.forEach((char, index) => {
           setTimeout(() => {
             char.style.opacity = '1';
             char.style.transform = 'translateX(0) rotateX(0)';
-            char.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-          }, index * 40);
+          }, index * 50);
         });
 
-        // Animar íconos si es la sección 3
         if (section.id === 'story-section-3') {
           setTimeout(() => {
             if (storyWithIcons) storyWithIcons.classList.add('active');
@@ -279,7 +279,6 @@ const initScrollStorytellingPro = () => {
           }, 500);
         }
       } else {
-        // Resetear animaciones
         const chars = section.querySelectorAll('.char');
         chars.forEach(char => {
           char.style.opacity = '0';
@@ -297,7 +296,6 @@ const initScrollStorytellingPro = () => {
 
   storySections.forEach(section => storyObserver.observe(section));
 
-  // Scroll hint
   const updateScrollHint = () => {
     const heroSection = document.getElementById('hero');
     if (!heroSection || !scrollHint) return;
@@ -345,14 +343,13 @@ const initScrollStorytellingPro = () => {
     window.addEventListener(event, resetHideTimeout, { passive: true });
   });
 
-  // Scroll optimizado
   let scrollHintTimeout;
   window.addEventListener('scroll', () => {
     if (!scrollHintTimeout) {
       scrollHintTimeout = setTimeout(() => {
         updateScrollHint();
         scrollHintTimeout = null;
-      }, 50);
+      }, 100);
     }
   }, { passive: true });
 
@@ -398,7 +395,7 @@ const initCountdown = () => {
   console.log('⏰ Countdown activado');
 };
 
-// ===== MICRO-INTERACCIONES COMPLETAS =====
+// ===== MICRO-INTERACCIONES =====
 const initMicroInteractions = () => {
   const createRippleEffect = (event, element) => {
     const ripple = document.createElement('span');
@@ -430,14 +427,11 @@ const initMicroInteractions = () => {
     document.querySelectorAll('.card, .offer-card, .contact-card').forEach(card => {
       card.addEventListener('touchstart', () => {
         card.style.transform = 'scale(0.98)';
-        card.style.transition = 'transform 0.2s ease';
       }, { passive: true });
       
       card.addEventListener('touchend', () => {
         card.style.transform = '';
       }, { passive: true });
-      
-      card.style.willChange = 'transform';
     });
   }
 };
@@ -496,7 +490,7 @@ const closeMobileMenu = () => {
   document.documentElement.style.overflow = '';
 };
 
-// ===== SCROLL SMOOTH OPTIMIZADO =====
+// ===== SCROLL SMOOTH =====
 const initSmoothScroll = () => {
   console.log('🔄 SmoothScroll activado');
   
@@ -508,6 +502,8 @@ const initSmoothScroll = () => {
         : 1 - Math.pow(-2 * t + 2, 4) / 2;
     },
     offset: 80,
+    minDistance: 50,
+    maxDistance: 3000,
     fps: 60,
   };
 
@@ -527,12 +523,12 @@ const initSmoothScroll = () => {
     
     let duration = customDuration || smoothConfig.duration;
     
-    if (absoluteDistance < 300) {
-      duration = Math.max(300, absoluteDistance * 0.8);
+    if (absoluteDistance < 500) {
+      duration = Math.max(400, absoluteDistance * 0.6);
     } else if (absoluteDistance > 2000) {
-      duration = Math.min(1000, absoluteDistance * 0.3);
+      duration = Math.min(1200, absoluteDistance * 0.4);
     } else {
-      duration = absoluteDistance * 0.4;
+      duration = absoluteDistance * 0.5;
     }
 
     let startTime = null;
@@ -561,6 +557,13 @@ const initSmoothScroll = () => {
       } else {
         window.scrollTo({ top: targetPosition, behavior: 'instant' });
         rafId = null;
+        
+        requestAnimationFrame(() => {
+          const currentPos = window.pageYOffset;
+          if (Math.abs(currentPos - targetPosition) > 1) {
+            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+          }
+        });
       }
     };
 
@@ -600,7 +603,7 @@ const initSmoothScroll = () => {
   console.log('✅ SmoothScroll listo');
 };
 
-// ===== SCROLL EFFECTS COMPLETOS =====
+// ===== SCROLL EFFECTS =====
 const initScrollEffects = () => {
   if (!config.effects || scrollElements.length === 0) return;
   
@@ -617,16 +620,25 @@ const initScrollEffects = () => {
           const element = entry.target;
           const delay = parseInt(element.getAttribute('data-delay')) || 0;
           
-          setTimeout(() => {
-            element.classList.add('active');
-          }, delay);
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              element.classList.add('active');
+            }, delay);
+          });
         }
       });
     },
     observerOptions
   );
   
-  scrollElements.forEach(el => observer.observe(el));
+  const batchSize = 10;
+  for (let i = 0; i < scrollElements.length; i += batchSize) {
+    const batch = Array.from(scrollElements).slice(i, i + batchSize);
+    
+    requestIdleCallback(() => {
+      batch.forEach(el => observer.observe(el));
+    }, { timeout: 1000 });
+  }
   
   console.log(`✅ Scroll effects: ${scrollElements.length} elementos`);
 };
@@ -648,7 +660,7 @@ const updateHeader = () => {
   }
 };
 
-// ===== SCROLL HANDLER OPTIMIZADO =====
+// ===== SCROLL HANDLER =====
 const handleScroll = () => {
   if (!ticking) {
     ticking = true;
@@ -679,7 +691,7 @@ const initWhatsAppButton = () => {
   }
 };
 
-// ===== INTRO =====
+// ===== INTRO REMOVAL =====
 const initIntro = () => {
   const intro = document.getElementById('intro');
   if (!intro) return;
@@ -694,7 +706,7 @@ const initIntro = () => {
   });
 };
 
-// ===== PARALLAX COMPLETO =====
+// ===== PARALLAX - EFECTOS COMPLETOS =====
 const initComponentParallax = () => {
   if (!config.effects) {
     console.log('⚠️ Efectos desactivados (reduced-motion)');
@@ -714,7 +726,7 @@ const initComponentParallax = () => {
     const windowHeight = window.innerHeight;
     const windowCenter = scrollY + (windowHeight / 2);
     
-    const parallaxSelector = `
+    const allParallaxElements = document.querySelectorAll(`
       .reveal[data-speed],
       [data-scroll-effect],
       .hero-img, .about-image, .section-title,
@@ -724,9 +736,8 @@ const initComponentParallax = () => {
       .section-subtitle, .about-content,
       .about-content p, .hero-text,
       .hero-buttons, .about-features,
-      .story-icon-item, .story-text-animated`;
-    
-    const allParallaxElements = document.querySelectorAll(parallaxSelector);
+      .story-icon-item, .story-text-animated
+    `);
     
     allParallaxElements.forEach(element => {
       const rect = element.getBoundingClientRect();
@@ -739,8 +750,8 @@ const initComponentParallax = () => {
       const speed = parseFloat(element.getAttribute('data-speed')) || 0.1;
       
       if (element.hasAttribute('data-speed')) {
-        const translateY = normalizedDistance * 80 * speed;
-        const opacity = 1 - Math.abs(normalizedDistance) * 0.2;
+        const translateY = normalizedDistance * 100 * speed * 0.7;
+        const opacity = 1 - Math.abs(normalizedDistance) * 0.3;
         
         element.style.transform = `translate3d(0, ${translateY}px, 0)`;
         element.style.opacity = opacity;
@@ -748,7 +759,7 @@ const initComponentParallax = () => {
     });
   };
   
-  // Mouse parallax solo en desktop
+  // Mouse parallax siempre activo en desktop
   if (!config.isMobile()) {
     mouseParallaxElements.forEach(element => {
       element.addEventListener('mousemove', (e) => {
@@ -786,22 +797,14 @@ const initComponentParallax = () => {
     });
   }
   
-  // Scroll parallax
   let scrollTicking = false;
-  let lastParallaxUpdate = 0;
-  const parallaxThrottle = 33; // ~30fps
-  
   const handleScrollParallax = () => {
-    const now = Date.now();
-    
-    if (!scrollTicking && now - lastParallaxUpdate > parallaxThrottle) {
-      scrollTicking = true;
-      lastParallaxUpdate = now;
-      
+    if (!scrollTicking) {
       requestAnimationFrame(() => {
         updateScrollParallax();
         scrollTicking = false;
       });
+      scrollTicking = true;
     }
   };
   
@@ -812,7 +815,7 @@ const initComponentParallax = () => {
   console.log('✅ Parallax listo');
 };
 
-// ===== SISTEMA DE FONDOS DINÁMICOS =====
+// ===== FONDOS DINÁMICOS - EFECTOS COMPLETOS =====
 const initDynamicBackgrounds = () => {
   const sections = document.querySelectorAll('.parallax-section');
   
@@ -830,7 +833,7 @@ const initDynamicBackgrounds = () => {
     layer4.className = 'gradient-layer-4';
     background.appendChild(layer4);
     
-    // Efecto de interacción solo en desktop
+    // Efecto de interacción en desktop
     if (!config.isMobile()) {
       section.addEventListener('mousemove', (e) => {
         const rect = section.getBoundingClientRect();
@@ -855,26 +858,31 @@ const initDynamicBackgrounds = () => {
   console.log('🎨 Fondos dinámicos activados');
 };
 
-// ===== SISTEMA DE NOTIFICACIONES =====
+// ===== SISTEMA DE NOTIFICACIONES INTELIGENTE COMPLETO =====
 const initSmartNotifications = () => {
-  console.log('🔔 Sistema de notificaciones activado');
+  console.log('🔔 Inicializando sistema de notificaciones...');
   
+  // Verificar si ya existe un contenedor
   let notificationContainer = document.querySelector('.notification-container');
   
   if (!notificationContainer) {
     notificationContainer = document.createElement('div');
     notificationContainer.className = `notification-container ${config.isMobile() ? 'mobile' : 'desktop'}`;
     document.body.appendChild(notificationContainer);
+    console.log('✅ Contenedor de notificaciones creado');
   }
   
   let activeNotifications = new Set();
   let notificationTimeouts = new Map();
 
+  // Función para mostrar notificación
   const showNotification = (message, type = 'info', options = {}) => {
+    // Si no hay mensaje, no mostrar
     if (!message || message.trim() === '') return null;
     
-    console.log(`🔔 Mostrando: "${message.substring(0, 30)}..."`);
+    console.log(`🔔 Mostrando: "${message.substring(0, 30)}${message.length > 30 ? '...' : ''}"`);
     
+    // Remover notificación existente con el mismo ID
     if (options.id) {
       const existing = document.getElementById(options.id);
       if (existing) {
@@ -884,8 +892,9 @@ const initSmartNotifications = () => {
     }
 
     const notificationId = options.id || `notification-${Date.now()}`;
-    const duration = config.isMobile() ? 6000 : 10000;
+    const duration = options.duration || (config.isMobile() ? 8000 : 10000);
     
+    // Crear elemento de notificación
     const notification = document.createElement('div');
     notification.className = `notification ${type} ${config.isMobile() ? 'mobile-notification' : 'desktop-notification'}`;
     notification.id = notificationId;
@@ -893,6 +902,7 @@ const initSmartNotifications = () => {
     notification.setAttribute('aria-live', 'polite');
     notification.style.zIndex = '10002';
 
+    // Icono según tipo
     const icons = {
       info: 'ℹ️',
       success: '✅',
@@ -903,6 +913,7 @@ const initSmartNotifications = () => {
     
     const icon = icons[type] || icons.info;
 
+    // Contenido HTML
     notification.innerHTML = `
       <div class="notification-content">
         <span class="notification-icon">${icon}</span>
@@ -914,33 +925,43 @@ const initSmartNotifications = () => {
       <div class="notification-progress"></div>
     `;
 
+    // Añadir al DOM
     notificationContainer.appendChild(notification);
     activeNotifications.add(notificationId);
 
+    // Animación de entrada (con setTimeout para asegurar que el DOM esté listo)
     setTimeout(() => {
       notification.classList.add('show');
+      console.log(`✅ Notificación ${notificationId} visible`);
     }, 10);
 
+    // Configurar barra de progreso
     const progressBar = notification.querySelector('.notification-progress');
     if (progressBar) {
       progressBar.style.animationDuration = `${duration}ms`;
       progressBar.style.animationPlayState = 'running';
     }
 
+    // Timeout para auto-eliminar
     const timeout = setTimeout(() => {
+      console.log(`⏰ Auto-dismiss: ${notificationId}`);
       removeNotification(notificationId);
     }, duration);
 
     notificationTimeouts.set(notificationId, timeout);
 
+    // Botón de cerrar
     const closeBtn = notification.querySelector('.notification-close');
     closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      console.log(`❌ Cerrada manualmente: ${notificationId}`);
       removeNotification(notificationId);
     });
 
+    // Clic en la notificación para cerrar
     notification.addEventListener('click', (e) => {
       if (e.target === notification) {
+        console.log(`👆 Clic en notificación: ${notificationId}`);
         removeNotification(notificationId);
       }
     });
@@ -948,55 +969,404 @@ const initSmartNotifications = () => {
     return notificationId;
   };
 
+  // Función para remover notificación
   const removeNotification = (id) => {
+    console.log(`🗑️ Eliminando: ${id}`);
+    
     const notification = document.getElementById(id);
-    if (!notification) return;
+    if (!notification) {
+      console.warn(`⚠️ Notificación ${id} no encontrada`);
+      return;
+    }
 
+    // Limpiar timeout
     if (notificationTimeouts.has(id)) {
       clearTimeout(notificationTimeouts.get(id));
       notificationTimeouts.delete(id);
     }
 
+    // Animación de salida
     notification.classList.remove('show');
     notification.classList.add('hide');
 
+    // Eliminar después de la animación
     setTimeout(() => {
       if (notification.parentNode) {
         notification.parentNode.removeChild(notification);
       }
       activeNotifications.delete(id);
+      console.log(`✅ Completamente eliminada: ${id}`);
     }, 300);
   };
 
-  // Notificación de bienvenida
-  setTimeout(() => {
-    showNotification(
-      '¡Bienvenido a Merke+ de la sabana!',
-      'info',
-      {
-        id: 'welcome-notification',
-        duration: 10000
-      }
-    );
-  }, 3500);
+  const NOTIFICATION_SETTINGS = {
+    welcome: {
+      type: 'always', // 'always', 'once-per-session', 'once-per-day', 'once-per-hour'
+      delay: 3500,
+      duration: 10000
+    },
+    spline: {
+      type: 'once-per-session',
+      delay: 0,
+      duration: 6000
+    }
+  };
   
-  console.log('✅ Sistema de notificaciones listo');
+  // Verificar si debe mostrarse según el tipo
+  const shouldShowNotification = (notificationType) => {
+    const settings = NOTIFICATION_SETTINGS[notificationType];
+    if (!settings) return true;
+    
+    const storageKey = `merke_${notificationType}_shown`;
+    
+    switch(settings.type) {
+      case 'always':
+        return true;
+        
+      case 'once-per-session':
+        return !sessionStorage.getItem(storageKey);
+        
+      case 'once-per-day':
+        const lastShown = localStorage.getItem(storageKey);
+        if (!lastShown) return true;
+        
+        const lastDate = new Date(parseInt(lastShown));
+        const now = new Date();
+        return lastDate.getDate() !== now.getDate() || 
+               lastDate.getMonth() !== now.getMonth() || 
+               lastDate.getFullYear() !== now.getFullYear();
+        
+      case 'once-per-hour':
+        const lastShownHour = localStorage.getItem(storageKey);
+        if (!lastShownHour) return true;
+        
+        const lastHour = new Date(parseInt(lastShownHour));
+        const nowHour = new Date();
+        return (nowHour.getTime() - lastHour.getTime()) > (60 * 60 * 1000);
+        
+      default:
+        return true;
+    }
+  };
+  
+  // Marcar como mostrada
+  const markAsShown = (notificationType) => {
+    const settings = NOTIFICATION_SETTINGS[notificationType];
+    if (!settings) return;
+    
+    const storageKey = `merke_${notificationType}_shown`;
+    
+    if (settings.type === 'once-per-session') {
+      sessionStorage.setItem(storageKey, 'true');
+    } else if (settings.type === 'once-per-day' || settings.type === 'once-per-hour') {
+      localStorage.setItem(storageKey, Date.now().toString());
+    }
+  };
+  
+  // ===== NOTIFICACIÓN DE BIENVENIDA AUTOMÁTICA =====
+  const showWelcomeNotification = () => {
+    if (!shouldShowNotification('welcome')) {
+      console.log('⚠️ Bienvenida ya mostrada según configuración');
+      return;
+    }
+    
+    console.log('👋 Mostrando notificación de bienvenida automática');
+    
+    setTimeout(() => {
+      showNotification(
+        '¡Bienvenido a Merke+ de la sabana!',
+        'info',
+        {
+          id: 'welcome-notification',
+          duration: NOTIFICATION_SETTINGS.welcome.duration
+        }
+      );
+      
+      markAsShown('welcome');
+    }, NOTIFICATION_SETTINGS.welcome.delay);
+  };
+
+  // ===== NOTIFICACIONES PARA SPLINE =====
+  const setupSplineNotifications = () => {
+    const splineViewer = document.querySelector('spline-viewer');
+    if (!splineViewer) {
+      console.error('❌ Spline viewer no encontrado');
+      return;
+    }
+
+    let lastInteractionTime = 0;
+    const INTERACTION_COOLDOWN = 10000; // 10 segundos
+
+    const showSplineNotification = () => {
+      const now = Date.now();
+      
+      // Cooldown para evitar notificaciones repetitivas
+      if (now - lastInteractionTime < INTERACTION_COOLDOWN) {
+        console.log('⏳ Cooldown activo, omitiendo notificación Spline');
+        return;
+      }
+
+      const message = config.isMobile() 
+        ? 'Modo interacción: Dos dedos para zoom, un dedo para rotar'
+        : 'Modo interacción: Usa la rueda del mouse para zoom';
+
+      console.log('🎮 Mostrando notificación de interacción Spline');
+      
+      showNotification(message, 'interaction', {
+        id: 'spline-interaction',
+        duration: 6000 // 6 segundos
+      });
+
+      lastInteractionTime = now;
+    };
+
+    // Añadir listeners con delay para asegurar que Spline esté listo
+    setTimeout(() => {
+      console.log('🎯 Añadiendo listeners a Spline');
+      
+      // Desktop
+      splineViewer.addEventListener('mousedown', showSplineNotification);
+      splineViewer.addEventListener('wheel', showSplineNotification);
+      
+      // Móvil
+      splineViewer.addEventListener('touchstart', showSplineNotification);
+      
+      console.log('✅ Listeners para Spline configurados');
+    }, 1500);
+  };
+
+  // ===== INICIALIZACIÓN =====
+  
+  // 1. Mostrar bienvenida automáticamente
+  showWelcomeNotification();
+  
+  // 2. Configurar notificaciones para Spline
+  setTimeout(() => {
+    setupSplineNotifications();
+  }, 2000);
+  
+  // 3. Exponer funciones para debugging
+  window.debugNotifications = {
+    show: (message, type = 'info', duration = 10000) => {
+      return showNotification(message, type, { 
+        id: `debug-${Date.now()}`,
+        duration: duration 
+      });
+    },
+    remove: (id) => removeNotification(id),
+    list: () => Array.from(activeNotifications),
+    testWelcome: () => {
+      showNotification(
+        '[TEST] ¡Bienvenido a Merke+! Esta es una prueba',
+        'info',
+        { id: 'test-welcome', duration: 5000 }
+      );
+    },
+    testSpline: () => {
+      const message = config.isMobile() 
+        ? '[TEST] Interacción Spline: Dos dedos zoom'
+        : '[TEST] Interacción Spline: Rueda mouse zoom';
+      showNotification(message, 'interaction', { 
+        id: 'test-spline', 
+        duration: 5000 
+      });
+    },
+    clearAll: () => {
+      activeNotifications.forEach(id => removeNotification(id));
+    }
+  };
+
+  console.log('✅ Sistema de notificaciones inicializado correctamente');
+  console.log('📱 Dispositivo:', config.isMobile() ? 'Móvil' : 'Desktop');
+  console.log('💾 Sesión:', sessionStorage.getItem('merke_welcome_shown') ? 'Bienvenida mostrada' : 'Bienvenida pendiente');
 };
 
-// ===== SPLINE OPTIMIZADO =====
+// ===== SISTEMA DE BLOQUEO DE SCROLL PARA SPLINE COMPLETO =====
+const initSplineScrollLock = () => {
+  const splineViewer = document.querySelector('spline-viewer');
+  const splineContainer = document.querySelector('.spline-container');
+  
+  if (!splineViewer || !splineContainer) return;
+  
+  // Variables de estado
+  let isInteracting = false;
+  let interactionTimeout = null;
+  let isMobile = config.isMobile();
+  let touchStartY = 0;
+  let isPinching = false;
+  let initialTouchDistance = 0;
+  
+  // Función mejorada para bloquear scroll
+  const lockScroll = () => {
+    if (isInteracting) return;
+    
+    isInteracting = true;
+    
+    // Añadir clase al body
+    document.body.classList.add('scroll-locked');
+    
+    // Guardar posición actual del scroll
+    window.scrollLockPosition = window.pageYOffset;
+    
+    // Añadir clase al contenedor Spline
+    splineContainer.classList.add('interacting');
+    
+    console.log('🔒 Scroll bloqueado para interacción');
+  };
+  
+  // Función mejorada para desbloquear scroll
+  const unlockScroll = () => {
+    if (!isInteracting) return;
+    
+    isInteracting = false;
+    
+    // Remover clase del body
+    document.body.classList.remove('scroll-locked');
+    
+    // Remover clase del contenedor Spline
+    splineContainer.classList.remove('interacting');
+    
+    console.log('🔓 Scroll desbloqueado');
+  };
+  
+  // Detectar interacción en desktop
+  const handleDesktopInteraction = () => {
+    // Mouse down - comenzar interacción
+    splineViewer.addEventListener('mousedown', () => {
+      lockScroll();
+      
+      // Resetear timeout si ya existe
+      if (interactionTimeout) {
+        clearTimeout(interactionTimeout);
+      }
+    });
+    
+    // Mouse up - terminar después de delay corto
+    splineViewer.addEventListener('mouseup', () => {
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+      interactionTimeout = setTimeout(() => {
+        if (!splineViewer.matches(':active')) {
+          unlockScroll();
+        }
+      }, 300);
+    });
+    
+    // Mouse leave - terminar inmediatamente
+    splineViewer.addEventListener('mouseleave', () => {
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+      unlockScroll();
+    });
+    
+    // Wheel - mantener bloqueado durante
+    splineViewer.addEventListener('wheel', (e) => {
+      e.stopPropagation();
+      
+      if (!isInteracting) {
+        lockScroll();
+      }
+      
+      // Resetear timeout
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+      interactionTimeout = setTimeout(() => {
+        unlockScroll();
+      }, 500);
+    }, { passive: false });
+  };
+  
+  // Detectar interacción en móvil
+  const handleMobileInteraction = () => {
+    splineViewer.style.touchAction = 'none';
+    
+    splineViewer.addEventListener('touchstart', (e) => {
+      // Guardar posición inicial
+      touchStartY = e.touches[0].clientY;
+      
+      // Detectar pinch (zoom)
+      if (e.touches.length === 2) {
+        isPinching = true;
+        initialTouchDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        lockScroll();
+      }
+    }, { passive: true });
+    
+    splineViewer.addEventListener('touchmove', (e) => {
+      // Prevenir scroll de página cuando hay dos dedos o cuando ya estamos interactuando
+      if (isPinching || isInteracting) {
+        e.preventDefault();
+        
+        // Si detectamos dos dedos, bloquear definitivamente
+        if (e.touches.length === 2 && !isInteracting) {
+          lockScroll();
+        }
+      }
+    }, { passive: false });
+    
+    splineViewer.addEventListener('touchend', () => {
+      isPinching = false;
+      
+      // Pequeño delay antes de desbloquear
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+      interactionTimeout = setTimeout(() => {
+        if (!isPinching) {
+          unlockScroll();
+        }
+      }, 500);
+    }, { passive: true });
+  };
+  
+  // Prevenir scroll accidental cuando el cursor está sobre Spline
+  splineViewer.addEventListener('mouseenter', () => {
+    splineViewer.style.pointerEvents = 'auto';
+  });
+  
+  splineViewer.addEventListener('mouseleave', () => {
+    if (interactionTimeout) clearTimeout(interactionTimeout);
+    interactionTimeout = setTimeout(() => {
+      if (!splineViewer.matches(':active')) {
+        unlockScroll();
+      }
+    }, 200);
+  });
+  
+  // Escape key para desbloquear manualmente
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isInteracting) {
+      unlockScroll();
+    }
+  });
+  
+  // Inicializar según dispositivo
+  if (isMobile) {
+    handleMobileInteraction();
+  } else {
+    handleDesktopInteraction();
+  }
+  
+  console.log(`🎮 Sistema de bloqueo de scroll mejorado: ${isMobile ? 'móvil' : 'desktop'}`);
+};
+
+// ===== OPTIMIZACIÓN SPLINE COMPLETA CON SCROLL LOCK =====
 const optimizeSpline = () => {
   const splineViewer = document.querySelector('spline-viewer');
   if (!splineViewer) return;
   
-  splineViewer.setAttribute('render-mode', 'quality');
-  splineViewer.setAttribute('interaction-enabled', 'true');
-  splineViewer.setAttribute('quality', 'high');
+  console.log('🎮 Spline configurado en alta calidad + scroll lock');
   
+  // CONFIGURACIÓN DE ALTA CALIDAD
+  splineViewer.setAttribute('render-mode', 'quality');
+  splineViewer.setAttribute('quality', 'high');
+  splineViewer.setAttribute('interaction-enabled', 'true');
+  
+  // Añadir atributos para mejor control táctil
   if (config.isMobile()) {
     splineViewer.setAttribute('touch-action', 'none');
     splineViewer.style.touchAction = 'none';
   }
   
+  // Pausar cuando no es visible
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) {
@@ -1009,7 +1379,10 @@ const optimizeSpline = () => {
   
   observer.observe(splineViewer);
   
-  console.log('🎮 Spline configurado en alta calidad');
+  // Inicializar sistema de bloqueo de scroll COMPLETO
+  initSplineScrollLock();
+  
+  console.log('✅ Spline optimizado con scroll lock');
 };
 
 // ===== LAZY LOADING =====
@@ -1020,14 +1393,10 @@ const initSmartLazyLoad = () => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const element = entry.target;
-        
         if (element.dataset.src) {
-          setTimeout(() => {
-            element.src = element.dataset.src;
-            element.removeAttribute('data-src');
-          }, 50);
+          element.src = element.dataset.src;
+          element.removeAttribute('data-src');
         }
-        
         lazyObserver.unobserve(element);
       }
     });
@@ -1045,6 +1414,63 @@ const initProductModals = () => {
   console.log('🛒 Ventanas de productos activadas');
   
   const productDatabase = {
+    'abarrotes': {
+      title: 'Abarrotes Esenciales',
+      category: 'Abarrotes',
+      description: 'Todo lo esencial para tu despensa diaria. Productos de alta calidad que garantizan sabor y durabilidad.',
+      price: 'Desde $5.000',
+      images: [
+        'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w-800&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop'
+      ],
+      features: [
+        'Productos no perecederos',
+        'Marcas reconocidas',
+        'Precios competitivos',
+        'Variedad en presentaciones',
+        'Calidad garantizada',
+        'Almacenamiento adecuado'
+      ]
+    },
+    'frutas-y-verduras': {
+      title: 'Frutas y Verduras Frescas',
+      category: 'Frutas y Verduras',
+      description: 'Productos frescos, locales y de temporada. Seleccionados cuidadosamente para garantizar máxima frescura y sabor.',
+      price: 'Desde $3.000',
+      images: [
+        'https://images.unsplash.com/photo-1577046848358-82b4afcb21d0?w=800&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1592921870789-04563d55041c?w=800&auto=format&fit=crop'
+      ],
+      features: [
+        'Productos locales',
+        'Recogidos diariamente',
+        'Sin pesticidas nocivos',
+        'Variedad de temporada',
+        'Precios por unidad o kilo',
+        'Máxima frescura'
+      ]
+    },
+    'lacteos': {
+      title: 'Lácteos Frescos',
+      category: 'Lácteos',
+      description: 'Leche, yogurt y quesos de la más alta calidad. Productos frescos que mantienen todo su sabor y propiedades nutricionales.',
+      price: 'Desde $4.500',
+      images: [
+        'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=800&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1567306301408-9b74779a11af?w=800&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800&auto=format&fit=crop'
+      ],
+      features: [
+        'Productos refrigerados',
+        'Fechas de vencimiento vigentes',
+        'Marcas de confianza',
+        'Variedad de presentaciones',
+        'Alta calidad nutricional',
+        'Precios especiales por cantidad'
+      ]
+    },
     'bebidas': {
       title: 'Bebidas Refrescantes',
       category: 'Bebidas',
@@ -1064,9 +1490,9 @@ const initProductModals = () => {
         'Productos importados y nacionales'
       ]
     }
-    // Agrega más productos según necesites
   };
 
+  // Elementos DOM
   const modalOverlay = document.getElementById('productModalOverlay');
   const modalClose = document.getElementById('modalClose');
   const modalCloseBtn = document.getElementById('modalCloseBtn');
@@ -1080,6 +1506,7 @@ const initProductModals = () => {
   const nextSlideBtn = document.getElementById('nextSlide');
   const galleryIndicators = document.getElementById('galleryIndicators');
 
+  // Variables de estado
   let currentProduct = null;
   let currentSlideIndex = 0;
   let slides = [];
@@ -1180,6 +1607,8 @@ const initProductModals = () => {
       slides = [];
       indicators = [];
     }, 300);
+    
+    console.log('🛒 Modal cerrada');
   };
 
   const prevSlide = () => {
@@ -1190,11 +1619,20 @@ const initProductModals = () => {
     goToSlide(currentSlideIndex + 1);
   };
 
-  // Asignar eventos (ajusta los selectores según tu HTML)
   document.querySelectorAll('.card-link').forEach((link, index) => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      showModal('bebidas'); // O el producto correspondiente
+      
+      let productKey = '';
+      switch(index) {
+        case 0: productKey = 'abarrotes'; break;
+        case 1: productKey = 'frutas-y-verduras'; break;
+        case 2: productKey = 'lacteos'; break;
+        case 3: productKey = 'bebidas'; break;
+        default: productKey = 'abarrotes';
+      }
+      
+      showModal(productKey);
     });
   });
 
@@ -1225,26 +1663,30 @@ const initProductModals = () => {
     }
   });
 
-  // Navegación táctil
   let touchStartX = 0;
   let touchEndX = 0;
-  
+
   gallery.addEventListener('touchstart', (e) => {
     touchStartX = e.changedTouches[0].screenX;
   }, { passive: true });
 
   gallery.addEventListener('touchend', (e) => {
     touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  }, { passive: true });
+
+  const handleSwipe = () => {
+    const swipeThreshold = 50;
     const diff = touchStartX - touchEndX;
     
-    if (Math.abs(diff) > 50) {
+    if (Math.abs(diff) > swipeThreshold) {
       if (diff > 0) {
         nextSlide();
       } else {
         prevSlide();
       }
     }
-  }, { passive: true });
+  };
 
   console.log('✅ Sistema de productos listo');
 };
@@ -1253,21 +1695,19 @@ const initProductModals = () => {
 const init = () => {
   console.log('🚀 Iniciando Merke+ con TODOS los efectos activados');
   
-  // Configurar efectos fijos de alta calidad
-  setupFixedEffects();
-  
-  // Cargar todo inmediatamente
+  // Inicializar todo inmediatamente
   initMobileMenu();
   initSmartLazyLoad();
+  initSmartNotifications();
   initProductModals();
-  setupNoisePro();
   
+  // Inicializar efectos visuales
   window.addEventListener('load', () => {
     setTimeout(() => {
+      setupNoisePro();
       initTsParticles();
       initSmoothScroll();
       initScrollEffects();
-      initSmartNotifications();
       initScrollStorytellingPro();
       initComponentParallax();
       optimizeSpline();
@@ -1295,22 +1735,22 @@ init();
 // Fallback
 setTimeout(() => {
   if (!document.body.classList.contains('loaded')) {
-    console.log('⚠️ Usando fallback de inicialización');
+    console.log('⚠️ Reintentando carga...');
     init();
   }
-}, 3000);
+}, 2000);
 
 // ===== DEBUG HELPER =====
 window.debugMerke = {
   reloadEffects: () => {
-    document.body.classList.remove('loaded');
-    setTimeout(init, 100);
+    document.location.reload();
   },
-  getHardwareInfo: () => {
+  getConfig: () => {
     return {
+      particleCount: window.particleCount,
+      noiseIntensity: window.noiseIntensity,
       isMobile: config.isMobile(),
-      gpu: detectGPU(),
-      userAgent: navigator.userAgent.substring(0, 80)
+      allEffects: true
     };
   }
 };
