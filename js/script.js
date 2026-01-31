@@ -42,104 +42,183 @@ const setupNoisePro = () => {
   const canvas = document.getElementById('noiseCanvas');
   if (!canvas) return;
 
-  // VERIFICAR SI EL DISPOSITIVO PUEDE MANEJARLO
-  const isLowPerformanceDevice = () => {
-    return window.innerWidth <= 768 || 
-           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  // DETECCIÓN AVANZADA DE RENDIMIENTO
+  const getDevicePerformance = () => {
+    const isMobile = config.isMobile();
+    const isHighPerfMobile = /iPhone X|iPhone 1[1-5]|iPad Pro|Samsung S[2-9][0-9]|Pixel [3-9]/.test(navigator.userAgent);
+    const memory = navigator.deviceMemory || 4;
+    
+    if (!isMobile) return 'high';
+    if (isHighPerfMobile && memory >= 4) return 'medium';
+    return 'low';
   };
 
-  // DESACTIVAR COMPLETAMENTE EN DISPOSITIVOS DE BAJO RENDIMIENTO
-  if (isLowPerformanceDevice()) {
+  const performanceLevel = getDevicePerformance();
+  
+  // DESACTIVAR COMPLETAMENTE EN DISPOSITIVOS MUY DÉBILES
+  if (performanceLevel === 'low') {
     canvas.style.display = 'none';
-    console.log('🎨 Noise desactivado en dispositivo móvil/limitado');
+    console.log('🎨 Noise desactivado (dispositivo limitado)');
     return;
   }
 
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { alpha: false });
   
-  // OPTIMIZACIONES:
-  const scale = 0.5; // Reducir resolución a la mitad
-  const frameRate = 10; // Reducir FPS (de 20 a 10)
-  const density = 0.03; // Reducir densidad (de 0.05 a 0.03)
-  const opacity = 0.15; // Reducir opacidad (de 0.25 a 0.15)
+  // CONFIGURACIÓN POR NIVEL DE RENDIMIENTO
+  const configs = {
+    high: {
+      scale: 1.0,
+      frameRate: 20,
+      density: 0.05,
+      opacity: 0.25,
+      blur: 0
+    },
+    medium: {
+      scale: 0.7,
+      frameRate: 15,
+      density: 0.03,
+      opacity: 0.18,
+      blur: 2
+    },
+    low: {
+      scale: 0.5,
+      frameRate: 10,
+      density: 0.02,
+      opacity: 0.12,
+      blur: 4
+    }
+  };
 
+  const cfg = configs[performanceLevel];
+  
   let isVisible = true;
   let isAnimating = false;
   let lastFrameTime = 0;
-  const frameInterval = 1000 / frameRate;
+  const frameInterval = 1000 / cfg.frameRate;
+  let animationFrameId = null;
+  
+  // BUFFER REUTILIZABLE
+  let noiseBuffer = null;
+  let buffer32 = null;
 
   const resize = () => {
-    canvas.width = window.innerWidth * scale;
-    canvas.height = window.innerHeight * scale;
+    const width = Math.floor(window.innerWidth * cfg.scale);
+    const height = Math.floor(window.innerHeight * cfg.scale);
+    
+    if (canvas.width === width && canvas.height === height) return;
+    
+    canvas.width = width;
+    canvas.height = height;
     canvas.style.width = window.innerWidth + 'px';
     canvas.style.height = window.innerHeight + 'px';
+    
+    // Crear nuevos buffers
+    noiseBuffer = ctx.createImageData(width, height);
+    buffer32 = new Uint32Array(noiseBuffer.data.buffer);
+    
+    console.log(`🎨 Noise canvas: ${width}x${height} (${cfg.scale*100}%)`);
   };
 
   resize();
   
-  // Usar debounce para resize
+  // RESIZE DEBOUNCED
   let resizeTimeout;
-  window.addEventListener('resize', () => {
+  const debouncedResize = () => {
     clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(resize, 500);
-  }, { passive: true });
+    resizeTimeout = setTimeout(() => {
+      resize();
+      generateNoiseFrame(performance.now());
+    }, 250);
+  };
 
-  const generateNoise = (currentTime) => {
-    if (!isVisible || currentTime - lastFrameTime < frameInterval || !isAnimating) {
-      requestAnimationFrame(generateNoise);
+  window.addEventListener('resize', debouncedResize, { passive: true });
+
+  // GENERACIÓN DE NOISE OPTIMIZADA
+  const generateNoiseFrame = (currentTime) => {
+    if (!isVisible || !isAnimating || currentTime - lastFrameTime < frameInterval) {
+      animationFrameId = requestAnimationFrame(generateNoiseFrame);
       return;
     }
     
     lastFrameTime = currentTime;
-    canvas.style.opacity = opacity;
     
-    // Crear un buffer más pequeño
-    const imageData = ctx.createImageData(canvas.width, canvas.height);
-    const buffer32 = new Uint32Array(imageData.data.buffer);
-    const len = buffer32.length;
-
-    // Usar un patrón más simple
-    for (let i = 0; i < len; i += 2) { // Saltar píxeles
-      if (Math.random() < density) {
-        const shade = 220 + (Math.random() * 35);
-        buffer32[i] = (255 << 24) | (shade << 16) | (shade << 8) | shade;
-      } else {
-        buffer32[i] = 0xff000000;
+    // APLICAR OPACIDAD DINÁMICA
+    canvas.style.opacity = cfg.opacity.toString();
+    
+    // GENERAR PATRÓN DE NOISE
+    if (buffer32 && noiseBuffer) {
+      const len = buffer32.length;
+      const time = currentTime * 0.001;
+      
+      // Patrón más simple pero efectivo
+      for (let i = 0; i < len; i++) {
+        if (Math.random() < cfg.density) {
+          const shade = 200 + Math.sin(time + i * 0.0001) * 30;
+          const alpha = 180 + Math.sin(time * 2 + i * 0.00005) * 75;
+          buffer32[i] = (alpha << 24) | (shade << 16) | (shade << 8) | shade;
+        } else {
+          buffer32[i] = 0x00000000;
+        }
+      }
+      
+      ctx.putImageData(noiseBuffer, 0, 0);
+      
+      // APLICAR BLUR SI ES NECESARIO
+      if (cfg.blur > 0) {
+        ctx.filter = `blur(${cfg.blur}px)`;
+        ctx.drawImage(canvas, 0, 0);
+        ctx.filter = 'none';
       }
     }
-
-    ctx.putImageData(imageData, 0, 0);
-    requestAnimationFrame(generateNoise);
+    
+    animationFrameId = requestAnimationFrame(generateNoiseFrame);
   };
 
-  // PAUSAR CUANDO NO ES VISIBLE
+  // CONTROL DE VISIBILIDAD
   document.addEventListener('visibilitychange', () => {
     isVisible = !document.hidden;
     isAnimating = isVisible;
     
-    if (isVisible) {
-      requestAnimationFrame(generateNoise);
+    if (isVisible && !animationFrameId) {
+      animationFrameId = requestAnimationFrame(generateNoiseFrame);
+    } else if (!isVisible && animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
     }
   });
 
-  // SOLO ANIMAR CUANDO HAY INTERACCIÓN
+  // ACTIVACIÓN POR INTERACCIÓN
   let interactionTimeout;
   const startAnimation = () => {
-    isAnimating = true;
+    if (!isAnimating) {
+      isAnimating = true;
+      if (!animationFrameId) {
+        animationFrameId = requestAnimationFrame(generateNoiseFrame);
+      }
+    }
+    
     clearTimeout(interactionTimeout);
     interactionTimeout = setTimeout(() => {
-      isAnimating = false;
-    }, 2000); // Parar después de 2 segundos sin interacción
+      if (performanceLevel !== 'high') {
+        isAnimating = false;
+      }
+    }, 2000);
   };
 
-  ['mousemove', 'scroll', 'click', 'touchstart'].forEach(event => {
-    window.addEventListener(event, startAnimation, { passive: true });
+  // LISTENERS OPTIMIZADOS
+  const events = ['mousemove', 'scroll', 'touchstart', 'click'];
+  events.forEach(event => {
+    window.addEventListener(event, startAnimation, { 
+      passive: true,
+      capture: true 
+    });
   });
 
-  // Iniciar
+  // INICIAR
   isAnimating = true;
-  generateNoise(0);
-  console.log('🎨 Noise optimizado: 10 FPS, 50% resolución');
+  animationFrameId = requestAnimationFrame(generateNoiseFrame);
+  
+  console.log(`🎨 Noise optimizado: ${cfg.frameRate}FPS, ${cfg.scale*100}% resolución`);
 };
 
 // ===== TSPARTICLES - EFECTOS COMPLETOS =====
@@ -149,65 +228,129 @@ const initTsParticles = () => {
     return;
   }
 
-  // CONFIGURACIÓN DE ALTA CALIDAD
+  // DETECCIÓN DE RENDIMIENTO DEL DISPOSITIVO
+  const getParticleSettings = () => {
+    const isMobile = config.isMobile();
+    const isLowEnd = /Android.*[0-4]\.[0-9]|iPhone OS [0-9]_|CPU.*OS 1[0-4]_/.test(navigator.userAgent);
+    const memory = navigator.deviceMemory || 4;
+    
+    if (!isMobile) {
+      // DESKTOP - ALTA CALIDAD
+      return {
+        count: 120,
+        fpsLimit: 60,
+        speed: 2,
+        opacity: 0.7,
+        links: true,
+        interactivity: true
+      };
+    } else if (isLowEnd || memory < 4) {
+      // MÓVIL DE BAJO RENDIMIENTO - MÍNIMO
+      return {
+        count: 30,
+        fpsLimit: 30,
+        speed: 0.5,
+        opacity: 0.3,
+        links: false,
+        interactivity: false
+      };
+    } else {
+      // MÓVIL MODERNO - BALANCEADO
+      return {
+        count: 60,
+        fpsLimit: 45,
+        speed: 1,
+        opacity: 0.5,
+        links: true,
+        interactivity: true
+      };
+    }
+  };
+
+  const settings = getParticleSettings();
+  
   const particlesConfig = {
     autoPlay: true,
-    background: { color: { value: "transparent" }, opacity: 0 },
-    fullScreen: { enable: false, zIndex: -2 },
-    fpsLimit: 60, // FPS MÁXIMO
+    background: { 
+      color: { value: "transparent" }, 
+      opacity: 0 
+    },
+    fullScreen: { 
+      enable: false, 
+      zIndex: -2 
+    },
+    fpsLimit: settings.fpsLimit,
+    pauseOnBlur: true,
+    pauseOnOutsideViewport: true,
+    smooth: false,
+    detectRetina: true,
+    
     interactivity: {
       detectsOn: "window",
       events: {
-        onClick: { enable: true, mode: "push" },
+        onClick: { 
+          enable: settings.interactivity, 
+          mode: "push" 
+        },
         onHover: { 
-          enable: true,
+          enable: settings.interactivity,
           mode: "repulse",
           parallax: { enable: false }
         }
       }
     },
+    
     particles: {
-      color: { value: ["#FFD600", "#2ECC71", "#E74C3C", "#0B2C4D"] },
+      color: { 
+        value: ["#FFD600", "#2ECC71", "#E74C3C", "#0B2C4D"] 
+      },
       move: {
         enable: true,
-        speed: 2, // VELOCIDAD ALTA
+        speed: settings.speed,
         direction: "none",
         outModes: { default: "out" }
       },
       number: {
-        value: window.particleCount,
-        density: { enable: true, width: 1920, height: 1080 }
+        value: settings.count,
+        density: { 
+          enable: true, 
+          width: 1920, 
+          height: 1080 
+        }
       },
       opacity: {
-        value: 0.7,
-        animation: { enable: true, speed: 2, sync: false }
+        value: settings.opacity,
+        animation: { 
+          enable: true, 
+          speed: 2, 
+          sync: false 
+        }
       },
       size: {
-        value: { min: 1, max: 30 },
-        animation: { enable: true, speed: 5 }
+        value: { min: 1, max: 20 },
+        animation: { 
+          enable: settings.interactivity, 
+          speed: 5 
+        }
       },
       shape: {
         close: true,
         fill: true,
-        options: {},
         type: "circle"
       },
       links: {
-        enable: true,
-        distance: 150,
-        opacity: 0.4,
+        enable: settings.links,
+        distance: 100,
+        opacity: 0.2,
         width: 1
       }
-    },
-    pauseOnBlur: true,
-    pauseOnOutsideViewport: true,
-    smooth: false,
-    detectRetina: true
+    }
   };
 
   tsParticles.load("tsparticles", particlesConfig).then(container => {
-    console.log(`✨ tsParticles activado: ${window.particleCount} partículas - 60 FPS`);
+    console.log(`✨ tsParticles optimizado: ${settings.count} partículas @ ${settings.fpsLimit}FPS`);
     
+    // PAUSA CUANDO NO ES VISIBLE
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         container.pause();
@@ -215,6 +358,25 @@ const initTsParticles = () => {
         container.play();
       }
     });
+    
+    // REDUCIR INTENSIDAD CUANDO HAY SCROLL (móvil)
+    if (config.isMobile()) {
+      let scrollTimeout;
+      window.addEventListener('scroll', () => {
+        if (settings.count > 30) {
+          container.options.particles.number.value = 15;
+          container.refresh();
+          
+          clearTimeout(scrollTimeout);
+          scrollTimeout = setTimeout(() => {
+            container.options.particles.number.value = settings.count;
+            container.refresh();
+          }, 1000);
+        }
+      }, { passive: true });
+    }
+  }).catch(error => {
+    console.error('Error cargando tsParticles:', error);
   });
 };
 
@@ -713,33 +875,71 @@ const initComponentParallax = () => {
     return;
   }
   
-  console.log('🌀 Parallax activado');
+  console.log('🌀 Parallax optimizado para rendimiento');
   
-  const mouseParallaxElements = document.querySelectorAll(`
-    .card, .offer-card, .contact-card,
-    .brand-item, .feature, .info-card,
-    .story-icon-item, .hero-btn
+  const isLowPerformance = () => {
+    const isMobile = config.isMobile();
+    const isSlowCPU = /Android.*[0-4]\.[0-9]|iPhone OS [0-9]_/.test(navigator.userAgent);
+    return isMobile && isSlowCPU;
+  };
+
+  // LISTAS DE ELEMENTOS SEPARADAS POR PRIORIDAD
+  const highPriorityElements = document.querySelectorAll(`
+    .hero-img, .hero-text h1, .section-title h2,
+    .story-text-animated, .story-text-animated-final
   `);
   
-  const updateScrollParallax = () => {
+  const mediumPriorityElements = document.querySelectorAll(`
+    .card, .offer-card, .story-icon-item,
+    .about-image img, .brand-item
+  `);
+  
+  const lowPriorityElements = document.querySelectorAll(`
+    .reveal[data-speed], [data-scroll-effect],
+    .feature, .info-card, .contact-card
+  `);
+
+  // CONFIGURACIÓN POR PRIORIDAD
+  const parallaxConfig = {
+    high: {
+      intensity: isLowPerformance() ? 0.3 : 0.5,
+      updateRate: isLowPerformance() ? 2 : 1 // frames entre updates
+    },
+    medium: {
+      intensity: isLowPerformance() ? 0.15 : 0.3,
+      updateRate: isLowPerformance() ? 3 : 2
+    },
+    low: {
+      intensity: isLowPerformance() ? 0.05 : 0.15,
+      updateRate: isLowPerformance() ? 4 : 3
+    }
+  };
+
+  let frameCount = 0;
+  
+  const updateParallax = () => {
     const scrollY = window.scrollY;
     const windowHeight = window.innerHeight;
     const windowCenter = scrollY + (windowHeight / 2);
     
-    const allParallaxElements = document.querySelectorAll(`
-      .reveal[data-speed],
-      [data-scroll-effect],
-      .hero-img, .about-image, .section-title,
-      .card, .offer-card, .contact-card,
-      .brand-item, .feature, .info-card,
-      .hero-text h1, .hero-text p,
-      .section-subtitle, .about-content,
-      .about-content p, .hero-text,
-      .hero-buttons, .about-features,
-      .story-icon-item, .story-text-animated
-    `);
+    // ACTUALIZAR POR PRIORIDAD
+    if (frameCount % parallaxConfig.high.updateRate === 0) {
+      updateElementsParallax(highPriorityElements, parallaxConfig.high.intensity, scrollY, windowCenter, windowHeight);
+    }
     
-    allParallaxElements.forEach(element => {
+    if (frameCount % parallaxConfig.medium.updateRate === 0) {
+      updateElementsParallax(mediumPriorityElements, parallaxConfig.medium.intensity, scrollY, windowCenter, windowHeight);
+    }
+    
+    if (frameCount % parallaxConfig.low.updateRate === 0) {
+      updateElementsParallax(lowPriorityElements, parallaxConfig.low.intensity, scrollY, windowCenter, windowHeight);
+    }
+    
+    frameCount++;
+  };
+  
+  const updateElementsParallax = (elements, intensity, scrollY, windowCenter, windowHeight) => {
+    elements.forEach(element => {
       const rect = element.getBoundingClientRect();
       const elementTop = rect.top + scrollY;
       const elementCenter = elementTop + (rect.height / 2);
@@ -747,20 +947,29 @@ const initComponentParallax = () => {
       const distanceFromCenter = elementCenter - windowCenter;
       const normalizedDistance = distanceFromCenter / windowHeight;
       
-      const speed = parseFloat(element.getAttribute('data-speed')) || 0.1;
+      // CALCULAR TRANSFORM
+      const translateY = normalizedDistance * 100 * intensity * 0.7;
+      const opacity = 1 - Math.abs(normalizedDistance) * 0.3;
       
-      if (element.hasAttribute('data-speed')) {
-        const translateY = normalizedDistance * 100 * speed * 0.7;
-        const opacity = 1 - Math.abs(normalizedDistance) * 0.3;
-        
-        element.style.transform = `translate3d(0, ${translateY}px, 0)`;
-        element.style.opacity = opacity;
+      // APLICAR CON TRANSFORM3D PARA GPU ACCELERATION
+      element.style.transform = `translate3d(0, ${translateY}px, 0)`;
+      element.style.willChange = 'transform';
+      
+      // OPACITY SOLO PARA ALTA PRIORIDAD
+      if (Array.from(highPriorityElements).includes(element)) {
+        element.style.opacity = opacity.toString();
       }
     });
   };
   
-  // Mouse parallax siempre activo en desktop
-  if (!config.isMobile()) {
+  // MOUSE PARALLAX SOLO EN DESKTOP Y MÓVILES POTENTES
+  if (!isLowPerformance() && !config.isMobile()) {
+    const mouseParallaxElements = document.querySelectorAll(`
+      .card, .offer-card, .contact-card,
+      .brand-item, .feature, .info-card,
+      .story-icon-item, .hero-btn
+    `);
+    
     mouseParallaxElements.forEach(element => {
       element.addEventListener('mousemove', (e) => {
         const rect = element.getBoundingClientRect();
@@ -785,34 +994,42 @@ const initComponentParallax = () => {
           rotateY(${rotateY}deg)
           rotateX(${rotateX}deg)
         `;
+        element.style.transition = 'transform 0.1s ease-out';
       });
       
       element.addEventListener('mouseleave', () => {
         element.style.transform = '';
-        element.style.transition = 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
-        setTimeout(() => {
-          element.style.transition = 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
-        }, 500);
+        element.style.transition = 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
       });
     });
   }
   
+  // THROTTLED SCROLL HANDLER
   let scrollTicking = false;
   const handleScrollParallax = () => {
     if (!scrollTicking) {
       requestAnimationFrame(() => {
-        updateScrollParallax();
+        updateParallax();
         scrollTicking = false;
       });
       scrollTicking = true;
     }
   };
   
-  updateScrollParallax();
+  // INICIALIZAR
+  updateParallax();
   window.addEventListener('scroll', handleScrollParallax, { passive: true });
-  window.addEventListener('resize', handleScrollParallax, { passive: true });
   
-  console.log('✅ Parallax listo');
+  // DEBOUNCED RESIZE
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      updateParallax();
+    }, 250);
+  }, { passive: true });
+  
+  console.log('✅ Parallax optimizado por prioridades');
 };
 
 // ===== FONDOS DINÁMICOS - EFECTOS COMPLETOS =====
@@ -1353,60 +1570,157 @@ const optimizeSpline = () => {
   const splineViewer = document.querySelector('spline-viewer');
   if (!splineViewer) return;
   
-  console.log('🎮 Spline configurado en alta calidad + scroll lock');
+  console.log('🎮 Optimizando Spline para mejor rendimiento...');
   
-  // CONFIGURACIÓN DE ALTA CALIDAD
-  splineViewer.setAttribute('render-mode', 'quality');
-  splineViewer.setAttribute('quality', 'high');
+  // DETECCIÓN AVANZADA DE DISPOSITIVO
+  const isLowPerformanceDevice = () => {
+    const userAgent = navigator.userAgent;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    const isOldDevice = /CPU.*OS 1[0-4]_|iPhone OS 1[0-4]_/.test(userAgent);
+    const memory = navigator.deviceMemory || 4;
+    const cores = navigator.hardwareConcurrency || 4;
+    
+    return isMobile && (isOldDevice || memory < 4 || cores < 4);
+  };
+
+  // CONFIGURACIÓN INTELIGENTE POR DISPOSITIVO
+  if (isLowPerformanceDevice()) {
+    console.log('📱 Dispositivo de rendimiento limitado detectado - Optimizando Spline');
+    
+    // MODO BAJO CONSUMO PARA DISPOSITIVOS DÉBILES
+    splineViewer.setAttribute('render-mode', 'performance');
+    splineViewer.setAttribute('quality', 'low');
+    splineViewer.setAttribute('fps-cap', '30');
+    splineViewer.setAttribute('shadow-enabled', 'false');
+    splineViewer.setAttribute('reflections-enabled', 'false');
+    splineViewer.setAttribute('post-processing-enabled', 'false');
+    
+    // Reducir calidad de texturas
+    setTimeout(() => {
+      if (splineViewer.shadowRoot) {
+        const canvas = splineViewer.shadowRoot.querySelector('canvas');
+        if (canvas) {
+          canvas.style.imageRendering = 'pixelated';
+          canvas.style.willChange = 'transform';
+        }
+      }
+    }, 1000);
+    
+  } else if (config.isMobile()) {
+    console.log('📱 Móvil moderno - Configuración balanceada');
+    
+    // MODO BALANCEADO PARA MÓVILES MODERNOS
+    splineViewer.setAttribute('render-mode', 'balanced');
+    splineViewer.setAttribute('quality', 'medium');
+    splineViewer.setAttribute('fps-cap', '45');
+    splineViewer.setAttribute('shadow-enabled', 'true');
+    splineViewer.setAttribute('reflections-enabled', 'false');
+    splineViewer.setAttribute('post-processing-enabled', 'true');
+    
+  } else {
+    console.log('💻 Desktop - Configuración de alta calidad');
+    
+    // ALTA CALIDAD PARA DESKTOP
+    splineViewer.setAttribute('render-mode', 'quality');
+    splineViewer.setAttribute('quality', 'high');
+    splineViewer.setAttribute('fps-cap', '60');
+    splineViewer.setAttribute('shadow-enabled', 'true');
+    splineViewer.setAttribute('reflections-enabled', 'true');
+    splineViewer.setAttribute('post-processing-enabled', 'true');
+  }
+  
+  // OPTIMIZACIONES UNIVERSALES
   splineViewer.setAttribute('interaction-enabled', 'true');
+  splineViewer.setAttribute('loading', 'eager');
   
   // Añadir atributos para mejor control táctil
   if (config.isMobile()) {
     splineViewer.setAttribute('touch-action', 'none');
     splineViewer.style.touchAction = 'none';
+    splineViewer.style.webkitTapHighlightColor = 'transparent';
   }
   
-  // Pausar cuando no es visible
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) {
-        splineViewer.setAttribute('paused', 'true');
-      } else {
-        splineViewer.removeAttribute('paused');
-      }
+  // PAUSA INTELIGENTE CUANDO NO ES VISIBLE
+  let visibilityObserver;
+  try {
+    visibilityObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) {
+          console.log('⏸️ Pausando Spline (no visible)');
+          splineViewer.setAttribute('paused', 'true');
+          
+          // Liberar recursos cuando está oculto
+          if (config.isMobile()) {
+            setTimeout(() => {
+              if (!entry.isIntersecting && splineViewer.shadowRoot) {
+                const canvas = splineViewer.shadowRoot.querySelector('canvas');
+                if (canvas) {
+                  canvas.style.opacity = '0.5';
+                }
+              }
+            }, 1000);
+          }
+          
+        } else {
+          console.log('▶️ Reanudando Spline (visible)');
+          splineViewer.removeAttribute('paused');
+          
+          // Restaurar recursos
+          if (splineViewer.shadowRoot) {
+            const canvas = splineViewer.shadowRoot.querySelector('canvas');
+            if (canvas) {
+              canvas.style.opacity = '1';
+            }
+          }
+        }
+      });
+    }, { 
+      threshold: 0.01,
+      rootMargin: '50px'
     });
-  }, { threshold: 0.1 });
+    
+    visibilityObserver.observe(splineViewer);
+  } catch (e) {
+    console.warn('⚠️ IntersectionObserver no soportado:', e);
+  }
   
-  observer.observe(splineViewer);
+  // SISTEMA DE THROTTLING PARA INTERACCIONES
+  let lastInteractionTime = 0;
+  const interactionThrottle = 100; // 100ms mínimo entre actualizaciones
   
-  // Inicializar sistema de bloqueo de scroll COMPLETO
+  const throttledInteraction = (callback) => {
+    const now = Date.now();
+    if (now - lastInteractionTime > interactionThrottle) {
+      callback();
+      lastInteractionTime = now;
+    }
+  };
+  
+  // EVENT LISTENERS OPTIMIZADOS
+  const addOptimizedListener = (element, event, handler) => {
+    element.addEventListener(event, (e) => {
+      e.stopPropagation();
+      throttledInteraction(() => handler(e));
+    }, { passive: true });
+  };
+  
+  // Inicializar sistema de bloqueo de scroll mejorado
   initSplineScrollLock();
   
-  console.log('✅ Spline optimizado con scroll lock');
-};
-
-// ===== LAZY LOADING =====
-const initSmartLazyLoad = () => {
-  const lazyElements = document.querySelectorAll('[loading="lazy"], img[data-src], iframe[data-src]');
-  
-  const lazyObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const element = entry.target;
-        if (element.dataset.src) {
-          element.src = element.dataset.src;
-          element.removeAttribute('data-src');
-        }
-        lazyObserver.unobserve(element);
-      }
-    });
-  }, {
-    rootMargin: '200px 0px',
-    threshold: 0.01
+  // LIMPIAR RECURSOS AL SALIR
+  window.addEventListener('beforeunload', () => {
+    if (visibilityObserver) {
+      visibilityObserver.disconnect();
+    }
+    splineViewer.setAttribute('paused', 'true');
   });
   
-  lazyElements.forEach(el => lazyObserver.observe(el));
-  console.log(`🔄 Lazy loading: ${lazyElements.length} elementos`);
+  // DEBUG INFO
+  console.log('✅ Spline optimizado:');
+  console.log('   - Render mode:', splineViewer.getAttribute('render-mode'));
+  console.log('   - Quality:', splineViewer.getAttribute('quality'));
+  console.log('   - FPS Cap:', splineViewer.getAttribute('fps-cap'));
+  console.log('   - Mobile:', config.isMobile());
 };
 
 // ===== VENTANAS DE PRODUCTOS =====
@@ -1691,6 +2005,33 @@ const initProductModals = () => {
   console.log('✅ Sistema de productos listo');
 };
 
+
+
+// ===== LAZY LOADING =====
+const initSmartLazyLoad = () => {
+  const lazyElements = document.querySelectorAll('[loading="lazy"], img[data-src], iframe[data-src]');
+  
+  const lazyObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const element = entry.target;
+        if (element.dataset.src) {
+          element.src = element.dataset.src;
+          element.removeAttribute('data-src');
+        }
+        lazyObserver.unobserve(element);
+      }
+    });
+  }, {
+    rootMargin: '200px 0px',
+    threshold: 0.01
+  });
+  
+  lazyElements.forEach(el => lazyObserver.observe(el));
+  console.log(`🔄 Lazy loading: ${lazyElements.length} elementos`);
+};
+
+
 // ===== INICIALIZACIÓN PRINCIPAL =====
 const init = () => {
   console.log('🚀 Iniciando Merke+ con TODOS los efectos activados');
@@ -1716,6 +2057,7 @@ const init = () => {
       initMicroInteractions();
       initWhatsAppButton();
       initIntro();
+      
       
       document.body.classList.add('loaded');
       console.log('✅ Sistema completamente cargado');
