@@ -3141,3 +3141,161 @@ spline-viewer {
 }
 
 
+/* 1. DETECCIÓN DE TIPO DE DISPOSITIVO */
+@media (hover: none) and (pointer: coarse) {
+  /* DISPOSITIVOS TÁCTILES */
+  .gradient-layer {
+    animation-duration: 120s !important;
+    filter: blur(40px) !important;
+    opacity: 0.3 !important;
+  }
+  
+  .gradient-layer-2 {
+    display: none !important; /* Desactivar partículas en móviles */
+  }
+  
+  #tsparticles {
+    opacity: 0.2 !important; /* Reducir intensidad */
+  }
+  
+  /* Reducir animaciones del storytelling */
+  .story-text-animated .char {
+    transition-duration: 0.5s !important;
+  }
+  
+  /* Optimizar Spline para touch */
+  spline-viewer {
+    touch-action: pan-x pan-y !important;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* DISPOSITIVOS CON MOUSE (Desktop) */
+  .gradient-layer {
+    animation-duration: 40s !important;
+  }
+}
+
+/* 2. DESACTIVAR EFECTOS EN DISPOSITIVOS LENTOS */
+@media (max-width: 768px) and (prefers-reduced-data: reduce) {
+  #tsparticles,
+  .gradient-layer-2,
+  .gradient-layer-3,
+  .gradient-layer-4 {
+    display: none !important;
+  }
+  
+  .gradient-layer {
+    opacity: 0.15 !important;
+  }
+  
+  #noiseCanvas {
+    opacity: 0.1 !important;
+  }
+}
+
+/* 3. REDUCIR TAMAÑO DE PARTÍCULAS EN MÓVIL */
+@media (max-width: 768px) {
+  .particles-js-canvas-el {
+    transform: scale(0.7) !important;
+    transform-origin: center center !important;
+  }
+  
+  /* Reducir canvas noise */
+  #noiseCanvas {
+    image-rendering: pixelated !important;
+  }
+}
+
+/* 4. MEJORAR RENDIMIENTO DE ANIMACIONES */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal, 
+  [data-scroll-effect], 
+  .story-text-animated .char,
+  .gradient-layer {
+    will-change: transform, opacity;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 5. OPTIMIZACIÓN ESPECÍFICA PARA iOS */
+@supports (-webkit-touch-callout: none) {
+  .gradient-layer,
+  .gradient-layer-2 {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  /* Evitar flash en Safari */
+  #hero, section {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
+/* 6. REDUCIR MEMORIA DE GRADIENTS */
+@media (max-width: 768px) {
+  .section-background {
+    background-size: cover !important;
+    background-attachment: scroll !important;
+  }
+  
+  .gradient-layer {
+    background-size: 200% 200% !important;
+  }
+}
+
+/* 7. OPTIMIZAR SCROLL SMOOTH */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* 8. BLOQUEAR GPU EN MÓVILES ANTIGUOS */
+@media (max-width: 480px) and (max-device-width: 768px) {
+  .hero-img,
+  .story-text-animated,
+  .card {
+    transform: translateZ(0) !important;
+    backface-visibility: hidden !important;
+    perspective: 1000px !important;
+  }
+    #noiseCanvas{
+    display: none !important;
+  }
+}
+
+/* 9. REDUCIR CALIDAD DE IMÁGENES EN MÓVIL */
+@media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1.5) {
+  .about-image img,
+  .brand-item img,
+  .footer-logo-img {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+
+/* 10. MEJORAR VELOCIDAD DE CARGA */
+img[loading="lazy"] {
+  content-visibility: auto;
+}
+
+/* 11. REDUCIR REPAINT EN SCROLL */
+.story-section,
+.parallax-section {
+  contain: content;
+}
