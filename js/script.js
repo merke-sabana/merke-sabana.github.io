@@ -41,8 +41,6 @@ const performanceConfig = {
   high: {
     particles: 80,
     particleFPS: 60,
-    noiseFPS: 20,
-    noiseRes: 0.5,
     parallaxIntensity: 1.0,
     splineFPS: 60,
     splineQuality: 'high'
@@ -50,8 +48,6 @@ const performanceConfig = {
   medium: {
     particles: 50,
     particleFPS: 30,
-    noiseFPS: 12,
-    noiseRes: 0.3,
     parallaxIntensity: 0.7,
     splineFPS: 30,
     splineQuality: 'medium'
@@ -59,8 +55,6 @@ const performanceConfig = {
   low: {
     particles: 25,
     particleFPS: 20,
-    noiseFPS: 8,
-    noiseRes: 0.2,
     parallaxIntensity: 0.5,
     splineFPS: 20,
     splineQuality: 'low'
@@ -69,7 +63,6 @@ const performanceConfig = {
 
 const perfCfg = performanceConfig[deviceCapabilities.tier];
 window.particleCount = perfCfg.particles;
-window.noiseIntensity = 0.15;
 
 console.log(`⚙️ Configuración: ${perfCfg.particles} partículas @ ${perfCfg.particleFPS}FPS`);
 
@@ -80,7 +73,6 @@ const DOM = {
   menuToggle: document.querySelector('.menu-toggle'),
   navMenu: document.querySelector('.nav-menu'),
   sections: document.querySelectorAll('section'),
-  noiseCanvas: document.getElementById('noiseCanvas'),
   tsparticles: document.getElementById('tsparticles'),
   splineViewer: document.querySelector('spline-viewer'),
   splineContainer: document.querySelector('.spline-container')
@@ -135,78 +127,7 @@ const perfUtils = {
   }
 };
 
-// ===== NOISE CANVAS - OPTIMIZADO AL MÁXIMO =====
-const setupNoisePro = () => {
-  if (!DOM.noiseCanvas) return;
-  
-  const ctx = DOM.noiseCanvas.getContext('2d', {
-    alpha: false,
-    desynchronized: true, // Async rendering
-    willReadFrequently: false
-  });
-  
-  const cfg = {
-    fps: perfCfg.noiseFPS,
-    res: perfCfg.noiseRes,
-    density: deviceCapabilities.tier === 'low' ? 0.01 : 0.02,
-    opacity: 120 // 0-255
-  };
-  
-  let lastFrameTime = 0;
-  const frameInterval = 1000 / cfg.fps;
-  let imageData, buffer32;
-  
-  const resize = () => {
-    const w = Math.floor(window.innerWidth * cfg.res);
-    const h = Math.floor(window.innerHeight * cfg.res);
-    
-    if (DOM.noiseCanvas.width === w && DOM.noiseCanvas.height === h) return;
-    
-    DOM.noiseCanvas.width = w;
-    DOM.noiseCanvas.height = h;
-    DOM.noiseCanvas.style.width = '100%';
-    DOM.noiseCanvas.style.height = '100%';
-    
-    imageData = ctx.createImageData(w, h);
-    buffer32 = new Uint32Array(imageData.data.buffer);
-  };
-  
-  resize();
-  
-  const animate = (time) => {
-    if (time - lastFrameTime < frameInterval) return;
-    lastFrameTime = time;
-    
-    const t = time * 0.0005;
-    const pixelsToUpdate = Math.floor(buffer32.length * cfg.density);
-    
-    for (let i = 0; i < pixelsToUpdate; i++) {
-      const idx = Math.floor(Math.random() * buffer32.length);
-      const shade = 180 + Math.sin(t + idx * 0.0001) * 40;
-      buffer32[idx] = (cfg.opacity << 24) | (shade << 16) | (shade << 8) | shade;
-    }
-    
-    ctx.putImageData(imageData, 0, 0);
-  };
-  
-  perfUtils.raf.start('noise', animate);
-  
-  // Pausar cuando no es visible
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      perfUtils.raf.stop('noise');
-    } else {
-      setTimeout(() => perfUtils.raf.start('noise', animate), 500);
-    }
-  });
-  
-  // Resize con debounce
-  window.addEventListener('resize', perfUtils.debounce(() => {
-    resize();
-  }, 250), { passive: true });
-  
-  console.log(`🎨 Noise: ${cfg.fps}FPS @ ${cfg.res*100}%`);
-};
+
 
 // ===== TSPARTICLES - CONFIGURACIÓN ÓPTIMA =====
 const initTsParticles = () => {
@@ -1325,7 +1246,6 @@ const init = () => {
   // Después del load
   window.addEventListener('load', () => {
     setTimeout(() => {
-      setupNoisePro();
       initTsParticles();
       initSmoothScroll();
       initScrollEffects();

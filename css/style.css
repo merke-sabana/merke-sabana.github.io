@@ -33,22 +33,33 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ===== CANVAS NOISE PRO ===== */
-#noiseCanvas {
+
+/* ===== OPTIMIZED NOISE - CUBRE TODA LA PANTALLA ===== */
+#optimized-noise {
   position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9998;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  background: transparent;
+  overflow: hidden;
+  /* Asegurar que cubra toda la pantalla en todos los dispositivos */
+  min-width: 100%;
+  min-height: 100%;
+}
+
+/* El SVG dentro debe cubrir el 100% */
+#optimized-noise svg {
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 9998; /* Por encima de todo menos del menú */
-  pointer-events: none;
-  opacity: 0.25; /* Muy sutil pero presente - ajustable */
-  mix-blend-mode: overlay;
-  image-rendering: optimizeSpeed;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: optimize-contrast;
-  -ms-interpolation-mode: nearest-neighbor;
+  /* Asegurar que se escale correctamente */
+  object-fit: cover;
 }
 
 /* ===== TSPARTICLES CONTAINER ===== */
@@ -1624,9 +1635,6 @@ footer {
   }
   
   /* Reducir intensidad del noise en móvil */
-  #noiseCanvas {
-    opacity: 0.25;
-  }
 }
 
 /* Tablet (481px - 768px) */
@@ -1680,25 +1688,62 @@ footer {
     -webkit-text-fill-color: var(--yellow);
     background: none;
   }
-  
-  #noiseCanvas {
-    opacity: 0.25;
-  }
 }
 
 /* ===== SCROLL STORYTELLING PRO - EFECTO AVANZADO ===== */
 .scroll-storytelling-pro {
   position: relative;
   z-index: 900;
+  /* Fondo semi-transparente */
   background: linear-gradient(
     180deg,
-    var(--blue-dark) 0%,
-    rgba(11, 44, 77, 0.95) 30%,
-    rgba(11, 44, 77, 0.85) 70%,
-    var(--blue) 100%
+    rgba(5, 27, 56, 0.7) 0%,      /* Más transparente */
+    rgba(11, 44, 77, 0.6) 30%,    /* Más transparente */
+    rgba(11, 44, 77, 0.5) 70%,    /* Más transparente */
+    rgba(11, 68, 119, 0.4) 100%   /* Más transparente */
   );
   padding-bottom: 50px;
 }
+
+/* Secciones individuales del storytelling */
+.story-section {
+  min-height: 120vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 20px;
+  position: relative;
+  overflow: hidden;
+  /* Añadir fondo semi-transparente */
+  background: rgba(5, 27, 56, 0.2); /* 20% opacidad */
+}
+
+/* Gradiente de fondo para cada sección */
+.story-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(
+      circle at 20% 30%, 
+      rgba(255, 214, 0, 0.03) 0%,  /* Más transparente */
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 70%, 
+      rgba(46, 204, 113, 0.02) 0%, /* Más transparente */
+      transparent 50%
+    );
+  pointer-events: none;
+  z-index: -1;
+}
+
+
+
+
 
 /* Indicador de scroll */
 /* ANIMACIÓN PARA SCROLL HINT */
@@ -2258,11 +2303,7 @@ footer {
   #tsparticles {
     opacity: 0.6; /* Reducir opacidad en móvil */
   }
-  
-  /* Noise más sutil en móvil */
-  #noiseCanvas {
-    opacity: 0.15;
-  }
+
 }
 
 /* Detección de dispositivos táctiles */
@@ -3093,7 +3134,6 @@ body.scroll-locked {
 }
 
 /* Fuerza el uso de GPU en elementos pesados */
-#noiseCanvas, 
 .spline-container, 
 .story-section,
 .char {
@@ -3188,10 +3228,6 @@ spline-viewer {
   .gradient-layer {
     opacity: 0.15 !important;
   }
-  
-  #noiseCanvas {
-    opacity: 0.1 !important;
-  }
 }
 
 /* 3. REDUCIR TAMAÑO DE PARTÍCULAS EN MÓVIL */
@@ -3201,10 +3237,6 @@ spline-viewer {
     transform-origin: center center !important;
   }
   
-  /* Reducir canvas noise */
-  #noiseCanvas {
-    image-rendering: pixelated !important;
-  }
 }
 
 /* 4. MEJORAR RENDIMIENTO DE ANIMACIONES */
@@ -3275,9 +3307,7 @@ html {
     backface-visibility: hidden !important;
     perspective: 1000px !important;
   }
-    #noiseCanvas{
-    display: none !important;
-  }
+
 }
 
 /* 9. REDUCIR CALIDAD DE IMÁGENES EN MÓVIL */
