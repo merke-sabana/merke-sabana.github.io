@@ -38,15 +38,16 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   z-index: 9998;
   pointer-events: none;
-  mix-blend-mode: overlay;
+  /* Eliminamos el mix-blend-mode de aquí para evitar conflictos en Chrome */
   background: transparent;
   overflow: hidden;
-  min-width: 100%;
-  min-height: 100%;
+  /* Forzamos aceleración de hardware para suavizar el filtro */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 #optimized-noise svg {
@@ -55,6 +56,9 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
+  /* Chrome necesita que el blend mode esté directamente en el elemento que tiene el filtro */
+  mix-blend-mode: overlay;
+  /* Asegura que el filtro cubra todo sin estirarse raro */
   object-fit: cover;
 }
 
