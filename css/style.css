@@ -33,8 +33,7 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-
-/* ===== OPTIMIZED NOISE - CUBRE TODA LA PANTALLA ===== */
+/* ===== OPTIMIZED NOISE ===== */
 #optimized-noise {
   position: fixed;
   top: 0;
@@ -46,19 +45,16 @@ body {
   mix-blend-mode: overlay;
   background: transparent;
   overflow: hidden;
-  /* Asegurar que cubra toda la pantalla en todos los dispositivos */
   min-width: 100%;
   min-height: 100%;
 }
 
-/* El SVG dentro debe cubrir el 100% */
 #optimized-noise svg {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  /* Asegurar que se escale correctamente */
   object-fit: cover;
 }
 
@@ -67,12 +63,11 @@ body {
   position: fixed;
   width: 100%;
   height: 100%;
-  z-index: -2; /* Detrás de todo */
+  z-index: -2;
   background: radial-gradient(circle at center, var(--blue-dark) 0%, var(--dark) 100%);
 }
 
 /* ===== FONDOS POR SECCIÓN ===== */
-/* ===== FONDOS POR SECCIÓN MEJORADOS ===== */
 .section-background {
   position: absolute;
   top: 0;
@@ -85,7 +80,6 @@ body {
   background: linear-gradient(135deg, #051b38 0%, #0b2c4d 50%, #1a4b7c 100%);
 }
 
-/* Capa 1: Olas sutiles animadas */
 .gradient-layer {
   position: absolute;
   width: 200%;
@@ -112,7 +106,6 @@ body {
   filter: blur(60px);
 }
 
-/* Capa 2: Partículas brillantes */
 .gradient-layer-2 {
   position: absolute;
   width: 200%;
@@ -150,41 +143,6 @@ body {
   opacity: 0.5;
 }
 
-/* Capa 3: Efecto de neón/aura */
-.gradient-layer-3 {
-  position: absolute;
-  width: 150%;
-  height: 150%;
-  top: -25%;
-  left: -25%;
-  background: 
-    conic-gradient(
-      from 0deg at 50% 50%,
-      rgba(255, 214, 0, 0.1) 0deg,
-      rgba(46, 204, 113, 0.1) 120deg,
-      rgba(231, 76, 60, 0.1) 240deg,
-      rgba(255, 214, 0, 0.1) 360deg
-    );
-  animation: neonRotation 60s linear infinite;
-  filter: blur(80px);
-  opacity: 0.3;
-}
-
-/* Capa 4: Efecto de grid sutil */
-.gradient-layer-4 {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  animation: gridMove 30s linear infinite;
-  opacity: 0.2;
-  mask-image: radial-gradient(circle at center, black 20%, transparent 80%);
-}
-
-/* Animaciones mejoradas */
 @keyframes floatingWaves {
   0%, 100% {
     transform: translate(0, 0) rotate(0deg) scale(1);
@@ -207,31 +165,6 @@ body {
   100% {
     background-position: 200px 200px;
   }
-}
-
-@keyframes neonRotation {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes gridMove {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: 40px 40px;
-  }
-}
-
-/* Efectos de pulsación sutil para diferentes secciones */
-.parallax-section:hover .gradient-layer {
-  animation-duration: 20s;
-  filter: blur(80px);
-  opacity: 0.8;
 }
 
 /* Variaciones por sección */
@@ -311,41 +244,6 @@ body {
   );
 }
 
-/* Efectos especiales para hero */
-#hero .gradient-layer-2 {
-  background: 
-    radial-gradient(
-      4px 4px at 10% 20%,
-      rgba(255, 214, 0, 0.9) 0%,
-      transparent 100%
-    ),
-    radial-gradient(
-      5px 5px at 90% 80%,
-      rgba(46, 204, 113, 0.7) 0%,
-      transparent 100%
-    ),
-    radial-gradient(
-      3px 3px at 50% 50%,
-      rgba(255, 255, 255, 0.8) 0%,
-      transparent 100%
-    );
-  animation-duration: 15s;
-}
-
-
-/* Añadir capas adicionales dinámicamente con JS */
-.scroll-section:hover .gradient-layer-3 {
-  animation-duration: 30s;
-  opacity: 0.5;
-}
-
-/* Efectos de brillo al hacer hover */
-.card:hover ~ .section-background .gradient-layer,
-.offer-card:hover ~ .section-background .gradient-layer {
-  filter: blur(100px) brightness(1.5);
-  transition: filter 1s ease;
-}
-
 /* Media queries para optimización */
 @media (max-width: 768px) {
   .gradient-layer {
@@ -357,15 +255,6 @@ body {
     background-size: 100px 100px;
     opacity: 0.3;
   }
-  
-  .gradient-layer-3 {
-    filter: blur(40px);
-    opacity: 0.2;
-  }
-  
-  .gradient-layer-4 {
-    background-size: 30px 30px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -374,24 +263,19 @@ body {
     animation-duration: 80s;
   }
   
-  .gradient-layer-2,
-  .gradient-layer-3,
-  .gradient-layer-4 {
-    display: none; /* Mejor rendimiento en móviles */
+  .gradient-layer-2 {
+    display: none;
   }
-  
-
 }
-/* Preferencias de reducción de movimiento */
+
 /* Preferencias de reducción de movimiento */
 @media (prefers-reduced-motion: reduce) {
   .gradient-layer,
-  .gradient-layer-2,
-  .gradient-layer-3,
-  .gradient-layer-4 /* ELIMINAR: , .scan-line */ {
+  .gradient-layer-2 {
     animation: none !important;
   }
 }
+
 /* ===== TIPOGRAFÍA RESPONSIVE ===== */
 html {
   font-size: 16px;
@@ -470,7 +354,7 @@ header {
   width: 100%;
   background: rgba(11, 44, 77, 0.98);
   backdrop-filter: blur(10px);
-  z-index: 9999; /* Por encima del noise */
+  z-index: 9999;
   transition: all 0.3s ease;
   border-bottom: 2px solid var(--yellow);
 }
@@ -491,9 +375,8 @@ nav {
   z-index: 999;
 }
 
-/* CORRECCIÓN DEL MENÚ TOGGLE - MOSTRARLO EN MÓVIL */
 .menu-toggle {
-  display: none; /* Lo ocultamos por defecto */
+  display: none;
   flex-direction: column;
   justify-content: space-between;
   width: 30px;
@@ -1155,12 +1038,14 @@ footer {
   text-decoration: none;
   font-size: 1.8rem;
   box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
-  z-index: 9999; /* Por encima del noise */
+  z-index: 9999;
   transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
 }
 
 .whatsapp-float:hover {
-  transform: scale(1.1);
+  transform: scale(1.1) translateY(-5px);
   box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
 }
 
@@ -1424,288 +1309,20 @@ footer {
   animation: pulse 2s infinite;
 }
 
-/* ===== MEDIA QUERIES ===== */
-
-/* Tablet (768px - 1024px) */
-@media (min-width: 768px) {
-  .hero-content {
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-  }
-  
-  .hero-text {
-    text-align: left;
-    order: 1;
-  }
-  
-  .hero-img {
-    order: 2;
-    height: 400px;
-  }
-  
-  .hero-buttons {
-    flex-direction: row;
-  }
-  
-  .hero-text h1 {
-    font-size: 3rem;
-  }
-  
-  .about {
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-  }
-  
-  .map-section {
-    grid-template-columns: 2fr 1fr;
-  }
-  
-  .footer-content {
-    grid-template-columns: repeat(3, 1fr);
-    text-align: left;
-  }
-  
-  .footer-logo,
-  .footer-links,
-  .footer-social {
-    text-align: left;
-    align-items: flex-start;
-  }
-  
-  .social-icons {
-    justify-content: flex-start;
-  }
-}
-
-/* Desktop (1024px y superior) */
-@media (min-width: 1024px) {
-  nav {
-    padding: 1rem 2rem;
-  }
-  
-  .logo {
-    width: 180px;
-  }
-  
-  .nav-menu {
-    gap: 1.5rem;
-  }
-  
-  .nav-menu li a {
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-  }
-  
-  section {
-    padding: 7rem 2rem 4rem;
-  }
-  
-  .container {
-    padding: 0 2rem;
-  }
-  
-  .hero-text h1 {
-    font-size: 3.5rem;
-  }
-  
-  .hero-img {
-    height: 500px;
-  }
-  
-  .section-title h2 {
-    font-size: 2.5rem;
-  }
-  
-  .grid {
-    gap: 2rem;
-  }
-  
-  .card {
-    padding: 2rem;
-  }
-  
-  .brands-grid {
-    gap: 2.5rem;
-  }
-  
-  .brand-item {
-    height: 80px;
-    padding: 1rem;
-  }
-  
-  .brand-item img {
-    max-height: 50px;
-  }
-  
-  .whatsapp-float {
-    bottom: 2rem;
-    right: 2rem;
-  }
-  
-  .story-text {
-    font-size: clamp(4rem, 8vw, 6rem);
-  }
-}
-
-/* Teléfonos pequeños (480px y menos) */
-@media (max-width: 480px) {
-  .menu-toggle {
-    display: flex !important; /* FORZAR QUE SE MUESTRE EN MÓVIL */
-  }
-  
-  .nav-menu {
-    position: fixed;
-    top: 0;
-    right: -100%;
-    width: 70%;
-    height: 100vh;
-    background: rgba(5, 27, 56, 0.98);
-    backdrop-filter: blur(20px);
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2rem;
-    transition: right 0.4s cubic-bezier(0.77, 0, 0.175, 1);
-    box-shadow: -5px 0 25px rgba(0,0,0,0.3);
-    z-index: 1000; /* Por encima del noise */
-  }
-  
-  .nav-menu.active {
-    right: 0;
-  }
-  
-  .menu-toggle.active span:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
-  }
-  
-  .menu-toggle.active span:nth-child(2) {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  
-  .menu-toggle.active span:nth-child(3) {
-    transform: rotate(-45deg) translate(7px, -6px);
-  }
-  
-  .nav-menu li a {
-    font-size: 1.1rem;
-    padding: 0.8rem 1.5rem;
-    width: 80%;
-    text-align: center;
-    border: 1px solid rgba(255, 214, 0, 0.2);
-    border-radius: 8px;
-  }
-  
-  .nav-menu li a:hover {
-    background: rgba(255, 214, 0, 0.15);
-    transform: translateY(-2px);
-  }
-  
-  .hero-text h1 {
-    font-size: 2rem;
-  }
-  
-  .hero-img {
-    height: 250px;
-  }
-  
-  .grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .brands-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .contact-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .whatsapp-float {
-    width: 50px;
-    height: 50px;
-    font-size: 1.5rem;
-    bottom: 1.5rem;
-    right: 1rem;
-  }
-  
-  .story-text {
-    font-size: clamp(2.2rem, 6vw, 3rem);
-    padding: 0 0.5rem;
-  }
-  
-  /* Reducir intensidad del noise en móvil */
-}
-
-/* Tablet (481px - 768px) */
-@media (min-width: 481px) and (max-width: 768px) {
-  .menu-toggle {
-    display: flex !important;
-  }
-  
-  .nav-menu {
-    position: fixed;
-    top: 0;
-    right: -100%;
-    width: 60%;
-    height: 100vh;
-    background: rgba(5, 27, 56, 0.98);
-    backdrop-filter: blur(20px);
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1.5rem;
-    transition: right 0.4s cubic-bezier(0.77, 0, 0.175, 1);
-    box-shadow: -5px 0 25px rgba(0,0,0,0.3);
-    z-index: 1000;
-  }
-  
-  .nav-menu.active {
-    right: 0;
-  }
-  
-  .menu-toggle.active span:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
-  }
-  
-  .menu-toggle.active span:nth-child(2) {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  
-  .menu-toggle.active span:nth-child(3) {
-    transform: rotate(-45deg) translate(7px, -6px);
-  }
-  
-  .story-text {
-    font-size: clamp(2.5rem, 6vw, 4rem);
-  }
-}
-
-/* ===== PREFERENCIAS DE ACCESIBILIDAD ===== */
-@media (prefers-contrast: high) {
-  .story-text {
-    -webkit-text-fill-color: var(--yellow);
-    background: none;
-  }
-}
-
-/* ===== SCROLL STORYTELLING PRO - EFECTO AVANZADO ===== */
+/* ===== SCROLL STORYTELLING PRO ===== */
 .scroll-storytelling-pro {
   position: relative;
   z-index: 900;
-  /* Fondo semi-transparente */
   background: linear-gradient(
     180deg,
-    rgba(5, 27, 56, 0.7) 0%,      /* Más transparente */
-    rgba(11, 44, 77, 0.6) 30%,    /* Más transparente */
-    rgba(11, 44, 77, 0.5) 70%,    /* Más transparente */
-    rgba(11, 68, 119, 0.4) 100%   /* Más transparente */
+    rgba(5, 27, 56, 0.7) 0%,
+    rgba(11, 44, 77, 0.6) 30%,
+    rgba(11, 44, 77, 0.5) 70%,
+    rgba(11, 68, 119, 0.4) 100%
   );
   padding-bottom: 50px;
 }
 
-/* Secciones individuales del storytelling */
 .story-section {
   min-height: 120vh;
   display: flex;
@@ -1714,11 +1331,9 @@ footer {
   padding: 100px 20px;
   position: relative;
   overflow: hidden;
-  /* Añadir fondo semi-transparente */
-  background: rgba(5, 27, 56, 0.2); /* 20% opacidad */
+  background: rgba(5, 27, 56, 0.2);
 }
 
-/* Gradiente de fondo para cada sección */
 .story-section::before {
   content: '';
   position: absolute;
@@ -1729,23 +1344,18 @@ footer {
   background: 
     radial-gradient(
       circle at 20% 30%, 
-      rgba(255, 214, 0, 0.03) 0%,  /* Más transparente */
+      rgba(255, 214, 0, 0.03) 0%,
       transparent 50%
     ),
     radial-gradient(
       circle at 80% 70%, 
-      rgba(46, 204, 113, 0.02) 0%, /* Más transparente */
+      rgba(46, 204, 113, 0.02) 0%,
       transparent 50%
     );
   pointer-events: none;
   z-index: -1;
 }
 
-
-
-
-
-/* Indicador de scroll */
 /* ANIMACIÓN PARA SCROLL HINT */
 .scroll-hint {
   position: absolute;
@@ -1817,7 +1427,6 @@ footer {
   animation: scrollBall 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-/* KEYFRAMES MEJORADOS */
 @keyframes lineFlow {
   0% {
     transform: translateY(-100%);
@@ -1861,38 +1470,6 @@ footer {
   }
 }
 
-/* Ajustes responsive */
-@media (max-width: 768px) {
-  .scroll-hint {
-    bottom: 30px;
-  }
-  
-  .scroll-hint span {
-    font-size: 0.75rem;
-    letter-spacing: 2px;
-  }
-  
-  .hint-line {
-    height: 40px;
-  }
-  
-  .hint-line::after {
-    width: 6px;
-    height: 6px;
-  }
-}
-
-/* Secciones del storytelling */
-.story-section {
-  min-height: 120vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 100px 20px;
-  position: relative;
-  overflow: hidden;
-}
-
 .story-container {
   max-width: 1500px;
   width: 100%;
@@ -1900,7 +1477,6 @@ footer {
   text-align: center;
 }
 
-/* Texto animado - Efecto de dispersión */
 .story-text-animated {
   font-size: clamp(3rem, 8vw, 6rem);
   font-weight: 800;
@@ -1925,7 +1501,6 @@ footer {
   width: 0.3em;
 }
 
-/* Sección con íconos */
 .story-with-icons {
   display: flex;
   align-items: center;
@@ -1964,7 +1539,6 @@ footer {
   background-clip: text;
 }
 
-/* Grid de íconos */
 .story-icons-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -2028,7 +1602,6 @@ footer {
   text-align: center;
 }
 
-/* Texto final animado */
 .story-text-animated-final {
   font-size: clamp(3.5rem, 9vw, 7rem);
   font-weight: 800;
@@ -2056,656 +1629,6 @@ footer {
   margin: 0 auto;
   line-height: 1.6;
 }
-
-/* Efectos de superposición para profundidad */
-.story-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 30%, rgba(255, 214, 0, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(46, 204, 113, 0.05) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .scroll-storytelling-pro {
-    margin-top: -30px;
-  }
-  
-  .story-section {
-    min-height: 100vh;
-    padding: 80px 15px;
-  }
-  
-  .story-text-animated {
-    font-size: clamp(0rem, 7vw, 4rem);
-  }
-  
-  .story-text-animated-final {
-    font-size: clamp(3rem, 8vw, 5rem);
-  }
-  
-  .icon-text {
-    font-size: 1.3rem;
-  }
-  
-  .story-icons-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-  }
-  
-  .story-icon-item {
-    padding: 15px;
-  }
-  
-  .story-icon-item img {
-    width: 36px;
-    height: 36px;
-  }
-  
-  .scroll-hint {
-    top: 90%;
-  }
-  
-  .scroll-hint span {
-    font-size: 0.8rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .story-icons-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-  }
-  
-  .story-with-icons {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .bracket-left,
-  .bracket-right {
-    width: 15px;
-    height: 40px;
-  }
-  
-  .story-text-animated .char {
-    transform: translateX(calc(var(--distance) * 40px)) 
-               rotateX(calc(var(--distance) * 20deg));
-  }
-}
-
-/* Animaciones de entrada suave */
-@keyframes floatIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.story-section:nth-child(1) .story-text-animated .char {
-  animation: floatIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  animation-delay: calc(var(--index) * 0.05s);
-}
-
-
-
-
-/* ===== EFECTOS PARALLAX MEJORADOS ===== */
-.parallax-element,
-.spline-container,
-.particle-container {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000px;
-}
-
-/* Hero image con parallax potente */
-.hero-img {
-  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 1s ease;
-}
-
-/* Títulos con efecto 3D */
-.section-title {
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.8s ease;
-  transform-style: preserve-3d;
-  perspective: 1000px;
-}
-
-/* Efecto de brillo para tarjetas (mejorado) */
-.card-shine {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 2;
-  mix-blend-mode: overlay;
-}
-
-/* Efecto táctil */
-.tapped {
-  transform: scale(0.95) !important;
-  transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1) !important;
-}
-
-/* Para íconos del storytelling */
-.story-icon-item {
-  position: relative;
-  overflow: hidden;
-}
-
-.story-icon-item::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 214, 0, 0.1) 0%,
-    transparent 70%
-  );
-  border-radius: inherit;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.story-icon-item:hover::after {
-  opacity: 1;
-}
-
-/* ===== OPTIMIZACIONES ESPECÍFICAS PARA MÓVIL ===== */
-@media (max-width: 768px) {
-  .parallax-element,
-  .spline-container,
-  .particle-container {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000px;
-  }
-
-  
-  /* Efectos más sutiles pero visibles */
-  .hero-img {
-    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1) !important;
-  }
-  
-  /* Efecto táctil mejorado */
-  .tapped {
-    transform: scale(0.96) !important;
-    transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1) !important;
-  }
-  
-  /* Ajusta las animaciones del storytelling para móvil */
-  .story-text-animated {
-    font-size: clamp(0rem, 6vw, 3.5rem) !important;
-  }
-  
-  .story-text-animated .char {
-    transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
-                opacity 0.5s ease !important;
-  }
-}
-
-
-/* ===== EFECTOS ESPECIALES PARA TEXTO EN MÓVIL ===== */
-@media (max-width: 480px) and (prefers-reduced-motion: no-preference) {
-  /* Efectos más ligeros pero presentes */
-  .reveal[data-speed] {
-    transition: transform 0.5s ease, opacity 0.5s ease !important;
-  }
-  
-  /* Limitar efectos 3D en móviles antiguos */
-  .card, .offer-card, .contact-card {
-    transform-style: flat !important;
-  }
-}
-
-/* Optimizaciones de rendimiento específicas para móvil */
-@media (max-width: 768px) {
-  /* Acelera renderizado con GPU */
-  .reveal, [data-scroll-effect], [data-speed] {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000px;
-  }
-  
-  /* Reduce complejidad de animaciones */
-  .story-icons-grid {
-    transform: translateZ(0);
-  }
-  
-  /* Mejor rendimiento para gradientes animados */
-  .gradient-layer, .gradient-layer-2 {
-    animation-duration: 30s !important; /* Más lento en móvil */
-    animation-timing-function: ease-in-out !important;
-  }
-  
-  /* Optimizar partículas para móvil */
-  #tsparticles {
-    opacity: 0.6; /* Reducir opacidad en móvil */
-  }
-
-}
-
-/* Detección de dispositivos táctiles */
-@media (hover: none) and (pointer: coarse) {
-  .card:hover, .offer-card:hover, .contact-card:hover {
-    transform: translateY(-3px) !important; /* Efecto hover más sutil */
-    box-shadow: 0 8px 20px rgba(46, 204, 113, 0.15) !important;
-  }
-}
-
-
-/* ===== MEDIA QUERIES ESPECÍFICAS PARA SCROLL HINT ===== */
-
-/* Tablet */
-@media (min-width: 768px) {
-  .scroll-hint {
-    bottom: 30px;
-  }
-  
-  .scroll-hint span {
-    font-size: 0.9rem;
-    letter-spacing: 3px;
-  }
-  
-  .hint-line {
-    height: 50px;
-  }
-}
-
-/* Teléfonos pequeños */
-@media (max-width: 480px) {
-  .scroll-hint {
-    bottom: 15px;
-    max-width: 180px;
-  }
-  
-  .scroll-hint span {
-    font-size: 0.7rem;
-    letter-spacing: 1.5px;
-    padding: 0 10px;
-  }
-  
-  .hint-line {
-    height: 35px;
-    width: 0.5px;
-  }
-  
-  .hint-line::after {
-    width: 4px;
-    height: 4px;
-  }
-}
-
-/* Ajustes para landscape móvil */
-@media (max-height: 500px) and (orientation: landscape) {
-  .scroll-hint {
-    display: none !important; /* Ocultar en modo landscape */
-  }
-}
-
-
-@media (max-height: 785px) {
-  .scroll-hint {
-    display: none !important;
-  }
-}
-
-/* Añade esto al final de tu style.css */
-
-/* ===== CLASES PARA BLOQUEAR SCROLL ===== */
-body.scroll-locked {
-  overflow: hidden !important;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-}
-
-body.scroll-locked-mobile {
-  overflow: hidden !important;
-  position: relative;
-  height: 100vh;
-}
-
-/* Indicador visual cuando el scroll está bloqueado */
-.spline-active-indicator {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: rgba(255, 214, 0, 0.9);
-  color: var(--blue-dark);
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  z-index: 10001;
-  display: none;
-  align-items: center;
-  gap: 8px;
-  animation: slideInRight 0.3s ease;
-  box-shadow: 0 4px 15px rgba(255, 214, 0, 0.3);
-}
-
-.spline-active-indicator.visible {
-  display: flex;
-}
-
-.spline-active-indicator::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  background: #25D366;
-  border-radius: 50%;
-  animation: pulse 2s infinite;
-}
-
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* Efecto de overlay para móvil cuando se interactúa */
-.spline-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(5, 27, 56, 0.7);
-  backdrop-filter: blur(5px);
-  z-index: 10000;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.spline-overlay.active {
-  display: flex;
-  opacity: 1;
-}
-
-.spline-overlay-content {
-  background: rgba(15, 23, 42, 0.95);
-  padding: 30px;
-  border-radius: var(--radius-lg);
-  text-align: center;
-  max-width: 300px;
-  border: 2px solid var(--yellow);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.spline-overlay-content h3 {
-  color: var(--yellow);
-  margin-bottom: 15px;
-  font-size: 1.2rem;
-}
-
-.spline-overlay-content p {
-  color: var(--light);
-  margin-bottom: 20px;
-  font-size: 0.9rem;
-  opacity: 0.9;
-}
-
-.spline-close-btn {
-  background: var(--red);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.spline-close-btn:hover {
-  background: var(--red-dark);
-  transform: translateY(-2px);
-}
-
-/* ===== SISTEMA DE NOTIFICACIONES ===== */
-.notification-container {
-  position: fixed;
-  z-index: 10002;
-  pointer-events: none;
-}
-
-.notification-container.desktop {
-  top: 90px;
-  right: 20px;
-  width: 350px;
-}
-
-.notification-container.mobile {
-  top: 70px;
-  left: 0;
-  right: 0;
-  width: 100%;
-  padding: 0 15px;
-}
-
-.notification {
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: var(--radius-md);
-  padding: 16px;
-  margin-bottom: 10px;
-  border-left: 4px solid var(--yellow);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-  transform: translateY(-20px);
-  opacity: 0;
-  pointer-events: auto;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.notification.show {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-.notification.hide {
-  transform: translateY(-20px);
-  opacity: 0;
-}
-
-/* Notificación desktop */
-.desktop-notification {
-  max-width: 350px;
-}
-
-/* Notificación mobile - NO invasiva */
-.mobile-notification {
-  max-width: 100%;
-  margin: 0 auto 10px;
-  background: rgba(11, 44, 77, 0.95);
-  border: 1px solid rgba(255, 214, 0, 0.3);
-}
-
-.notification-content {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.notification-icon {
-  font-size: 1.2rem;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.notification-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.notification-text p {
-  color: white;
-  margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  font-weight: 500;
-}
-
-.notification-close {
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 1.5rem;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: color 0.2s ease;
-}
-
-.notification-close:hover {
-  color: white;
-}
-
-.notification-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  background: var(--yellow);
-  width: 100%;
-  transform-origin: left;
-  animation: notificationProgress linear forwards;
-}
-
-@keyframes notificationProgress {
-  from { transform: scaleX(1); }
-  to { transform: scaleX(0); }
-}
-
-/* Tipos de notificaciones */
-.notification.info {
-  border-left-color: var(--blue);
-}
-
-.notification.success {
-  border-left-color: var(--green);
-}
-
-.notification.warning {
-  border-left-color: var(--yellow);
-}
-
-.notification.error {
-  border-left-color: var(--red);
-}
-
-.notification.interaction {
-  border-left-color: #9C27B0;
-  background: rgba(156, 39, 176, 0.1);
-}
-
-/* Ajustes responsive */
-@media (max-width: 768px) {
-  .notification-container.mobile {
-    top: 80px;
-    padding: 0 10px;
-  }
-  
-  .mobile-notification {
-    padding: 14px;
-  }
-  
-  .notification-text p {
-    font-size: 0.85rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .notification-container.mobile {
-    top: 70px;
-  }
-  
-  .mobile-notification {
-    padding: 12px;
-  }
-  
-  .notification-content {
-    gap: 10px;
-  }
-  
-  .notification-icon {
-    font-size: 1rem;
-  }
-}
-
-/* Para landscape móvil */
-@media (max-height: 500px) and (orientation: landscape) {
-  .notification-container.mobile {
-    top: 60px;
-  }
-  
-  .mobile-notification {
-    padding: 10px;
-    max-width: 250px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-}
-
-/* ===== CORRECCIONES PARA SCROLL LOCK ===== */
-body.scroll-locked {
-  overflow: hidden !important;
-  position: relative;
-  height: 100vh;
-  width: 100%;
-}
-
-.spline-container.interacting {
-  position: relative;
-  z-index: 10001;
-}
-
-.spline-container.interacting spline-viewer {
-  cursor: grab;
-}
-
-.spline-container.interacting spline-viewer:active {
-  cursor: grabbing;
-}
-
-
-
 
 /* ===== VENTANA MODAL DE PRODUCTOS ===== */
 .product-modal-overlay {
@@ -2791,7 +1714,6 @@ body.scroll-locked {
   gap: 0;
 }
 
-/* Galería ligera - Carrusel */
 .product-gallery {
   position: relative;
   height: 400px;
@@ -2900,7 +1822,6 @@ body.scroll-locked {
   transform: scale(1.1);
 }
 
-/* Información del producto */
 .product-info {
   padding: 2rem;
   overflow-y: auto;
@@ -3018,8 +1939,252 @@ body.scroll-locked {
   transform: translateY(-2px);
 }
 
-/* Responsive para la modal */
+/* ===== SISTEMA DE NOTIFICACIONES ===== */
+.notification-container {
+  position: fixed;
+  z-index: 10002;
+  pointer-events: none;
+}
+
+.notification-container.desktop {
+  top: 90px;
+  right: 20px;
+  width: 350px;
+}
+
+.notification-container.mobile {
+  top: 70px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 0 15px;
+}
+
+.notification {
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 10px;
+  border-left: 4px solid var(--yellow);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  transform: translateY(-20px);
+  opacity: 0;
+  pointer-events: auto;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.notification.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.notification.hide {
+  transform: translateY(-20px);
+  opacity: 0;
+}
+
+.desktop-notification {
+  max-width: 350px;
+}
+
+.mobile-notification {
+  max-width: 100%;
+  margin: 0 auto 10px;
+  background: rgba(11, 44, 77, 0.95);
+  border: 1px solid rgba(255, 214, 0, 0.3);
+}
+
+.notification-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.notification-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notification-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-text p {
+  color: white;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.notification-close:hover {
+  color: white;
+}
+
+.notification-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--yellow);
+  width: 100%;
+  transform-origin: left;
+  animation: notificationProgress linear forwards;
+}
+
+@keyframes notificationProgress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+.notification.info {
+  border-left-color: var(--blue);
+}
+
+.notification.success {
+  border-left-color: var(--green);
+}
+
+.notification.warning {
+  border-left-color: var(--yellow);
+}
+
+.notification.error {
+  border-left-color: var(--red);
+}
+
+.notification.interaction {
+  border-left-color: #9C27B0;
+  background: rgba(156, 39, 176, 0.1);
+}
+
+/* ===== CLASES PARA BLOQUEAR SCROLL ===== */
+body.scroll-locked {
+  overflow: hidden !important;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+.spline-container.interacting {
+  position: relative;
+  z-index: 10001;
+}
+
+.spline-container.interacting spline-viewer {
+  cursor: grab;
+}
+
+.spline-container.interacting spline-viewer:active {
+  cursor: grabbing;
+}
+
+/* ===== OPTIMIZACIONES DE RENDIMIENTO ===== */
+.spline-container, 
+.story-section,
+.char,
+.hero-img,
+.card,
+.offer-card {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Para preferencias de reducción de movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .product-modal,
+  .gallery-slide,
+  .gallery-image,
+  .action-btn,
+  .reveal,
+  [data-scroll-effect],
+  .gradient-layer,
+  .gradient-layer-2 {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .story-text-animated .char {
+    opacity: 1;
+    transform: none !important;
+  }
+}
+
+/* ===== MEDIA QUERIES ===== */
+
+/* Tablet (768px - 1024px) */
 @media (min-width: 768px) {
+  .hero-content {
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+  
+  .hero-text {
+    text-align: left;
+    order: 1;
+  }
+  
+  .hero-img {
+    order: 2;
+    height: 400px;
+  }
+  
+  .hero-buttons {
+    flex-direction: row;
+  }
+  
+  .hero-text h1 {
+    font-size: 3rem;
+  }
+  
+  .about {
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+  
+  .map-section {
+    grid-template-columns: 2fr 1fr;
+  }
+  
+  .footer-content {
+    grid-template-columns: repeat(3, 1fr);
+    text-align: left;
+  }
+  
+  .footer-logo,
+  .footer-links,
+  .footer-social {
+    text-align: left;
+    align-items: flex-start;
+  }
+  
+  .social-icons {
+    justify-content: flex-start;
+  }
+  
   .modal-content {
     grid-template-columns: 1fr 1fr;
   }
@@ -3034,54 +2199,201 @@ body.scroll-locked {
   }
 }
 
-@media (max-width: 767px) {
-  .product-modal {
-    /* Permitir scroll dentro de la modal */
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    max-height: 95vh;
+/* Desktop (1024px y superior) */
+@media (min-width: 1024px) {
+  nav {
+    padding: 1rem 2rem;
   }
   
-  .modal-content {
-    /* Evitar que se corte el contenido */
-    min-height: auto;
-    display: flex;
-    flex-direction: column;
+  .logo {
+    width: 180px;
   }
   
-  .product-gallery {
-    /* Altura flexible para móvil */
-    height: 250px;
-    min-height: 250px;
-    flex-shrink: 0;
+  .nav-menu {
+    gap: 1.5rem;
   }
   
-  .product-info {
-    /* Permitir scroll interno */
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    max-height: none !important; /* Quitar altura máxima fija */
-    flex-grow: 1;
-    min-height: 0; /* Para flexbox */
+  .nav-menu li a {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
   }
   
-  .product-actions {
-    /* Fijar acciones al fondo */
-    margin-top: auto;
-    padding-top: 1.5rem;
+  section {
+    padding: 7rem 2rem 4rem;
+  }
+  
+  .container {
+    padding: 0 2rem;
+  }
+  
+  .hero-text h1 {
+    font-size: 3.5rem;
+  }
+  
+  .hero-img {
+    height: 500px;
+  }
+  
+  .section-title h2 {
+    font-size: 2.5rem;
+  }
+  
+  .grid {
+    gap: 2rem;
+  }
+  
+  .card {
+    padding: 2rem;
+  }
+  
+  .brands-grid {
+    gap: 2.5rem;
+  }
+  
+  .brand-item {
+    height: 80px;
+    padding: 1rem;
+  }
+  
+  .brand-item img {
+    max-height: 50px;
+  }
+  
+  .whatsapp-float {
+    bottom: 2rem;
+    right: 2rem;
   }
 }
 
-/* Corrección específica para iPhone */
-@supports (-webkit-touch-callout: none) {
-  .product-modal-overlay {
-    /* Mejor compatibilidad con Safari iOS */
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
+/* Teléfonos pequeños (480px y menos) */
 @media (max-width: 480px) {
+  .menu-toggle {
+    display: flex !important;
+  }
+  
+  .nav-menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 70%;
+    height: 100vh;
+    background: rgba(5, 27, 56, 0.98);
+    backdrop-filter: blur(20px);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    transition: right 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+    box-shadow: -5px 0 25px rgba(0,0,0,0.3);
+    z-index: 1000;
+  }
+  
+  .nav-menu.active {
+    right: 0;
+  }
+  
+  .menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+  
+  .menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  
+  .menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+  }
+  
+  .nav-menu li a {
+    font-size: 1.1rem;
+    padding: 0.8rem 1.5rem;
+    width: 80%;
+    text-align: center;
+    border: 1px solid rgba(255, 214, 0, 0.2);
+    border-radius: 8px;
+  }
+  
+  .nav-menu li a:hover {
+    background: rgba(255, 214, 0, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  .hero-text h1 {
+    font-size: 2rem;
+  }
+  
+  .hero-img {
+    height: 250px;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .brands-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .whatsapp-float {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+    bottom: 1.5rem;
+    right: 1rem;
+  }
+  
+  .story-text-animated {
+    font-size: clamp(2.2rem, 6vw, 3rem);
+    padding: 0 0.5rem;
+  }
+  
+  .story-icons-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+  
+  .story-with-icons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .bracket-left,
+  .bracket-right {
+    width: 15px;
+    height: 40px;
+  }
+  
+  .story-text-animated .char {
+    transform: translateX(calc(var(--distance) * 40px)) 
+               rotateX(calc(var(--distance) * 20deg));
+  }
+  
+  .scroll-hint {
+    bottom: 15px;
+    max-width: 180px;
+  }
+  
+  .scroll-hint span {
+    font-size: 0.7rem;
+    letter-spacing: 1.5px;
+    padding: 0 10px;
+  }
+  
+  .hint-line {
+    height: 35px;
+    width: 0.5px;
+  }
+  
+  .hint-line::after {
+    width: 4px;
+    height: 4px;
+  }
+  
   .product-modal {
     max-width: 95%;
   }
@@ -3099,233 +2411,126 @@ body.scroll-locked {
   }
 }
 
-/* Animaciones de entrada y salida */
-@keyframes modalFadeIn {
-  from {
+/* Tablet (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .menu-toggle {
+    display: flex !important;
+  }
+  
+  .nav-menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 60%;
+    height: 100vh;
+    background: rgba(5, 27, 56, 0.98);
+    backdrop-filter: blur(20px);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    transition: right 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+    box-shadow: -5px 0 25px rgba(0,0,0,0.3);
+    z-index: 1000;
+  }
+  
+  .nav-menu.active {
+    right: 0;
+  }
+  
+  .menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+  
+  .menu-toggle.active span:nth-child(2) {
     opacity: 0;
-    transform: scale(0.9) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes modalFadeOut {
-  from {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.9) translateY(20px);
-  }
-}
-
-/* Para preferencias de reducción de movimiento */
-@media (prefers-reduced-motion: reduce) {
-  .product-modal,
-  .gallery-slide,
-  .gallery-image,
-  .action-btn {
-    transition: none !important;
-    animation: none !important;
-  }
-}
-
-/* Fuerza el uso de GPU en elementos pesados */
-.spline-container, 
-.story-section,
-.char {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000px;
-}
-
-/* Optimiza el renderizado de imágenes y canvas */
-canvas {
-    image-rendering: optimizeSpeed;
-    pointer-events: none; /* Evita cálculos de colisión innecesarios */
-}
-
-/* Si el Spline viewer es muy pesado, bajamos su prioridad de renderizado */
-spline-viewer {
-    content-visibility: auto;
-}
-
-.scroll-container {
-  overflow-y: scroll;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  /* ❌ NO usar will-change aquí */
-}
-
-.hero-img, 
-.spline-container,
-.story-text-animated .char {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-.parallax-element {
-  transform-style: preserve-3d;
-  /* ❌ NO usar will-change aquí */
-}
-
-.gpu-accelerated {
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  -moz-transform: translateZ(0);
-  -ms-transform: translateZ(0);
-  -o-transform: translateZ(0);
-}
-
-
-/* 1. DETECCIÓN DE TIPO DE DISPOSITIVO */
-@media (hover: none) and (pointer: coarse) {
-  /* DISPOSITIVOS TÁCTILES */
-  .gradient-layer {
-    animation-duration: 120s !important;
-    filter: blur(40px) !important;
-    opacity: 0.3 !important;
+    transform: translateX(-10px);
   }
   
-  .gradient-layer-2 {
-    display: none !important; /* Desactivar partículas en móviles */
+  .menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
   }
   
-  #tsparticles {
-    opacity: 0.2 !important; /* Reducir intensidad */
+  .story-text-animated {
+    font-size: clamp(2.5rem, 6vw, 4rem);
   }
   
-  /* Reducir animaciones del storytelling */
-  .story-text-animated .char {
-    transition-duration: 0.5s !important;
+  .scroll-hint {
+    bottom: 30px;
   }
   
-  /* Optimizar Spline para touch */
-  spline-viewer {
-    touch-action: pan-x pan-y !important;
+  .scroll-hint span {
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+  }
+  
+  .hint-line {
+    height: 50px;
   }
 }
 
-@media (hover: hover) and (pointer: fine) {
-  /* DISPOSITIVOS CON MOUSE (Desktop) */
-  .gradient-layer {
-    animation-duration: 40s !important;
-  }
-}
-
-/* 2. DESACTIVAR EFECTOS EN DISPOSITIVOS LENTOS */
-@media (max-width: 768px) and (prefers-reduced-data: reduce) {
-  #tsparticles,
-  .gradient-layer-2,
-  .gradient-layer-3,
-  .gradient-layer-4 {
+/* Ajustes para landscape móvil */
+@media (max-height: 500px) and (orientation: landscape) {
+  .scroll-hint {
     display: none !important;
   }
   
-  .gradient-layer {
-    opacity: 0.15 !important;
-  }
-}
-
-/* 3. REDUCIR TAMAÑO DE PARTÍCULAS EN MÓVIL */
-@media (max-width: 768px) {
-  .particles-js-canvas-el {
-    transform: scale(0.7) !important;
-    transform-origin: center center !important;
+  .notification-container.mobile {
+    top: 60px;
   }
   
-}
-
-/* 4. MEJORAR RENDIMIENTO DE ANIMACIONES */
-@media (prefers-reduced-motion: no-preference) {
-  .reveal, 
-  [data-scroll-effect], 
-  .story-text-animated .char,
-  .gradient-layer {
-    will-change: transform, opacity;
+  .mobile-notification {
+    padding: 10px;
+    max-width: 250px;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+@media (max-height: 785px) {
+  .scroll-hint {
+    display: none !important;
   }
 }
 
-/* 5. OPTIMIZACIÓN ESPECÍFICA PARA iOS */
+/* Para landscape móvil */
+@media (max-width: 767px) {
+  .product-modal {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    max-height: 95vh;
+  }
+  
+  .modal-content {
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .product-gallery {
+    height: 250px;
+    min-height: 250px;
+    flex-shrink: 0;
+  }
+  
+  .product-info {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: none !important;
+    flex-grow: 1;
+    min-height: 0;
+  }
+  
+  .product-actions {
+    margin-top: auto;
+    padding-top: 1.5rem;
+  }
+}
+
+/* Corrección específica para iPhone */
 @supports (-webkit-touch-callout: none) {
-  .gradient-layer,
-  .gradient-layer-2 {
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
+  .product-modal-overlay {
+    -webkit-overflow-scrolling: touch;
   }
-  
-  /* Evitar flash en Safari */
-  #hero, section {
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-  }
-}
-
-/* 6. REDUCIR MEMORIA DE GRADIENTS */
-@media (max-width: 768px) {
-  .section-background {
-    background-size: cover !important;
-    background-attachment: scroll !important;
-  }
-  
-  .gradient-layer {
-    background-size: 200% 200% !important;
-  }
-}
-
-/* 7. OPTIMIZAR SCROLL SMOOTH */
-html {
-  scroll-behavior: smooth;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-}
-
-/* 8. BLOQUEAR GPU EN MÓVILES ANTIGUOS */
-@media (max-width: 480px) and (max-device-width: 768px) {
-  .hero-img,
-  .story-text-animated,
-  .card {
-    transform: translateZ(0) !important;
-    backface-visibility: hidden !important;
-    perspective: 1000px !important;
-  }
-
-}
-
-/* 9. REDUCIR CALIDAD DE IMÁGENES EN MÓVIL */
-@media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1.5) {
-  .about-image img,
-  .brand-item img,
-  .footer-logo-img {
-    image-rendering: -webkit-optimize-contrast;
-  }
-}
-
-/* 10. MEJORAR VELOCIDAD DE CARGA */
-img[loading="lazy"] {
-  content-visibility: auto;
-}
-
-/* 11. REDUCIR REPAINT EN SCROLL */
-.story-section,
-.parallax-section {
-  contain: content;
 }

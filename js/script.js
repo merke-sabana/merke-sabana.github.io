@@ -1,27 +1,22 @@
-// ===== MERKE+ ULTRA-OPTIMIZADO CON TODAS LAS FUNCIONALIDADES =====
-// Sistema de detección automática de rendimiento y adaptación inteligente
+// ===== MERKE+ ULTRA-OPTIMIZADO =====
+// TODAS las funcionalidades optimizadas para móvil y PC
 
 // ===== CONFIGURACIÓN BASE =====
 const config = {
   effects: true,
   smoothScroll: true,
-  parallaxEnabled: true,
-  
-  isMobile: () => {
-    return window.innerWidth <= 768 || 
-           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  }
+  isMobile: () => window.innerWidth <= 768 || 
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 };
 
-// ===== DETECCIÓN AUTOMÁTICA DE CAPACIDADES DEL DISPOSITIVO =====
+// ===== DETECCIÓN DE CAPACIDADES =====
 const deviceCapabilities = (() => {
   const memory = navigator.deviceMemory || 4;
   const cores = navigator.hardwareConcurrency || 4;
   const isMobile = config.isMobile();
   
-  // Calcular score de rendimiento (0-100)
   let score = 0;
-  if (!isMobile) score += 40; // Desktop base
+  if (!isMobile) score += 40;
   if (memory >= 8) score += 30;
   else if (memory >= 4) score += 20;
   else score += 10;
@@ -31,31 +26,28 @@ const deviceCapabilities = (() => {
   
   const tier = score >= 70 ? 'high' : score >= 50 ? 'medium' : 'low';
   
-  console.log(`📊 Dispositivo: ${tier} (${score}/100) | RAM: ${memory}GB | Cores: ${cores}`);
+  console.log(`📊 Dispositivo: ${tier} | RAM: ${memory}GB | Cores: ${cores}`);
   
   return { tier, memory, cores, isMobile, score };
 })();
 
-// ===== CONFIGURACIÓN ADAPTATIVA POR TIER =====
+// ===== CONFIGURACIÓN ADAPTATIVA =====
 const performanceConfig = {
   high: {
     particles: 80,
     particleFPS: 60,
-    parallaxIntensity: 1.0,
     splineFPS: 60,
     splineQuality: 'high'
   },
   medium: {
     particles: 50,
     particleFPS: 30,
-    parallaxIntensity: 0.7,
     splineFPS: 30,
     splineQuality: 'medium'
   },
   low: {
     particles: 25,
     particleFPS: 20,
-    parallaxIntensity: 0.5,
     splineFPS: 20,
     splineQuality: 'low'
   }
@@ -66,7 +58,7 @@ window.particleCount = perfCfg.particles;
 
 console.log(`⚙️ Configuración: ${perfCfg.particles} partículas @ ${perfCfg.particleFPS}FPS`);
 
-// ===== CACHE DE ELEMENTOS DOM (UNA SOLA VEZ) =====
+// ===== CACHE DE ELEMENTOS DOM =====
 const DOM = {
   scrollElements: document.querySelectorAll('[data-scroll-effect]'),
   header: document.querySelector('header'),
@@ -80,7 +72,6 @@ const DOM = {
 
 // ===== UTILIDADES DE RENDIMIENTO =====
 const perfUtils = {
-  // Throttle para funciones frecuentes
   throttle: (func, limit) => {
     let inThrottle;
     return function(...args) {
@@ -92,51 +83,23 @@ const perfUtils = {
     };
   },
   
-  // Debounce para resize, etc
   debounce: (func, wait) => {
     let timeout;
     return function(...args) {
       clearTimeout(timeout);
       timeout = setTimeout(() => func.apply(this, args), wait);
     };
-  },
-  
-  // RequestAnimationFrame con limpieza
-  raf: {
-    active: new Map(),
-    
-    start(id, callback) {
-      if (this.active.has(id)) return;
-      
-      const animate = (time) => {
-        if (!this.active.has(id)) return;
-        callback(time);
-        this.active.set(id, requestAnimationFrame(animate));
-      };
-      
-      this.active.set(id, requestAnimationFrame(animate));
-    },
-    
-    stop(id) {
-      const rafId = this.active.get(id);
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-        this.active.delete(id);
-      }
-    }
   }
 };
 
-
-
-// ===== TSPARTICLES - CONFIGURACIÓN ÓPTIMA =====
+// ===== TSPARTICLES - OPTIMIZADO =====
 const initTsParticles = () => {
   if (typeof tsParticles === 'undefined' || !DOM.tsparticles) {
     console.warn('⚠️ tsParticles no disponible');
     return;
   }
   
-  const config = {
+  const particleConfig = {
     autoPlay: true,
     background: { color: { value: "transparent" }, opacity: 0 },
     fullScreen: { enable: false, zIndex: -2 },
@@ -189,7 +152,7 @@ const initTsParticles = () => {
     }
   };
   
-  tsParticles.load("tsparticles", config)
+  tsParticles.load("tsparticles", particleConfig)
     .then(container => {
       console.log(`✅ Partículas: ${perfCfg.particles} @ ${perfCfg.particleFPS}FPS`);
       
@@ -200,17 +163,17 @@ const initTsParticles = () => {
     .catch(err => console.error('❌ Error partículas:', err));
 };
 
-// ===== SPLINE - CONFIGURACIÓN ADAPTATIVA CON SCROLL LOCK =====
+// ===== SPLINE - OPTIMIZADO CON SCROLL LOCK =====
 const optimizeSpline = () => {
   if (!DOM.splineViewer || !DOM.splineContainer) return;
   
-  const config = {
+  const splineConfig = {
     high: { mode: 'quality', quality: 'high', fps: '60', shadows: 'true' },
     medium: { mode: 'performance', quality: 'medium', fps: '30', shadows: 'false' },
     low: { mode: 'performance', quality: 'low', fps: '20', shadows: 'false' }
   };
   
-  const cfg = config[deviceCapabilities.tier];
+  const cfg = splineConfig[deviceCapabilities.tier];
   
   DOM.splineViewer.setAttribute('render-mode', cfg.mode);
   DOM.splineViewer.setAttribute('quality', cfg.quality);
@@ -219,66 +182,50 @@ const optimizeSpline = () => {
   DOM.splineViewer.setAttribute('reflections-enabled', cfg.shadows);
   DOM.splineViewer.setAttribute('post-processing-enabled', cfg.shadows);
   
-  // ===== SISTEMA DE BLOQUEO DE SCROLL MEJORADO =====
+  // Sistema de bloqueo de scroll
   let isInteracting = false;
   let interactionTimeout = null;
   
-  // Bloquear scroll completamente
   const lockScroll = () => {
     if (isInteracting) return;
     
     isInteracting = true;
-    
-    // Bloquear scroll del body
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.height = '100%';
-    
-    // Guardar posición del scroll
-    window.lastScrollPosition = window.pageYOffset;
-    
+    document.body.classList.add('scroll-locked');
     DOM.splineContainer.classList.add('interacting');
+    
+    if (window.lastScrollPosition === undefined) {
+      window.lastScrollPosition = window.pageYOffset;
+    }
   };
   
-  // Desbloquear scroll
   const unlockScroll = () => {
     if (!isInteracting) return;
     
     isInteracting = false;
-    
-    // Restaurar scroll del body
-    document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.width = '';
-    document.body.style.height = '';
-    
-    // Restaurar posición del scroll
-    if (window.lastScrollPosition !== undefined) {
-      window.scrollTo(0, window.lastScrollPosition);
-    }
-    
+    document.body.classList.remove('scroll-locked');
     DOM.splineContainer.classList.remove('interacting');
+    
+    if (window.lastScrollPosition !== undefined) {
+      setTimeout(() => {
+        window.scrollTo(0, window.lastScrollPosition);
+      }, 10);
+    }
   };
   
-  // EVENTOS PARA DESKTOP
+  // Eventos para desktop
   if (!deviceCapabilities.isMobile) {
-    // Comenzar interacción
     DOM.splineViewer.addEventListener('mousedown', () => {
       lockScroll();
       if (interactionTimeout) clearTimeout(interactionTimeout);
     });
     
-    // Terminar interacción con mouse up
     DOM.splineViewer.addEventListener('mouseup', () => {
       if (interactionTimeout) clearTimeout(interactionTimeout);
       interactionTimeout = setTimeout(() => {
-        if (!isInteracting) return;
         unlockScroll();
       }, 300);
     });
     
-    // Bloquear con rueda del mouse
     DOM.splineViewer.addEventListener('wheel', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -293,19 +240,17 @@ const optimizeSpline = () => {
       }, 500);
     }, { passive: false });
     
-    // Mouse leave - desbloquear si sale
     DOM.splineViewer.addEventListener('mouseleave', () => {
       if (interactionTimeout) clearTimeout(interactionTimeout);
       unlockScroll();
     });
   }
   
-  // EVENTOS PARA MÓVIL
+  // Eventos para móvil
   if (deviceCapabilities.isMobile) {
     DOM.splineViewer.style.touchAction = 'none';
     
     DOM.splineViewer.addEventListener('touchstart', (e) => {
-      // Si hay dos dedos (zoom) o ya estamos interactuando
       if (e.touches.length >= 2 || isInteracting) {
         lockScroll();
         e.preventDefault();
@@ -313,13 +258,11 @@ const optimizeSpline = () => {
     }, { passive: false });
     
     DOM.splineViewer.addEventListener('touchmove', (e) => {
-      // Si estamos interactuando, prevenir scroll
       if (isInteracting) {
         e.preventDefault();
         e.stopPropagation();
       }
       
-      // Si detectamos dos dedos, bloquear definitivamente
       if (e.touches.length >= 2 && !isInteracting) {
         lockScroll();
         e.preventDefault();
@@ -350,48 +293,10 @@ const optimizeSpline = () => {
   
   observer.observe(DOM.splineViewer);
   
-  console.log(`🎮 Spline: ${cfg.quality} @ ${cfg.fps}FPS + Scroll Lock`);
-};
-// ===== PARALLAX - BATCHING OPTIMIZADO =====
-const initComponentParallax = () => {
-  if (!config.effects) return;
-  
-  const groups = {
-    high: Array.from(document.querySelectorAll('.hero-img, .hero-text h1, .section-title h2')),
-    medium: Array.from(document.querySelectorAll('.card, .offer-card')),
-    low: Array.from(document.querySelectorAll('[data-scroll-effect]'))
-  };
-  
-  let frame = 0;
-  const intensity = perfCfg.parallaxIntensity;
-  
-  const update = perfUtils.throttle(() => {
-    const scrollY = window.scrollY;
-    const winH = window.innerHeight;
-    const center = scrollY + winH / 2;
-    
-    const processGroup = (elements, mult) => {
-      elements.forEach(el => {
-        const rect = el.getBoundingClientRect();
-        const elCenter = rect.top + scrollY + rect.height / 2;
-        const dist = (elCenter - center) / winH;
-        const offset = dist * 50 * intensity * mult;
-        el.style.transform = `translate3d(0, ${offset}px, 0)`;
-      });
-    };
-    
-    if (frame % 1 === 0) processGroup(groups.high, 1.0);
-    if (frame % 2 === 0) processGroup(groups.medium, 0.7);
-    if (frame % 3 === 0) processGroup(groups.low, 0.5);
-    
-    frame++;
-  }, 16);
-  
-  window.addEventListener('scroll', update, { passive: true });
-  console.log('✅ Parallax optimizado');
+  console.log(`🎮 Spline: ${cfg.quality} @ ${cfg.fps}FPS`);
 };
 
-// ===== SCROLL STORYTELLING PRO - COMPLETO CON SECCIÓN 3 =====
+// ===== SCROLL STORYTELLING PRO =====
 const initScrollStorytellingPro = () => {
   const storySections = document.querySelectorAll('.story-section');
   const animatedTexts = document.querySelectorAll('.story-text-animated');
@@ -402,7 +307,7 @@ const initScrollStorytellingPro = () => {
   
   if (!storySections.length) return;
   
-  // Preparar textos (una sola vez)
+  // Preparar textos
   animatedTexts.forEach(textEl => {
     const text = textEl.dataset.text || textEl.textContent;
     const fragment = document.createDocumentFragment();
@@ -420,7 +325,7 @@ const initScrollStorytellingPro = () => {
     textEl.appendChild(fragment);
   });
   
-  // Observer con requestIdleCallback
+  // Observer optimizado
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       const section = entry.target;
@@ -435,7 +340,6 @@ const initScrollStorytellingPro = () => {
             }, i * 25);
           });
           
-          // ANIMACIÓN PARA SECCIÓN 3 (ICONOS)
           if (section.id === 'story-section-3') {
             setTimeout(() => {
               if (storyWithIcons) storyWithIcons.classList.add('active');
@@ -452,14 +356,13 @@ const initScrollStorytellingPro = () => {
         
         'requestIdleCallback' in window 
           ? requestIdleCallback(animate) 
-          : animate();
+          : setTimeout(animate, 0);
       } else {
         chars.forEach(char => {
           char.style.opacity = '0';
           char.style.transform = 'translateX(calc(var(--distance) * 60px)) rotateX(calc(var(--distance) * 30deg))';
         });
         
-        // RESET PARA SECCIÓN 3
         if (section.id === 'story-section-3') {
           if (storyWithIcons) storyWithIcons.classList.remove('active');
           if (storyIconsGrid) storyIconsGrid.classList.remove('active');
@@ -473,8 +376,6 @@ const initScrollStorytellingPro = () => {
   
   // Scroll hint optimizado
   if (scrollHint) {
-    scrollHint.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-    
     setTimeout(() => {
       scrollHint.style.opacity = '1';
       scrollHint.style.transform = 'translateX(-50%) translateY(0)';
@@ -517,7 +418,7 @@ const initScrollStorytellingPro = () => {
     updateHint();
   }
   
-  console.log('🎬 Storytelling completo (con sección 3)');
+  console.log('🎬 Storytelling completo');
 };
 
 // ===== SCROLL EFFECTS - INTERSECTION OBSERVER =====
@@ -530,9 +431,7 @@ const initScrollEffects = () => {
         const el = entry.target;
         const delay = parseInt(el.getAttribute('data-delay')) || 0;
         
-        requestAnimationFrame(() => {
-          setTimeout(() => el.classList.add('active'), delay);
-        });
+        setTimeout(() => el.classList.add('active'), delay);
       }
     });
   }, { rootMargin: '100px', threshold: 0.01 });
@@ -573,10 +472,8 @@ const initMobileMenu = () => {
     
     if (isActive) {
       document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
     }
   });
   
@@ -585,7 +482,6 @@ const initMobileMenu = () => {
     DOM.menuToggle.classList.remove('active');
     DOM.menuToggle.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
   };
   
   DOM.navMenu.querySelectorAll('a').forEach(link => {
@@ -698,7 +594,7 @@ const initSmoothScroll = () => {
   console.log('✅ SmoothScroll completo');
 };
 
-// ===== SISTEMA DE NOTIFICACIONES INTELIGENTE COMPLETO =====
+// ===== SISTEMA DE NOTIFICACIONES =====
 const initSmartNotifications = () => {
   let container = document.querySelector('.notification-container');
   
@@ -717,7 +613,6 @@ const initSmartNotifications = () => {
     const notificationId = options.id || `notification-${Date.now()}`;
     const duration = options.duration || (config.isMobile() ? 8000 : 10000);
     
-    // Remover notificación existente con el mismo ID
     if (options.id) {
       const existing = document.getElementById(options.id);
       if (existing) {
@@ -808,7 +703,7 @@ const initSmartNotifications = () => {
     }, 300);
   };
 
-  // ===== NOTIFICACIÓN DE BIENVENIDA AUTOMÁTICA =====
+  // Notificación de bienvenida
   setTimeout(() => {
     showNotification(
       '¡Bienvenido a Merke+ de la sabana!',
@@ -817,7 +712,7 @@ const initSmartNotifications = () => {
     );
   }, 3500);
 
-  // ===== NOTIFICACIONES PARA SPLINE =====
+  // Notificaciones para Spline
   setTimeout(() => {
     if (!DOM.splineViewer) return;
     
@@ -840,7 +735,6 @@ const initSmartNotifications = () => {
       lastInteractionTime = now;
     };
 
-    // Añadir listeners con delay para asegurar que Spline esté listo
     DOM.splineViewer.addEventListener('mousedown', showSplineNotification);
     DOM.splineViewer.addEventListener('wheel', showSplineNotification);
     DOM.splineViewer.addEventListener('touchstart', showSplineNotification);
@@ -851,7 +745,7 @@ const initSmartNotifications = () => {
   console.log('✅ Sistema de notificaciones completo');
 };
 
-// ===== VENTANAS DE PRODUCTOS CON CARRUSEL COMPLETO =====
+// ===== VENTANAS DE PRODUCTOS CON CARRUSEL =====
 const initProductModals = () => {
   const products = {
     'abarrotes': {
@@ -1250,7 +1144,6 @@ const init = () => {
       initSmoothScroll();
       initScrollEffects();
       initScrollStorytellingPro();
-      initComponentParallax();
       optimizeSpline();
       initCountdown();
       initMicroInteractions();
